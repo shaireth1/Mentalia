@@ -9,15 +9,15 @@ export default function Home() {
         {/* Panel izquierdo con info */}
         <div className="hidden md:flex flex-col justify-center items-center bg-purple-50/10 p-8 w-1/2">
           <img
-            src="/foto-panel-principal.jpg"
+            src="/icono-registrarse.jpg"
             alt="Bienestar"
             className="rounded-lg shadow-sm w-full object-cover"
           />
           <h2 className="mt-6 text-purple-300 text-xl font-semibold">
-            Bienvenido a MENTALIA
+            Tecnología al servicio de tu bienestar
           </h2>
           <p className="text-purple-200 text-center mt-2">
-            Un espacio seguro y confidencial para tu bienestar emocional.
+            Únete a nuestra comunidad y accede a herramientas personalizadas para tu crecimiento emocional.
           </p>
         </div>
 
