@@ -5,11 +5,12 @@ export default function Home() {
     <main className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-r from-[#A259FF] to-[#3A86FF] relative font-sans">
       
       {/* Encabezado superior */}
-      <div className="absolute top-6 w-full flex justify-center">
-        <div className="bg-white/20 text-sm px-6 py-1 rounded-full text-white font-medium shadow-sm">
-          SENA - Servicio Nacional de Aprendizaje
-        </div>
-      </div>
+      <div className="absolute top-8 w-full flex justify-center">
+  <div className="bg-white/25 text-xl px-8 py-3 rounded-full text-white font-semibold shadow-md tracking-wide">
+    SENA - Servicio Nacional de Aprendizaje
+  </div>
+</div>
+
 
       <div className="w-full max-w-7xl flex flex-col md:flex-row items-center justify-between px-8 lg:px-16 mt-20">
         
