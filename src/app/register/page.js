@@ -36,18 +36,8 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Panel derecho: login */}
+        
         <div className="bg-white rounded-2xl shadow-md p-10 w-full md:w-1/2">
-          {/* Logo */}
-          <div className="flex items-center justify-center mb-8">
-            <Heart className="w-6 h-6 text-purple-600 mr-2" />
-            <div>
-              <h1 className="text-xl font-bold text-purple-700 leading-none">
-                MENTALIA
-              </h1>
-              <p className="text-xs text-gray-500">SENA</p>
-            </div>
-          </div>
 
           <h2 className="text-xl font-semibold text-center text-purple-800 mb-2">
             Iniciar Sesión
