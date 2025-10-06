@@ -53,7 +53,7 @@ export default function Home() {
           </div>
 
           <div className="flex gap-4">
-             <Link href="/register">
+             <Link href="/login">
               <button className="px-8 py-3 bg-gradient-to-r from-purple-600  text-white rounded-full font-semibold hover:opacity-90 transition shadow-lg">
                 Iniciar Sesión
               </button>
