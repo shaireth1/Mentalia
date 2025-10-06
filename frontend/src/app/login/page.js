@@ -3,57 +3,80 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { Eye, ArrowLeft } from "lucide-react";
+import { Eye, ArrowLeft, Heart } from "lucide-react";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#f2e1ff] p-6">
-      {/* Botón volver */}
-      <div className="w-full max-w-6xl mb-6 flex items-center">
-        <Link href="/" className="flex items-center text-purple-700 font-medium">
+    <div className="min-h-screen flex flex-col items-center justify-start bg-[#f2e1ff] p-8">
+      {/* Encabezado superior */}
+      <div className="w-full max-w-7xl mb-8 flex items-center justify-between">
+        {/* Botón volver */}
+        <Link
+          href="/"
+          className="flex items-center text-purple-700 font-medium hover:text-purple-900 transition"
+        >
           <ArrowLeft size={18} className="mr-2" />
           Volver
         </Link>
+
+        {/* Logo: corazón outline + MENTALIA (más delgado) + SENA debajo */}
+        <div className="flex items-center">
+          {/* corazón outline: sin fill */}
+          <Heart className="w-7 h-7 text-purple-700" />
+          <div className="flex flex-col items-start ml-3">
+            {/* MENTALIA menos grueso (font-medium) y con tracking para parecer más "delgado" */}
+            <span className="text-2xl font-medium tracking-wide text-purple-700">
+              MENTALIA
+            </span>
+            {/* SENA debajo, más pequeño */}
+            <span className="text-xs text-purple-500 -mt-1">SENA</span>
+          </div>
+        </div>
       </div>
 
-      {/* Contenedor principal */}
-      <div className="bg-white/80 rounded-2xl shadow-lg grid md:grid-cols-2 w-full max-w-6xl overflow-hidden">
-        {/* Lado izquierdo con imagen */}
-        <div className="bg-white flex flex-col justify-between">
-          <Image
-            src="/icono-iniciarsesion.jpg"
-            alt="Bienestar emocional"
-            width={600}
-            height={400}
-            className="w-full h-80 object-cover"
-          />
-          <div className="p-6">
+      {/* Contenedor principal: más ancho (max-w-7xl) y paneles más altos */}
+      <div className="bg-white/90 rounded-2xl shadow-2xl grid md:grid-cols-2 w-full max-w-7xl overflow-hidden">
+        {/* Lado izquierdo con imagen (altura mayor) */}
+        <div className="min-h-[540px] flex flex-col justify-between bg-white">
+          <div className="w-full h-full overflow-hidden">
+            <Image
+              src="/icono-iniciarsesion.jpg"
+              alt="Bienestar emocional"
+              width={1400}
+              height={900}
+              className="w-full h-full object-cover"
+            />
+          </div>
+
+          <div className="p-8">
             <h2 className="text-xl font-semibold text-purple-800 mb-2">
               Tecnología al servicio de tu bienestar
             </h2>
             <p className="text-sm text-purple-600 leading-relaxed">
-              Únete a nuestra comunidad y accede a herramientas personalizadas para tu crecimiento emocional.
+              Únete a nuestra comunidad y accede a herramientas personalizadas
+              para tu crecimiento emocional.
             </p>
           </div>
         </div>
 
-        {/* Lado derecho: formulario */}
-        <div className="p-10 flex flex-col justify-center bg-white">
-          <div className="flex items-center justify-end mb-6">
-            <h1 className="text-2xl font-semibold text-purple-800 mr-2">MENTALIA</h1>
-            <p className="text-sm text-purple-600">SENA</p>
-          </div>
-
-          <h2 className="text-2xl font-semibold text-center text-purple-800 mb-2">
+        {/* Lado derecho: formulario (misma altura que imagen) */}
+        <div className="p-12 flex flex-col justify-center bg-white min-h-[540px]">
+          <h2 className="text-2xl font-medium text-center text-purple-800 mb-2">
             Iniciar Sesión
           </h2>
-          <p className="text-center text-purple-600 mb-8">
+          <p className="text-center text-purple-600 mb-6">
             Accede a tu espacio personal de bienestar
           </p>
 
-          <form className="space-y-4">
+          <form
+            className="space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              // aquí va tu manejador de login
+            }}
+          >
             <div>
               <label className="block text-sm font-medium text-purple-800">
                 Correo Electrónico *
@@ -77,7 +100,8 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-9 text-purple-600"
+                aria-label="Mostrar contraseña"
+                className="absolute right-3 top-9 text-purple-600 hover:text-purple-800"
               >
                 <Eye size={20} />
               </button>
@@ -94,14 +118,17 @@ export default function LoginPage() {
           <div className="text-center mt-6 text-sm">
             <p className="text-purple-600">
               ¿No tienes cuenta?{" "}
-              <Link href="/register" className="text-purple-800 font-semibold hover:underline">
+              <Link
+                href="/register"
+                className="text-purple-800 font-semibold hover:underline"
+              >
                 Regístrate aquí
               </Link>
             </p>
           </div>
-
         </div>
       </div>
     </div>
   );
 }
+
