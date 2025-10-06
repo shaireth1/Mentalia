@@ -25,17 +25,33 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // 🔁 Convertir nombres al formato que el backend espera
+    const body = {
+      nombre: formData.fullName,
+      identificacion: formData.idNumber,
+      edad: formData.age,
+      genero: formData.gender,
+      programa: formData.program,
+      ficha: formData.ficha,
+      telefono: formData.phone,
+      email: formData.email,
+      password: formData.password,
+    };
+
     try {
-      const res = await fetch("http://localhost:3000/api/auth/register", {
+      const res = await fetch("http://localhost:4000/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(body),
       });
+
       const data = await res.json();
       if (res.ok) {
         alert("✅ Usuario registrado con éxito");
+        console.log("Respuesta del servidor:", data);
       } else {
-        alert("❌ Error: " + data.error);
+        alert("❌ Error: " + (data.msg || data.error));
       }
     } catch (err) {
       console.error("Error en el registro:", err);
@@ -93,7 +109,6 @@ export default function Register() {
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Grid más uniforme */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
               <div>
                 <label className="label">Nombre Completo *</label>
@@ -239,11 +254,8 @@ export default function Register() {
   );
 }
 
-// estilos reutilizables
+// Estilos reutilizables
 const label =
   "block text-sm font-semibold text-purple-700 mb-1 tracking-wide";
 const input =
   "w-full border border-purple-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-purple-400 focus:outline-none text-sm";
-
-
-
