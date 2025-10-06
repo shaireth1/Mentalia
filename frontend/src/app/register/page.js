@@ -61,18 +61,20 @@ export default function Register() {
         <span className="text-xs text-purple-500 -mt-1">SENA</span>
       </div>
 
-      {/* Contenedor principal */}
+      {/* Contenedor principal con ambos paneles */}
       <div className="flex flex-col md:flex-row max-w-6xl w-full gap-8 items-stretch">
         {/* Panel izquierdo */}
-        <div className="bg-white rounded-2xl shadow-md overflow-hidden w-full md:w-1/2 flex flex-col justify-between">
-          <Image
-            src="/icono-registrarse.jpg"
-            alt="Bienestar"
-            width={600}
-            height={400}
-            className="w-full h-[360px] object-cover"
-          />
-          <div className="p-6 bg-white">
+        <div className="bg-white rounded-2xl shadow-md overflow-hidden w-full md:w-1/2 flex flex-col">
+          <div className="h-[360px] w-full overflow-hidden">
+            <Image
+              src="/icono-registrarse.jpg"
+              alt="Bienestar"
+              width={600}
+              height={400}
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <div className="p-6 flex flex-col justify-start flex-grow bg-white">
             <h2 className="text-lg font-semibold text-purple-700 mb-2">
               Tecnología al servicio de tu bienestar
             </h2>
@@ -244,6 +246,7 @@ const label =
   "block text-sm font-semibold text-purple-700 mb-1 tracking-wide";
 const input =
   "w-full border border-purple-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-purple-400 focus:outline-none text-sm";
+
 
 
 
