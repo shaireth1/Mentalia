@@ -9,7 +9,9 @@ const userSchema = new mongoose.Schema({
   ficha: { type: String, required: true },
   telefono: { type: String },
   email: { type: String, required: true, unique: true },
-  password: { type: String, required: true }
+  password: { type: String, required: true },
+  resetToken: { type: String }, // 🔹 token para recuperación
+  resetTokenExpira: { type: Date } // 🔹 tiempo de expiración
 });
 
 module.exports = mongoose.model("User", userSchema);

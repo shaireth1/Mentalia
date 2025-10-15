@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 exports.registerUser = async (req, res) => {
   try {
     const { nombre, identificacion, edad, genero, programa, ficha, telefono, email, password } = req.body;
+
     if (!nombre || !identificacion || !email || !password)
       return res.status(400).json({ msg: "Faltan datos obligatorios" });
 
@@ -11,6 +12,7 @@ exports.registerUser = async (req, res) => {
     if (existe) return res.status(400).json({ msg: "El correo ya está registrado" });
 
     const hashed = await bcrypt.hash(password, 10);
+
     const nuevoUsuario = new User({
       nombre,
       identificacion,
@@ -39,7 +41,15 @@ exports.loginUser = async (req, res) => {
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(401).json({ msg: "Contraseña incorrecta" });
 
-    res.json({ msg: "Inicio de sesión exitoso", user });
+    res.json({
+      msg: "Inicio de sesión exitoso ✅",
+      user: {
+        id: user._id,
+        nombre: user.nombre,
+        email: user.email,
+        programa: user.programa
+      }
+    });
   } catch (err) {
     res.status(500).json({ msg: "Error en el servidor", error: err.message });
   }
