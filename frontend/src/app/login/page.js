@@ -63,7 +63,7 @@ export default function LoginPage() {
         <div className="min-h-[540px] flex flex-col justify-between bg-white">
           <div className="w-full h-full overflow-hidden">
             <Image
-              src="/icono-iniciarsesion.jpg"
+              src="/icono-registrarse.jpg"
               alt="Bienestar emocional"
               width={1400}
               height={900}
@@ -125,6 +125,14 @@ export default function LoginPage() {
               >
                 <Eye size={20} />
               </button>
+            </div>
+            <div className="text-right text-sm mt-1">
+              <Link
+                href="/forgot-password"
+                className="text-purple-700 hover:text-purple-900 font-medium hover:underline"
+              >
+                ¿Olvidaste tu contraseña?
+              </Link>
             </div>
 
             <button
