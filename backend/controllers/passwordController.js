@@ -1,54 +1,39 @@
 const User = require("../models/User");
 const crypto = require("crypto");
-const nodemailer = require("nodemailer");
+const sendEmail = require("../utils/sendEmail");
 
-// 📩 Solicitar recuperación de contraseña
 exports.forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
-    if (!email) return res.status(400).json({ msg: "El correo es obligatorio" });
-
-    // Buscar usuario
     const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ msg: "Usuario no encontrado" });
 
-    // Generar token único
+    if (!user) {
+      return res.status(404).json({ msg: "Usuario no encontrado" });
+    }
+
+    // Crear token único
     const token = crypto.randomBytes(32).toString("hex");
-
-    // Guardar token y expiración (1 hora)
     user.resetToken = token;
     user.resetTokenExp = Date.now() + 3600000; // 1 hora
     await user.save();
 
-    // Configurar transporte de correo
-    const transporter = nodemailer.createTransport({
-      service: "gmail", // puedes cambiar a outlook o smtp personalizado
-      auth: {
-        user: "tu_correo@gmail.com", // ⚠️ cámbialo por uno real
-        pass: "tu_contraseña_o_app_password", // ⚠️ app password si usas Gmail
-      },
-    });
+    // Crear link de recuperación
+    const resetLink = `http://localhost:3000/reset-password/${token}`;
 
     // Contenido del correo
-    const mailOptions = {
-      from: "MENTALIA 💜 <tu_correo@gmail.com>",
-      to: user.email,
-      subject: "Recuperación de contraseña",
-      html: `
-        <h2>Hola ${user.nombre}</h2>
-        <p>Recibimos una solicitud para restablecer tu contraseña en <b>MENTALIA</b>.</p>
-        <p>Haz clic en el siguiente enlace para crear una nueva contraseña:</p>
-        <a href="http://localhost:3000/reset-password/${token}">Restablecer contraseña</a>
-        <p>Este enlace expira en 1 hora.</p>
-      `,
-    };
+    const html = `
+      <h2>Recuperación de contraseña - MENTALIA 💜</h2>
+      <p>Hola ${user.nombre},</p>
+      <p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>
+      <a href="${resetLink}" target="_blank">Restablecer Contraseña</a>
+      <p>Este enlace expirará en 1 hora.</p>
+    `;
 
-    // Enviar correo
-    await transporter.sendMail(mailOptions);
+    await sendEmail(user.email, "Recupera tu contraseña - MENTALIA", html);
 
-    res.json({ msg: "Correo de recuperación enviado ✅" });
+    res.json({ msg: "Correo de recuperación enviado con éxito ✅" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ msg: "Error al enviar el correo", error: err.message });
+    res.status(500).json({ msg: "Error en el servidor", error: err.message });
   }
 };
