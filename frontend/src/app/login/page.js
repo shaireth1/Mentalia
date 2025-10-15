@@ -142,7 +142,7 @@ export default function LoginPage() {
               Iniciar Sesión
             </button>
           </form>
-
+ 
           <div className="text-center mt-6 text-sm">
             <p className="text-purple-600">
               ¿No tienes cuenta?{" "}
