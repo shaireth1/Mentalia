@@ -9,3 +9,6 @@ router.post("/register", registerUser);
 router.post("/login", loginUser);
 
 module.exports = router;
+const passwordController = require("../controllers/passwordController");
+
+router.post("/forgot-password", passwordController.forgotPassword);

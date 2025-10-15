@@ -10,8 +10,10 @@ const userSchema = new mongoose.Schema({
   telefono: { type: String },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  resetToken: { type: String }, // 🔹 token para recuperación
-  resetTokenExpira: { type: Date } // 🔹 tiempo de expiración
+
+  // 👇 Añade esto:
+  resetToken: String,
+  resetTokenExp: Date,
 });
 
 module.exports = mongoose.model("User", userSchema);
