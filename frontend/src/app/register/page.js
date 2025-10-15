@@ -162,18 +162,19 @@ export default function Register() {
                   <option value="other">Otro</option>
                 </select>
               </div>
-
+              
               <div className="md:col-span-2">
                 <label className="label">Programa de Formación *</label>
-                <input
+                <select
                   name="program"
-                  type="text"
-                  placeholder="Ej: Análisis y Desarrollo de Software"
                   className="input"
                   onChange={handleChange}
                   required
-                />
+                >
+                  
+                </select>
               </div>
+
 
               <div>
                 <label className="label">Número de Ficha *</label>
@@ -204,7 +205,7 @@ export default function Register() {
                 <input
                   name="email"
                   type="email"
-                  placeholder="tu.email@sena.edu.co"
+                  placeholder="tu.email@gmail.com"
                   className="input"
                   onChange={handleChange}
                   required
