@@ -1,23 +1,34 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react"; // 👁️ iconos modernos
 
 export default function ResetPasswordPage() {
-  const { token } = useParams(); // obtiene el token de la URL
+  const { token } = useParams();
   const router = useRouter();
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // ✅ Validación dinámica mientras escribe
+  useEffect(() => {
+    if (password && confirmPassword && password !== confirmPassword) {
+      setError("❌ Las contraseñas no coinciden");
+    } else if (password && password.length < 8) {
+      setError("❌ La contraseña debe tener al menos 8 caracteres");
+    } else {
+      setError("");
+    }
+  }, [password, confirmPassword]);
 
   const handleReset = async (e) => {
     e.preventDefault();
-
-    if (password !== confirmPassword) {
-      setMessage("❌ Las contraseñas no coinciden");
-      return;
-    }
+    if (error) return;
 
     setLoading(true);
     setMessage("");
@@ -32,13 +43,12 @@ export default function ResetPasswordPage() {
       const data = await res.json();
       if (res.ok) {
         setMessage("✅ Contraseña actualizada correctamente");
-        setTimeout(() => router.push("/login"), 3000);
+        setTimeout(() => router.push("/login"), 2500);
       } else {
         setMessage("❌ " + (data.msg || "Error al actualizar contraseña"));
       }
     } catch (err) {
       setMessage("❌ Error de conexión con el servidor");
-      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -55,29 +65,65 @@ export default function ResetPasswordPage() {
         </p>
 
         <form onSubmit={handleReset} className="space-y-4">
-          <input
-            type="password"
-            placeholder="Nueva contraseña"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-3 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-            required
-          />
+          {/* Campo contraseña */}
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Nueva contraseña"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={`w-full p-3 pr-10 border rounded-lg focus:outline-none focus:ring-2 ${
+                error && password.length < 8
+                  ? "border-red-400 focus:ring-red-400"
+                  : "border-purple-300 focus:ring-purple-500"
+              }`}
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-3 text-purple-600 hover:text-purple-800"
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          </div>
 
-          <input
-            type="password"
-            placeholder="Confirmar nueva contraseña"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            className="w-full p-3 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-            required
-          />
+          {/* Confirmar contraseña */}
+          <div className="relative">
+            <input
+              type={showConfirm ? "text" : "password"}
+              placeholder="Confirmar nueva contraseña"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className={`w-full p-3 pr-10 border rounded-lg focus:outline-none focus:ring-2 ${
+                error === "❌ Las contraseñas no coinciden"
+                  ? "border-red-400 focus:ring-red-400"
+                  : "border-purple-300 focus:ring-purple-500"
+              }`}
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirm(!showConfirm)}
+              className="absolute right-3 top-3 text-purple-600 hover:text-purple-800"
+            >
+              {showConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          </div>
 
+          {/* Mensaje de error */}
+          {error && (
+            <p className="text-red-500 text-sm text-center mt-1">{error}</p>
+          )}
+
+          {/* Botón */}
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || error}
             className={`w-full py-3 rounded-lg font-semibold text-white transition-all ${
-              loading ? "bg-purple-400" : "bg-purple-700 hover:bg-purple-800"
+              loading || error
+                ? "bg-purple-400 cursor-not-allowed"
+                : "bg-purple-700 hover:bg-purple-800"
             }`}
           >
             {loading ? "Actualizando..." : "Restablecer contraseña"}
