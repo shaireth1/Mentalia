@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
 export default function ResetPasswordPage() {
-  const { token } = useParams(); // 👈 obtiene el token de la URL
+  const { token } = useParams(); // obtiene el token de la URL
   const router = useRouter();
 
   const [password, setPassword] = useState("");
