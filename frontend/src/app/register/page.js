@@ -113,7 +113,7 @@ export default function Register() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
               <div>
-                <label className="label">Nombre Completo *</label>
+                <label className="label">Nombre Completo</label>
                 <input
                   name="fullName"
                   type="text"
@@ -125,7 +125,7 @@ export default function Register() {
               </div>
 
               <div>
-                <label className="label">Identificación *</label>
+                <label className="label">Identificación</label>
                 <input
                   name="idNumber"
                   type="text"
@@ -137,7 +137,7 @@ export default function Register() {
               </div>
 
               <div>
-                <label className="label">Edad *</label>
+                <label className="label">Edad</label>
                 <input
                   name="age"
                   type="number"
@@ -149,7 +149,7 @@ export default function Register() {
               </div>
 
               <div>
-                <label className="label">Género *</label>
+                <label className="label">Género</label>
                 <select
                   name="gender"
                   className="input"
@@ -164,7 +164,7 @@ export default function Register() {
               </div>
               
               <div className="md:col-span-2">
-                <label className="label">Programa de Formación *</label>
+                <label className="label">Programa de Formación</label>
                 <select
                   name="program"
                   className="input"
@@ -177,7 +177,7 @@ export default function Register() {
 
 
               <div>
-                <label className="label">Número de Ficha *</label>
+                <label className="label">Número de Ficha</label>
                 <input
                   name="ficha"
                   type="text"
@@ -189,7 +189,7 @@ export default function Register() {
               </div>
 
               <div>
-                <label className="label">Teléfono *</label>
+                <label className="label">Teléfono</label>
                 <input
                   name="phone"
                   type="text"
@@ -201,7 +201,7 @@ export default function Register() {
               </div>
 
               <div className="md:col-span-2">
-                <label className="label">Correo Electrónico *</label>
+                <label className="label">Correo Electrónico</label>
                 <input
                   name="email"
                   type="email"
@@ -213,7 +213,7 @@ export default function Register() {
               </div>
 
               <div className="md:col-span-2 relative">
-                <label className="label">Contraseña *</label>
+                <label className="label">Contraseña</label>
                 <div className="relative">
                   <input
                     name="password"
