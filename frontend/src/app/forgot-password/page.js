@@ -41,7 +41,7 @@ export default function ForgotPasswordPage() {
         <form onSubmit={handleForgotPassword} className="space-y-4">
           <input
             type="email"
-            placeholder="tu.email@sena.edu.co"
+            placeholder="lujaeguer19@gmail.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full p-3 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
