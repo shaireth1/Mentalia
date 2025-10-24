@@ -171,6 +171,7 @@ export default function Register() {
                   onChange={handleChange}
                   required
                 >
+                  <option value="">analisis</option>
                   
                 </select>
               </div>

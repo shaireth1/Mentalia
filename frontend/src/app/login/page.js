@@ -13,33 +13,34 @@ export default function LoginPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
+  // 🔹 Simulación sin base de datos
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
-  try {
-    const res = await fetch("http://localhost:4000/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formData),
-    });
+    const { email, password } = formData;
 
-    const data = await res.json();
-    if (res.ok) {
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
+    // Credenciales simuladas
+    const fakeUser = {
+      email: "usuario@mentalia.com",
+      password: "123456",
+      nombre: "Usuario Mentalia",
+    };
 
-      alert("✅ Sesión iniciada con éxito");
-      console.log("Usuario:", data.user);
+    // Validación local
+    if (email === fakeUser.email && password === fakeUser.password) {
+      // Simula datos guardados
+      localStorage.setItem("token", "fake_token_123");
+      localStorage.setItem("user", JSON.stringify(fakeUser));
 
-      window.location.href = "/dashboard"; // o la ruta principal
+      alert("✅ Sesión iniciada con éxito (simulada)");
+      console.log("Usuario:", fakeUser);
+
+      // Redirige a la vista del usuario autenticado
+      window.location.href = "/panel-usuario-autenticado";
     } else {
-      alert("❌ Error: " + (data.msg || data.error));
+      alert("❌ Correo o contraseña incorrectos (simulado)");
     }
-  } catch (err) {
-    console.error("Error en login:", err);
-  }
-};
-
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-start bg-[#f2e1ff] p-8">
@@ -102,7 +103,7 @@ export default function LoginPage() {
               <input
                 name="email"
                 type="email"
-                placeholder="tu.email@sena.edu.co"
+                placeholder="usuario@mentalia.com"
                 className="w-full mt-1 p-3 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                 onChange={handleChange}
                 required
@@ -116,7 +117,7 @@ export default function LoginPage() {
               <input
                 name="password"
                 type={showPassword ? "text" : "password"}
-                placeholder="Mínimo 8 caracteres"
+                placeholder="123456"
                 className="w-full mt-1 p-3 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                 onChange={handleChange}
                 required
@@ -146,7 +147,7 @@ export default function LoginPage() {
               Iniciar Sesión
             </button>
           </form>
- 
+
           <div className="text-center mt-6 text-sm">
             <p className="text-purple-600">
               ¿No tienes cuenta?{" "}
@@ -163,3 +164,4 @@ export default function LoginPage() {
     </div>
   );
 }
+
