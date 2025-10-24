@@ -135,7 +135,7 @@ export default function Page() {
             <div className="flex items-center gap-4">
               <div className="hidden md:block">
                 <Image
-                    src="/fotoinicio.jpg"
+                    src="/foto-inicio.jpg"
                     alt="Foto de inicio"
                     width={1400}
                     height={900}
