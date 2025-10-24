@@ -43,13 +43,13 @@ export default function SettingsView() {
   };
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm">
+    <div className="bg-white rounded-2xl p-6 shadow-sm overflow-hidden">
       <h2 className="text-lg font-semibold text-gray-800 mb-2">
-        🔒 Seguridad y Sesiones
+        Seguridad y Sesiones
       </h2>
       <p className="text-sm text-gray-500 mb-6">
-        Aquí puedes ver los dispositivos donde has iniciado sesión con tu cuenta
-        de <span className="text-purple-600 font-medium">MENTALIA</span> y cerrar sesión en alguno si lo deseas.
+        Aquí puedes ver los dispositivos donde has iniciado sesión con tu cuenta de{" "}
+        <span className="text-purple-600 font-medium">MENTALIA</span> y cerrar sesión en alguno si lo deseas.
       </p>
 
       <div className="space-y-4">
@@ -105,3 +105,5 @@ export default function SettingsView() {
     </div>
   );
 }
+
+
