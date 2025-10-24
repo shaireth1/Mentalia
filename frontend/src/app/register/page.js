@@ -149,14 +149,14 @@ export default function Register() {
               </div>
 
               <div>
-                <label className="label">Género</label>
+                <label className="label">Selecciona</label>
                 <select
                   name="gender"
                   className="input"
                   onChange={handleChange}
                   required
                 >
-                  <option value="">Selecciona tu género</option>
+                  <option value="">tu género</option>
                   <option value="female">Femenino</option>
                   <option value="male">Masculino</option>
                   <option value="other">Otro</option>
