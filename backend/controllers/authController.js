@@ -136,3 +136,11 @@ exports.verifyToken = async (req, res) => {
   }
 };
 
+exports.logoutUser = async (req, res) => {
+  try {
+    res.json({ msg: "Sesión cerrada correctamente ✅" });
+  } catch (error) {
+    res.status(500).json({ msg: "Error al cerrar sesión", error: error.message });
+  }
+};
+
