@@ -163,18 +163,35 @@ export default function Register() {
                 </select>
               </div>
               
+              
               <div className="md:col-span-2">
-                <label className="label">Programa de Formación</label>
-                <select
-                  name="program"
-                  className="input"
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">analisis</option>
-                  
-                </select>
-              </div>
+  <label className={label}>Programa de Formación *</label>
+  <select
+    name="program"
+    value={formData.program}
+    onChange={handleChange}
+    required
+    className={input}
+  >
+    <option value="">Selecciona tu programa</option>
+    <option value="Análisis y Desarrollo de Software">
+      Análisis y Desarrollo de Software
+    </option>
+    <option value="Producción de Multimedia">
+      Producción de Multimedia
+    </option>
+    <option value="Gestión de Redes de Datos">
+      Gestión de Redes de Datos
+    </option>
+    <option value="Contabilidad y Finanzas">
+      Contabilidad y Finanzas
+    </option>
+    <option value="Gestión del Talento Humano">
+      Gestión del Talento Humano
+    </option>
+    <option value="Otro">Otro</option>
+  </select>
+</div>
 
 
               <div>
