@@ -135,12 +135,13 @@ export default function Page() {
             <div className="flex items-center gap-4">
               <div className="hidden md:block">
                 <Image
-                  src=""
-                  alt="banner"
-                  width={420}
-                  height={120}
-                  className="rounded-xl object-cover"
-                />
+                    src="/fotoinicio.jfif"
+                    alt="Foto de inicio"
+                    width={1400}
+                    height={900}
+                    className="w-full h-full object-cover"
+                    />
+
               </div>
 
               <div className="text-right">
