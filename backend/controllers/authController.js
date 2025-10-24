@@ -113,3 +113,26 @@ exports.verifyToken = async (req, res) => {
     res.status(401).json({ msg: "Token inválido o expirado" });
   }
 };
+const { verificarToken } = require("../utils/token");
+
+exports.verifyToken = async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(400).json({ msg: "No se envió token en el header" });
+    }
+
+    // El formato correcto es "Bearer TOKEN"
+    const token = authHeader.split(" ")[1];
+    const decoded = verificarToken(token);
+
+    if (!decoded) {
+      return res.status(401).json({ msg: "Token inválido o expirado ❌" });
+    }
+
+    res.json({ msg: "Token válido ✅", user: decoded });
+  } catch (error) {
+    res.status(500).json({ msg: "Error al verificar token", error: error.message });
+  }
+};
+
