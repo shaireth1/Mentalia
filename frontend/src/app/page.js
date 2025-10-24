@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link"; // 👈 AGREGA ESTA IMPORTACIÓN
+import Link from "next/link";
 import Image from "next/image";
 import { Clock, Shield, User, Heart, Phone } from "lucide-react";
 
@@ -10,11 +10,10 @@ export default function Home() {
       
       {/* Encabezado superior */}
       <div className="absolute top-8 w-full flex justify-center">
-      <div className="bg-white/25 text-xl px-8 py-3 rounded-full text-white font-semibold shadow-md tracking-wide">
-        SENA - Servicio Nacional de Aprendizaje
+        <div className="bg-white/25 text-xl px-8 py-3 rounded-full text-white font-semibold shadow-md tracking-wide">
+          SENA - Servicio Nacional de Aprendizaje
+        </div>
       </div>
-      </div>
-
 
       <div className="w-full max-w-7xl flex flex-col md:flex-row items-center justify-between px-8 lg:px-16 mt-20">
         
@@ -52,15 +51,19 @@ export default function Home() {
             </div>
           </div>
 
+          {/* 🔹 Botones de acción */}
           <div className="flex gap-4">
-             <Link href="/login">
-              <button className="px-8 py-3 bg-gradient-to-r from-purple-600  text-white rounded-full font-semibold hover:opacity-90 transition shadow-lg">
+            <Link href="/login">
+              <button className="px-8 py-3 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-full font-semibold hover:opacity-90 transition shadow-lg">
                 Iniciar Sesión
               </button>
             </Link>
-            <button className="px-8 py-3 border border-white/40 text-white rounded-full font-semibold hover:bg-white/10 transition shadow-md">
-              Usar de forma anónima
-            </button>
+
+            <Link href="/panel-usuario-anonimo">
+              <button className="px-8 py-3 border border-white/40 text-white rounded-full font-semibold hover:bg-white/10 transition shadow-md">
+                Usar de forma anónima
+              </button>
+            </Link>
           </div>
         </div>
 
@@ -84,6 +87,7 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Footer */}
       <footer className="absolute bottom-0 w-full border-t border-white/20 py-4">
         <div className="flex justify-center items-center gap-10 text-sm text-white/80">
           <a href="#" className="hover:underline">Política de privacidad</a>
@@ -93,7 +97,7 @@ export default function Home() {
           </span>
         </div>
       </footer>
-
     </main>
   );
 }
+
