@@ -13,29 +13,33 @@ export default function LoginPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    try {
-      const res = await fetch("http://localhost:4000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+  try {
+    const res = await fetch("http://localhost:4000/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
 
-      const data = await res.json();
-      if (res.ok) {
-        alert("✅ Sesión iniciada con éxito");
-        console.log("Usuario:", data);
-        // Aquí podrías guardar token si tu backend lo genera:
-        // localStorage.setItem("token", data.token);
-      } else {
-        alert("❌ Error: " + (data.msg || data.error));
-      }
-    } catch (err) {
-      console.error("Error en login:", err);
+    const data = await res.json();
+    if (res.ok) {
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      alert("✅ Sesión iniciada con éxito");
+      console.log("Usuario:", data.user);
+
+      window.location.href = "/dashboard"; // o la ruta principal
+    } else {
+      alert("❌ Error: " + (data.msg || data.error));
     }
-  };
+  } catch (err) {
+    console.error("Error en login:", err);
+  }
+};
+
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-start bg-[#f2e1ff] p-8">
