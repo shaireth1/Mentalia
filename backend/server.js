@@ -20,3 +20,5 @@ mongoose.connect("mongodb://127.0.0.1:27017/mentalia")
 app.use("/api/auth", authRoutes);
 
 app.listen(4000, () => console.log("🚀 Backend corriendo en http://localhost:4000"));
+const chatbotRoutes = require("./routes/chatbot");
+app.use("/api/chatbot", chatbotRoutes);
