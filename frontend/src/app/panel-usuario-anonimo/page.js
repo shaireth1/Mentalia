@@ -9,21 +9,28 @@ import {
   Lock,
   Send,
   Clock,
-  Heart,
 } from "lucide-react";
 
 export default function ChatPage() {
+  const [mounted, setMounted] = useState(false);
   const [input, setInput] = useState("");
-  const [messages, setMessages] = useState([
-    {
+  const [messages, setMessages] = useState([]);
+
+  const chatEndRef = useRef(null);
+
+  useEffect(() => {
+    setMounted(true); // se asegura de que solo se renderice en el cliente
+    const welcomeMessage = {
       id: 1,
       text: "💜 ¡Hola! Soy MENTALIA Bot. Este es un espacio confidencial para ti. Puedes contarme cómo te sientes sin preocuparte por juicios. ¿Qué te gustaría contarme hoy?",
       sender: "bot",
-      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-    },
-  ]);
-
-  const chatEndRef = useRef(null);
+      time: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    };
+    setMessages([welcomeMessage]);
+  }, []);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -32,7 +39,7 @@ export default function ChatPage() {
   const handleSend = async () => {
     if (input.trim() === "") return;
 
-    const newMessage = {
+    const userMessage = {
       id: messages.length + 1,
       text: input,
       sender: "user",
@@ -41,7 +48,7 @@ export default function ChatPage() {
         minute: "2-digit",
       }),
     };
-    setMessages((prev) => [...prev, newMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInput("");
 
     try {
@@ -50,21 +57,24 @@ export default function ChatPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: input }),
       });
-
       const data = await res.json();
 
-      // Mensaje principal del bot
-      const botMessage = {
-        id: messages.length + 2,
-        text: data.currentResponse || data.response || "💭 No entendí muy bien, pero te estoy escuchando.",
-        sender: "bot",
-        time: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        emotion: data.emotion || "neutral",
-        confidence: data.confidence || null,
-      };
+     const botMessage = {
+  id: messages.length + 2,
+  text:
+    data.response ||
+    data.botResponse ||
+    data.currentResponse ||
+    "💭 No entendí muy bien, pero te estoy escuchando.",
+  sender: "bot",
+  emotion: data.emotion || "neutral",
+  confidence: data.confidence || null,
+  time: new Date().toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  }),
+};
+
 
       setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
@@ -88,7 +98,6 @@ export default function ChatPage() {
     if (e.key === "Enter") handleSend();
   };
 
-  // --- Traducción emocional visual ---
   const getEmotionColor = (emotion) => {
     switch (emotion) {
       case "tristeza": return "text-blue-600";
@@ -110,6 +119,8 @@ export default function ChatPage() {
       default: return "💜";
     }
   };
+
+  if (!mounted) return null; // evita render SSR inicial
 
   return (
     <div className="flex flex-col h-screen bg-[#f6f4fb]">
@@ -136,7 +147,6 @@ export default function ChatPage() {
         </div>
       </header>
 
-      {/* MAIN CONTENT */}
       <div className="flex flex-1 overflow-hidden">
         {/* SIDEBAR */}
         <aside className="w-60 bg-white border-r border-gray-200 py-4 px-4">
@@ -174,18 +184,12 @@ export default function ChatPage() {
                   }`}
                 >
                   <p>{msg.text}</p>
-
-                  {/* Mostrar emoción y confianza si existen */}
                   {msg.emotion && (
                     <p className={`mt-1 text-xs ${getEmotionColor(msg.emotion)}`}>
-                      {getEmotionIcon(msg.emotion)} 
-                      {" "}Detecté {msg.emotion}{" "}
-                      {msg.confidence
-                        ? `(confianza: ${msg.confidence}%)`
-                        : ""}
+                      {getEmotionIcon(msg.emotion)} Detecté {msg.emotion}{" "}
+                      {msg.confidence ? `(confianza: ${msg.confidence}%)` : ""}
                     </p>
                   )}
-
                   <p className="text-[10px] text-gray-400 mt-1 text-right">{msg.time}</p>
                 </div>
               </div>
