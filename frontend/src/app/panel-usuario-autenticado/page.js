@@ -3,8 +3,19 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Heart, LogOut } from "lucide-react";
+import {
+  Heart,
+  LogOut,
+  Calendar,
+  BarChart,
+  BookOpen,
+  Coffee,
+  Bot,
+  Notebook,
+  TrendingUp,
+} from "lucide-react";
 import SettingsView from "./SettingsView";
+import DiarioEmocional from "./DiarioEmocional";
 
 export default function Dashboard() {
   const [selectedMood, setSelectedMood] = useState("");
@@ -80,13 +91,18 @@ export default function Dashboard() {
           </nav>
         </aside>
 
-        {/* Main Content */}
+        {/* Contenido principal */}
         <main className="flex-1 p-6 overflow-y-auto">
-          {activeView === "Ajustes" ? (
-            <SettingsView />
-          ) : (
+          {/* Vista Ajustes */}
+          {activeView === "Ajustes" && <SettingsView />}
+
+          {/* Vista Diario Emocional */}
+          {activeView === "Diario Emocional" && <DiarioEmocional />}
+
+          {/* Vista Inicio */}
+          {activeView === "Inicio" && (
             <>
-              {/* Contenido por defecto (Inicio) */}
+              {/* Encabezado */}
               <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-2xl flex justify-between items-center mb-6">
                 <div>
                   <h1 className="text-2xl font-bold mb-2">¡Hola, Usuario! 👋</h1>
@@ -104,10 +120,11 @@ export default function Dashboard() {
                 />
               </div>
 
-              {/* Mood Selector */}
+              {/* Selector de estado de ánimo */}
               <div className="bg-white rounded-2xl p-6 mb-6 shadow-sm">
                 <h3 className="font-medium text-gray-700 mb-4 flex items-center gap-2">
-                  <span className="text-purple-600">📅</span> ¿Cómo te sientes hoy?
+                  <Calendar className="h-5 w-5 text-purple-600" />
+                  ¿Cómo te sientes hoy?
                 </h3>
                 <div className="grid grid-cols-4 gap-4 mb-4">
                   {moods.map((mood) => (
@@ -137,8 +154,9 @@ export default function Dashboard() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 {/* Semana emocional */}
                 <div className="bg-white rounded-2xl p-6 shadow-sm">
-                  <h3 className="font-semibold text-gray-700 mb-4">
-                    📈 Tu semana emocional
+                  <h3 className="font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                    <BarChart className="h-5 w-5 text-green-600" />
+                    Tu semana emocional
                   </h3>
                   <ul className="space-y-2">
                     {[
@@ -165,35 +183,45 @@ export default function Dashboard() {
                       </li>
                     ))}
                   </ul>
-                  <p className="mt-3 text-xs text-gray-500">
-                    💡 Tip: Registra tu estado emocional diariamente para un mejor
+                  <p className="mt-3 text-xs text-gray-500 flex items-center gap-1">
+                    💡 Registra tu estado emocional diariamente para un mejor
                     seguimiento.
                   </p>
                 </div>
 
                 {/* Recordatorios */}
                 <div className="bg-white rounded-2xl p-6 shadow-sm">
-                  <h3 className="font-semibold text-gray-700 mb-4">
-                    🔔 Recordatorios
+                  <h3 className="font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                    <BookOpen className="h-5 w-5 text-yellow-500" />
+                    Recordatorios
                   </h3>
                   <ul className="space-y-3 text-sm">
-                    <li className="bg-yellow-50 p-3 rounded-lg border border-yellow-100">
-                      <span className="font-medium text-yellow-700">
-                        🌅 Rutina matutina:
-                      </span>{" "}
-                      Tómate 5 minutos para respirar profundamente
+                    <li className="bg-yellow-50 p-3 rounded-lg border border-yellow-100 flex items-center gap-2">
+                      <Coffee className="h-4 w-4 text-yellow-600" />
+                      <span>
+                        <span className="font-medium text-yellow-700">
+                          Rutina matutina:
+                        </span>{" "}
+                        Tómate 5 minutos para respirar profundamente
+                      </span>
                     </li>
-                    <li className="bg-blue-50 p-3 rounded-lg border border-blue-100">
-                      <span className="font-medium text-blue-700">
-                        📘 Diario emocional:
-                      </span>{" "}
-                      Escribe sobre tu día antes de dormir
+                    <li className="bg-blue-50 p-3 rounded-lg border border-blue-100 flex items-center gap-2">
+                      <Notebook className="h-4 w-4 text-blue-600" />
+                      <span>
+                        <span className="font-medium text-blue-700">
+                          Diario emocional:
+                        </span>{" "}
+                        Escribe sobre tu día antes de dormir
+                      </span>
                     </li>
-                    <li className="bg-green-50 p-3 rounded-lg border border-green-100">
-                      <span className="font-medium text-green-700">
-                        💧 Autocuidado:
-                      </span>{" "}
-                      Recuerda hidratarte y tomar descansos
+                    <li className="bg-green-50 p-3 rounded-lg border border-green-100 flex items-center gap-2">
+                      <Heart className="h-4 w-4 text-green-600" />
+                      <span>
+                        <span className="font-medium text-green-700">
+                          Autocuidado:
+                        </span>{" "}
+                        Recuerda hidratarte y tomar descansos
+                      </span>
                     </li>
                   </ul>
                 </div>
@@ -207,7 +235,7 @@ export default function Dashboard() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-purple-500 hover:bg-purple-50 transition">
                     <p className="font-medium text-purple-700 flex items-center gap-2">
-                      💬 Hablar con MENTALIA Bot
+                      <Bot className="h-4 w-4 text-purple-600" /> Hablar con MENTALIA Bot
                     </p>
                     <p className="text-sm text-gray-600 mt-1">
                       Conversa con nuestro asistente de apoyo emocional 24/7
@@ -216,7 +244,7 @@ export default function Dashboard() {
 
                   <div className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-green-500 hover:bg-green-50 transition">
                     <p className="font-medium text-green-700 flex items-center gap-2">
-                      📊 Ver mi progreso
+                      <TrendingUp className="h-4 w-4 text-green-600" /> Ver mi progreso
                     </p>
                     <p className="text-sm text-gray-600 mt-1">
                       Revisa tu evolución emocional de esta semana
@@ -225,7 +253,7 @@ export default function Dashboard() {
 
                   <div className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-500 hover:bg-blue-50 transition">
                     <p className="font-medium text-blue-700 flex items-center gap-2">
-                      📝 Escribir en mi diario
+                      <Notebook className="h-4 w-4 text-blue-600" /> Escribir en mi diario
                     </p>
                     <p className="text-sm text-gray-600 mt-1">
                       Reflexiona sobre tus pensamientos y emociones
@@ -240,3 +268,6 @@ export default function Dashboard() {
     </div>
   );
 }
+
+
+
