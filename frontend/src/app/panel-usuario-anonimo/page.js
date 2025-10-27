@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import {
-  Heart,
   MessageCircle,
   BookOpen,
   LogOut,
@@ -12,79 +11,68 @@ import {
   Clock,
 } from "lucide-react";
 
-export default function ChatPage() {
+export default function ChatAnonimo() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: "¡Hola! Soy MENTALIA Bot. Te doy la bienvenida a este espacio seguro y confidencial. Como usuario anónimo, puedes conversar conmigo libremente. Tu conversación solo estará disponible durante esta sesión. ¿Cómo te sientes en este momento?",
+      text: "👋 ¡Hola! Soy MENTALIA Bot. Bienvenid@ a este espacio seguro y confidencial. Tu sesión será temporal y no se guardarán tus datos personales. ¿Cómo te sientes hoy?",
       sender: "bot",
-      time: "13:18",
+      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     },
   ]);
-
   const chatEndRef = useRef(null);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
- const handleSend = async () => {
-  if (input.trim() === "") return;
+  // 🔹 Enviar mensaje al backend
+  const handleSend = async () => {
+    if (input.trim() === "") return;
 
-  // Agregar el mensaje del usuario
-  const newMessage = {
-    id: messages.length + 1,
-    text: input,
-    sender: "user",
-    time: new Date().toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    }),
-  };
-  setMessages((prev) => [...prev, newMessage]);
-  setInput("");
-
-  try {
-    // Enviar al backend
-    const res = await fetch("http://localhost:4000/api/chatbot/message", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: input }),
-    });
-
-    const data = await res.json();
-
-    // Si el backend responde bien
-    const botReply = data.response || "Lo siento, no entendí eso 💭";
-    const botMessage = {
-      id: messages.length + 2,
-      text: botReply,
-      sender: "bot",
-      time: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
+    const userMessage = {
+      id: messages.length + 1,
+      text: input,
+      sender: "user",
+      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     };
+    setMessages((prev) => [...prev, userMessage]);
+    setInput("");
 
-    setMessages((prev) => [...prev, botMessage]);
-  } catch (error) {
-    console.error("❌ Error al conectar con el backend:", error);
-    setMessages((prev) => [
-      ...prev,
-      {
+    try {
+      const res = await fetch("http://localhost:4000/api/chatbot/message", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: input }),
+      });
+
+      const data = await res.json();
+      console.log("🧠 Respuesta del backend:", data);
+
+      const botMessage = {
         id: messages.length + 2,
-        text: "🚫 No pude conectarme al servidor. Intenta más tarde.",
+        text:
+          data.currentResponse ||
+          data.response ||
+          "💭 Lo siento, no entendí eso. ¿Podrías explicarlo un poco más?",
         sender: "bot",
-        time: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      },
-    ]);
-  }
-};
-
+        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      };
+      setMessages((prev) => [...prev, botMessage]);
+    } catch (error) {
+      console.error("❌ Error al conectar con el backend:", error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: messages.length + 2,
+          text: "🚫 No pude conectarme al servidor. Intenta más tarde.",
+          sender: "bot",
+          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        },
+      ]);
+    }
+  };
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter") handleSend();
@@ -96,9 +84,7 @@ export default function ChatPage() {
       <header className="bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed] text-white py-3 px-6 flex items-center justify-between shadow-md">
         <div>
           <h1 className="text-lg font-semibold">MENTALIA</h1>
-          <p className="text-sm opacity-80">
-            Plataforma de Apoyo Emocional - SENA
-          </p>
+          <p className="text-sm opacity-80">Plataforma de Apoyo Emocional - SENA</p>
         </div>
 
         <div className="flex items-center space-x-4 text-sm">
@@ -130,18 +116,15 @@ export default function ChatPage() {
               </button>
             </nav>
           </div>
-
         </aside>
 
-        {/* MAIN CHAT AREA */}
+        {/* CHAT PRINCIPAL */}
         <main className="flex-1 flex flex-col">
-          {/* Encabezado del chat */}
+          {/* Encabezado */}
           <div className="bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed] text-white p-4 rounded-t-md flex justify-between items-center">
             <div>
               <h3 className="font-semibold">MENTALIA Bot</h3>
-              <p className="text-xs">
-                Disponible 24/7 
-              </p>
+              <p className="text-xs">Disponible 24/7 💬</p>
             </div>
             <div className="flex items-center space-x-3 text-sm">
               <Clock size={14} /> <span>Sesión temporal</span>
@@ -149,24 +132,21 @@ export default function ChatPage() {
             </div>
           </div>
 
-          {/* Mensajes */}
+          {/* Área de mensajes */}
           <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-white">
             <div className="bg-purple-50 border border-purple-200 text-sm text-gray-600 p-3 rounded-md">
               <p className="font-semibold flex items-center">
                 <Lock size={14} className="mr-2" /> Sesión Anónima Activa
               </p>
               <p className="mt-1 text-xs">
-                Tu conversación es completamente confidencial y solo estará
-                disponible durante esta sesión. No se guardan datos personales.
+                Tu conversación es completamente confidencial y solo estará disponible durante esta sesión.
               </p>
             </div>
 
             {messages.map((msg) => (
               <div
                 key={msg.id}
-                className={`flex ${
-                  msg.sender === "user" ? "justify-end" : "justify-start"
-                }`}
+                className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
                   className={`max-w-lg px-4 py-3 rounded-2xl text-sm shadow-sm ${
@@ -176,7 +156,7 @@ export default function ChatPage() {
                   }`}
                 >
                   {msg.text}
-                  <div className="text-[10px] text-gray-200 mt-1 text-right">
+                  <div className="text-[10px] text-gray-400 mt-1 text-right">
                     {msg.time}
                   </div>
                 </div>
@@ -204,7 +184,6 @@ export default function ChatPage() {
             </button>
           </div>
 
-          {/* Pie de página */}
           <p className="text-[11px] text-gray-500 text-center py-1">
             💡 Presiona Enter para enviar · Tu conversación es confidencial
           </p>
@@ -213,4 +192,3 @@ export default function ChatPage() {
     </div>
   );
 }
-
