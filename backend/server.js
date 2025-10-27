@@ -10,6 +10,15 @@ const authRoutes = require("./routes/auth");
 const app = express();
 app.use(express.json());
 app.use(cors());
+const session = require("express-session");
+
+app.use(session({
+  secret: "mentalia_sesion_temporal_2025",
+  resave: false,
+  saveUninitialized: true,
+  cookie: { maxAge: 30 * 60 * 1000 } // 30 minutos
+}));
+
 
 // Conectar a Mongo
 mongoose.connect("mongodb://127.0.0.1:27017/mentalia")
