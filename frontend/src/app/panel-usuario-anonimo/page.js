@@ -1,144 +1,174 @@
 "use client";
 
-import { useState } from "react";
-import { Heart } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import Link from "next/link";
+import {
+  Heart,
+  MessageCircle,
+  BookOpen,
+  LogOut,
+  Lock,
+  Send,
+  Clock,
+} from "lucide-react";
 
-export default function Page() {
+export default function ChatPage() {
+  const [input, setInput] = useState("");
   const [messages, setMessages] = useState([
     {
-      sender: "bot",
+      id: 1,
       text: "¡Hola! Soy MENTALIA Bot. Te doy la bienvenida a este espacio seguro y confidencial. Como usuario anónimo, puedes conversar conmigo libremente. Tu conversación solo estará disponible durante esta sesión. ¿Cómo te sientes en este momento?",
-      time: "13:31",
+      sender: "bot",
+      time: "13:18",
     },
   ]);
 
-  const [input, setInput] = useState("");
-  const [sessionActive] = useState(true);
+  const chatEndRef = useRef(null);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const handleSend = () => {
-    if (!input.trim()) return;
-
-    const newMessages = [
-      ...messages,
-      { sender: "user", text: input, time: "13:32" },
-    ];
-
-    setMessages(newMessages);
+    if (input.trim() === "") return;
+    const newMessage = {
+      id: messages.length + 1,
+      text: input,
+      sender: "user",
+      time: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    };
+    setMessages([...messages, newMessage]);
     setInput("");
+  };
 
-    // Respuesta simulada del bot
-    setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          sender: "bot",
-          text: "Tus sentimientos son importantes y merecen ser escuchados. ¿Te gustaría contarme más detalles sobre cómo te sientes?",
-          time: "13:32",
-        },
-      ]);
-    }, 800);
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") handleSend();
   };
 
   return (
-    <div className="flex h-screen bg-[#f6f4fb] text-gray-800">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white shadow-md flex flex-col">
-        <div className="flex items-center gap-2 px-6 py-4 border-b border-gray-100">
-          <Heart className="w-5 h-5 text-purple-600" />
-          <h1 className="font-semibold text-purple-700">MENTALIA</h1>
+    <div className="flex flex-col h-screen bg-[#f6f4fb]">
+      {/* HEADER */}
+      <header className="bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed] text-white py-3 px-6 flex items-center justify-between shadow-md">
+        <div>
+          <h1 className="text-lg font-semibold">MENTALIA</h1>
+          <p className="text-sm opacity-80">
+            Plataforma de Apoyo Emocional - SENA
+          </p>
         </div>
 
-        <nav className="flex flex-col mt-4">
-          <button className="px-6 py-2 text-left text-purple-700 bg-purple-50 font-medium rounded-r-full border-l-4 border-purple-500">
-            Chat de Apoyo
-          </button>
-          <button className="px-6 py-2 text-left text-gray-700 hover:bg-purple-50 transition">
-            Recursos y Técnicas
-          </button>
-        </nav>
-      </aside>
+        <div className="flex items-center space-x-4 text-sm">
+          <div className="text-right">
+            <p className="font-semibold">Usuario Anónimo</p>
+            <p className="text-xs opacity-80">anonimo@mentalia.com</p>
+            <p className="text-xs">Sesión Temporal</p>
+          </div>
 
-      {/* Main Chat Section */}
-      <main className="flex-1 flex flex-col bg-white rounded-tl-2xl shadow-inner">
-        {/* Header */}
-        <header className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-8 py-4 flex justify-between items-center rounded-tl-2xl">
-          <div className="flex items-center gap-3">
-            <Heart className="w-6 h-6" />
+          <Link
+            href="/"
+            className="flex items-center text-sm text-white hover:text-gray-200 bg-[#9f67ff] hover:bg-[#8b5cf6] px-3 py-2 rounded-md transition"
+          >
+            <LogOut size={16} className="mr-1" />
+          </Link>
+        </div>
+      </header>
+
+      <div className="flex flex-1 overflow-hidden">
+        {/* SIDEBAR */}
+        <aside className="w-60 bg-white border-r border-gray-200 py-4 px-4 flex flex-col justify-between">
+          <div>
+            <nav className="space-y-3">
+              <button className="flex items-center w-full px-3 py-2 text-left text-sm text-[#6b21a8] bg-purple-100 rounded-md">
+                <MessageCircle size={18} className="mr-2" /> Chat de Apoyo
+              </button>
+              <button className="flex items-center w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-md">
+                <BookOpen size={18} className="mr-2" /> Recursos y Técnicas
+              </button>
+            </nav>
+          </div>
+
+        </aside>
+
+        {/* MAIN CHAT AREA */}
+        <main className="flex-1 flex flex-col">
+          {/* Encabezado del chat */}
+          <div className="bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed] text-white p-4 rounded-t-md flex justify-between items-center">
             <div>
-              <h2 className="font-semibold text-base tracking-wide">
-                MENTALIA Bot
-              </h2>
-              <p className="text-xs opacity-80">
-                Disponible 24/7 - Conversación confidencial
+              <h3 className="font-semibold">MENTALIA Bot</h3>
+              <p className="text-xs">
+                Disponible 24/7 
               </p>
             </div>
+            <div className="flex items-center space-x-3 text-sm">
+              <Clock size={14} /> <span>Sesión temporal</span>
+              <Lock size={14} /> <span>Anónimo</span>
+            </div>
           </div>
 
-          <div className="text-sm opacity-90 flex items-center gap-2">
-            <span className="bg-white/20 px-2 py-1 rounded-md">
-              {sessionActive ? "Sesión Anónima Activa" : "Finalizada"}
-            </span>
-            <span className="hidden md:block">
-              {sessionActive
-                ? "Tu conversación es completamente confidencial."
-                : ""}
-            </span>
-          </div>
-        </header>
+          {/* Mensajes */}
+          <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-white">
+            <div className="bg-purple-50 border border-purple-200 text-sm text-gray-600 p-3 rounded-md">
+              <p className="font-semibold flex items-center">
+                <Lock size={14} className="mr-2" /> Sesión Anónima Activa
+              </p>
+              <p className="mt-1 text-xs">
+                Tu conversación es completamente confidencial y solo estará
+                disponible durante esta sesión. No se guardan datos personales.
+              </p>
+            </div>
 
-        {/* Chat messages */}
-        <div className="flex-1 overflow-y-auto p-8 space-y-4 bg-[#faf9ff]">
-          {messages.map((msg, idx) => (
-            <div
-              key={idx}
-              className={`flex ${
-                msg.sender === "user" ? "justify-end" : "justify-start"
-              }`}
-            >
+            {messages.map((msg) => (
               <div
-                className={`max-w-md px-4 py-3 rounded-2xl shadow-sm text-sm ${
-                  msg.sender === "user"
-                    ? "bg-purple-600 text-white rounded-br-none"
-                    : "bg-white text-gray-700 rounded-bl-none border border-gray-100"
+                key={msg.id}
+                className={`flex ${
+                  msg.sender === "user" ? "justify-end" : "justify-start"
                 }`}
               >
-                <p>{msg.text}</p>
-                <p
-                  className={`text-[11px] mt-1 text-right ${
+                <div
+                  className={`max-w-lg px-4 py-3 rounded-2xl text-sm shadow-sm ${
                     msg.sender === "user"
-                      ? "text-purple-100"
-                      : "text-gray-400"
+                      ? "bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed] text-white"
+                      : "bg-purple-100 text-gray-800"
                   }`}
                 >
-                  {msg.time}
-                </p>
+                  {msg.text}
+                  <div className="text-[10px] text-gray-200 mt-1 text-right">
+                    {msg.time}
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
 
-        {/* Input box */}
-        <div className="border-t border-gray-200 bg-white p-4 flex items-center gap-3">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSend()}
-            placeholder="Escribe tu mensaje aquí..."
-            className="flex-1 border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
-          />
-          <button
-            onClick={handleSend}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-xl transition"
-          >
-            ➤
-          </button>
-        </div>
+            <div ref={chatEndRef} />
+          </div>
 
-        <p className="text-xs text-gray-500 text-center py-2 bg-white border-t">
-          💬 Presiona Enter para enviar · Tu conversación es confidencial
-        </p>
-      </main>
+          {/* Input */}
+          <div className="p-3 bg-white border-t border-gray-200 flex items-center space-x-2">
+            <input
+              type="text"
+              placeholder="Escribe tu mensaje aquí..."
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyPress}
+              className="flex-1 border border-gray-300 rounded-full px-4 py-2 text-sm focus:outline-none focus:border-[#8b5cf6]"
+            />
+            <button
+              onClick={handleSend}
+              className="bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed] hover:opacity-90 text-white p-2 rounded-full transition"
+            >
+              <Send size={18} />
+            </button>
+          </div>
+
+          {/* Pie de página */}
+          <p className="text-[11px] text-gray-500 text-center py-1">
+            💡 Presiona Enter para enviar · Tu conversación es confidencial
+          </p>
+        </main>
+      </div>
     </div>
   );
 }
+
