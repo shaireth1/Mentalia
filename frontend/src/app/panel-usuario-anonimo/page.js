@@ -29,20 +29,62 @@ export default function ChatPage() {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const handleSend = () => {
-    if (input.trim() === "") return;
-    const newMessage = {
-      id: messages.length + 1,
-      text: input,
-      sender: "user",
+ const handleSend = async () => {
+  if (input.trim() === "") return;
+
+  // Agregar el mensaje del usuario
+  const newMessage = {
+    id: messages.length + 1,
+    text: input,
+    sender: "user",
+    time: new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+  };
+  setMessages((prev) => [...prev, newMessage]);
+  setInput("");
+
+  try {
+    // Enviar al backend
+    const res = await fetch("http://localhost:4000/api/chatbot/message", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: input }),
+    });
+
+    const data = await res.json();
+
+    // Si el backend responde bien
+    const botReply = data.response || "Lo siento, no entendí eso 💭";
+    const botMessage = {
+      id: messages.length + 2,
+      text: botReply,
+      sender: "bot",
       time: new Date().toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
       }),
     };
-    setMessages([...messages, newMessage]);
-    setInput("");
-  };
+
+    setMessages((prev) => [...prev, botMessage]);
+  } catch (error) {
+    console.error("❌ Error al conectar con el backend:", error);
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: messages.length + 2,
+        text: "🚫 No pude conectarme al servidor. Intenta más tarde.",
+        sender: "bot",
+        time: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      },
+    ]);
+  }
+};
+
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter") handleSend();
