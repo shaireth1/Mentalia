@@ -61,10 +61,9 @@ export default function ChatPage() {
       const data = await res.json();
       console.log("📥 Respuesta del backend:", data);
 
-      const botReply =
-        data.currentResponse ||
-        data.response ||
-        "Lo siento, no entendí eso 💭";
+    const botReply =
+  data.botResponse || data.response || "Lo siento, no entendí eso 💭";
+
 
       const botMessage = {
         id: messages.length + 2,

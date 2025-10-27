@@ -1,105 +1,107 @@
-// controllers/chatbotController.js
+// 📁 backend/controllers/chatbotController.js
 
+// --- Base de emociones y respuestas empáticas según PAP ---
 const empatheticResponses = {
-  informal: [
-    "Entiendo cómo te sientes 💜",
-    "Estoy aquí para escucharte 🤍",
-    "Lo que estás viviendo es importante 💫",
-    "Gracias por contarme cómo te sientes 💬",
-    "Sé que esto es difícil, pero no estás sol@ 🌷"
+  tristeza: [
+    "Siento mucho que estés pasando por un momento así 💜. A veces no es fácil, pero estás haciendo bien al expresarlo.",
+    "Llorar o sentirse triste no te hace débil. Es una forma de sanar 💧.",
+    "Tu tristeza tiene un motivo, y está bien sentirla. No tienes que ocultarla.",
+    "Puedo quedarme contigo mientras te desahogas, si lo necesitas 💫.",
   ],
-  formal: [
-    "Comprendo la situación que estás atravesando.",
-    "Estoy disponible para atenderte y ofrecerte apoyo.",
-    "Tu bienestar es importante para nosotros.",
-    "Gracias por comunicar cómo te encuentras.",
-    "Reconozco que es un momento complicado, pero no estás solo/a."
+  estres: [
+    "El estrés puede ser abrumador 😣. Respira un momento, no tienes que hacerlo todo ya.",
+    "Tu mente está pidiendo una pausa, y eso es completamente válido 💜.",
+    "Recuerda que detenerte un momento también es avanzar 🌿.",
+    "¿Quieres que te comparta una técnica breve de relajación?",
+  ],
+  ansiedad: [
+    "La ansiedad puede hacer que todo se sienta demasiado rápido 💭. Intenta inhalar profundo, y exhalar lento conmigo.",
+    "No estás sol@, la ansiedad no te define 💜.",
+    "Te entiendo, a veces la mente se llena de pensamientos difíciles. Estoy aquí para ayudarte a calmarte.",
+    "Podemos intentar enfocarnos en algo pequeño y real: tus manos, tu respiración, el momento presente 🌷.",
+  ],
+  miedo: [
+    "Es válido tener miedo 💜. Nadie puede con todo siempre.",
+    "Tu miedo no te hace menos fuerte, te hace humano.",
+    "Puedes contarme qué te preocupa. A veces, ponerlo en palabras ayuda a que pese menos.",
+    "Estás a salvo aquí conmigo, podemos hablar de eso sin juicio 🕊️.",
+  ],
+  enojo: [
+    "Veo que estás molesto 😔. Tu enojo es válido, probablemente te han lastimado o algo no fue justo.",
+    "Puedes expresar tu enojo sin dañarte ni dañar a otros. Yo te escucho 💜.",
+    "La rabia a veces cubre tristeza o cansancio, ¿crees que pueda ser eso?",
+    "Respirar o moverte un poco puede ayudar a liberar parte de esa tensión 💢.",
+  ],
+  neutral: [
+    "Estoy aquí contigo 💜. Cuéntame lo que tengas en mente.",
+    "Gracias por escribirme. A veces no saber cómo sentirse también es una emoción válida.",
+    "Podemos hablar de lo que quieras, sin prisa ni juicios 🌿.",
+    "Tu bienestar importa, aunque hoy no lo sientas tan claro 💫.",
   ]
 };
 
-const crisisPhrases = [
-  "me quiero morir",
-  "no aguanto más",
-  "quiero acabar con todo",
-  "no veo ninguna salida",
-  "ya no quiero existir",
-  "no vale la pena seguir viviendo",
-  "estoy pensando en hacerme daño"
-];
+// --- Detección simple de emociones por palabras clave ---
+const detectEmotion = (text) => {
+  const lower = text.toLowerCase();
+  if (lower.match(/triste|deprimid|mal|llorar|solo|sola/)) return "tristeza";
+  if (lower.match(/estres|estresad|agotad|cansad/)) return "estres";
+  if (lower.match(/ansioso|nervioso|preocupad|inquiet/)) return "ansiedad";
+  if (lower.match(/miedo|temor|asustad/)) return "miedo";
+  if (lower.match(/enojad|rabia|furios|molest/)) return "enojo";
+  return "neutral";
+};
 
-exports.procesarMensaje = async (req, res) => {
+// --- Simulación de nivel de confianza ---
+const calculateConfidence = (message) => {
+  const randomFactor = Math.random() * 0.3 + 0.7; // 70% a 100%
+  return Math.round(randomFactor * 100);
+};
+
+// --- Controlador principal ---
+exports.getResponse = async (req, res) => {
   try {
     const { message } = req.body;
-    if (!message || typeof message !== "string" || !message.trim()) {
+
+    if (!message || typeof message !== "string") {
       return res.status(400).json({ msg: "Mensaje inválido" });
     }
 
-    // 🧠 Crear sesión si no existe
-    if (!req.session.chatHistory) req.session.chatHistory = [];
-    if (!req.session.chatTone) req.session.chatTone = "informal"; // valor por defecto
+    // Analizar emoción
+    const emotion = detectEmotion(message);
+    const confidence = calculateConfidence(message);
 
-    const lowerMsg = message.toLowerCase();
-
-    // 🟣 1. Permitir cambiar el tono
-    if (lowerMsg.includes("modo formal")) {
-      req.session.chatTone = "formal";
+    // Si la confianza es baja (<60%), pedir confirmación
+    if (confidence < 60) {
       return res.json({
-        response: "✅ Has cambiado al modo formal.",
-        tone: "formal",
-        chatHistory: req.session.chatHistory
+        response: "No estoy muy segur@ de cómo te sientes 😔. ¿Dirías que es más tristeza, ansiedad o enojo?",
+        emotion: "indefinida",
+        confidence,
       });
     }
 
-    if (lowerMsg.includes("modo informal")) {
-      req.session.chatTone = "informal";
-      return res.json({
-        response: "✅ Has cambiado al modo informal.",
-        tone: "informal",
-        chatHistory: req.session.chatHistory
-      });
-    }
+    // Seleccionar respuesta basada en emoción detectada
+    const responses = empatheticResponses[emotion] || empatheticResponses.neutral;
+    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
 
-    // 🟢 2. Detectar crisis
-    const isCrisis = crisisPhrases.some(p => lowerMsg.includes(p));
-    let botResponse;
-    let emotion = "neutral";
-
-    if (isCrisis) {
-      botResponse =
-        "💛 Lamento mucho que te sientas así. No estás sol@, por favor contacta una línea de ayuda:\n📞 Línea 106 (Colombia) o 018000 113 113.";
-      emotion = "crisis";
-    } else {
-      // 🟡 3. Analizar emoción básica
-      if (lowerMsg.includes("triste") || lowerMsg.includes("mal")) emotion = "tristeza";
-      else if (lowerMsg.includes("ansioso") || lowerMsg.includes("estresado")) emotion = "estrés";
-      else if (lowerMsg.includes("miedo")) emotion = "miedo";
-      else if (lowerMsg.includes("enojado") || lowerMsg.includes("rabia")) emotion = "enojo";
-
-      // 🔹 4. Escoger frase según tono actual
-      const tone = req.session.chatTone;
-      const responses = empatheticResponses[tone];
-      botResponse = responses[Math.floor(Math.random() * responses.length)];
-    }
-
-    // 🟤 5. Guardar en historial
-    const interaction = {
-      user: message,
-      bot: botResponse,
+    // Crear registro de análisis
+    const analysisResult = {
       emotion,
-      tone: req.session.chatTone,
-      timestamp: new Date()
+      confidence,
+      timestamp: new Date(),
+      userInput: message,
+      botResponse: randomResponse,
     };
-    req.session.chatHistory.push(interaction);
 
-    // 🟢 6. Devolver respuesta
-    res.json({
-      currentResponse: botResponse,
+    console.log("🧠 Análisis emocional:", analysisResult);
+
+    res.status(200).json({
+      currentResponse: randomResponse,
       emotion,
-      tone: req.session.chatTone,
-      chatHistory: req.session.chatHistory
+      confidence,
+      timestamp: analysisResult.timestamp,
     });
-  } catch (err) {
-    console.error("❌ Error en chatbot:", err);
-    res.status(500).json({ msg: "Error interno del chatbot" });
+  } catch (error) {
+    console.error("❌ Error en chatbot:", error);
+    res.status(500).json({ msg: "Error en el chatbot", error: error.message });
   }
 };

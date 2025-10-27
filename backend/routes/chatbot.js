@@ -1,86 +1,143 @@
-// 📁 backend/routes/chatbot.js
+// backend/routes/chatbot.js
 const express = require("express");
 const router = express.Router();
 
-// 🌿 Mapeo de emociones según palabras clave
-const emotionMap = {
-  tristeza: ["triste", "mal", "solo", "deprimido", "decaído", "sin ganas"],
-  estres: ["estresado", "cansado", "agotado", "presionado", "ansioso"],
-  miedo: ["miedo", "asustado", "preocupado", "nervioso", "inseguro"],
-  enojo: ["enojado", "molesto", "frustrado", "rabia", "furioso"],
-  alegria: ["feliz", "contento", "tranquilo", "bien", "agradecido"]
-};
+let chatHistory = [];
 
-// 💬 Frases empáticas por emoción
-const respuestasEmpaticas = {
+/* =====================================================
+   🧩 Mapa de emociones mejorado (con variaciones de género)
+===================================================== */
+const emotionMap = {
   tristeza: [
-    "💜 Entiendo que estás pasando por un momento difícil, y está bien sentirte así.",
-    "A veces la tristeza pesa, pero no estás sol@ en esto 🌙.",
-    "Gracias por confiar en mí para contarlo. Tu sentir es válido y merece cuidado."
+    "triste", "tristeza", "solo", "sola", "mal", "vacío", "vacio",
+    "deprimido", "deprimida", "sin ganas", "llorar", "abrumado", "abrumada"
   ],
   estres: [
-    "Respira un momento, estás haciendo lo mejor que puedes 🌿.",
-    "El cansancio emocional es real, y mereces descansar sin sentir culpa.",
-    "A veces todo se siente demasiado, pero poco a poco se puede aliviar 💫."
+    "estresado", "estresada", "estresante", "agotado", "agotada", "cansado",
+    "cansada", "presionado", "presionada", "ansioso", "ansiosa", "preocupado", "preocupada"
   ],
   miedo: [
-    "El miedo también habla de lo mucho que te importa algo 💭.",
-    "Entiendo que te sientas así, no tienes que enfrentarlo todo sol@.",
-    "Hablar de lo que asusta ya es un acto de valentía 💪."
+    "miedo", "asustado", "asustada", "nervioso", "nerviosa", "temor", "inseguro", "insegura"
   ],
   enojo: [
-    "Tu enojo también tiene un mensaje, y es válido que lo sientas 🔥.",
-    "Es normal sentirse frustrado cuando las cosas duelen o no salen bien.",
-    "Estoy aquí, puedes desahogarte. No voy a juzgarte ❤️."
+    "enojado", "enojada", "molesto", "molesta", "rabia", "furioso", "furiosa", "frustrado", "frustrada"
   ],
   alegria: [
-    "✨ Me alegra mucho escuchar eso, mereces sentirte así.",
-    "Qué lindo leer algo positivo, guárdalo como un momento bonito.",
-    "Disfruta este instante, te lo ganaste 💛."
-  ],
-  neutral: [
-    "Estoy aquí para escucharte, cuéntame más 💬.",
-    "Gracias por compartir cómo te sientes. ¿Quieres que hablemos más de eso?",
-    "No estás sol@, este es un espacio para ti 💜."
+    "feliz", "contento", "contenta", "tranquilo", "tranquila", "bien", "agradecido", "agradecida"
   ]
 };
 
-// 🧠 Función para detectar emoción
+/* =====================================================
+   🧩 Frases empáticas PAP
+===================================================== */
+const papResponses = {
+  escucha: [
+    "Te estoy escuchando 💜, puedes contarme lo que sientas, sin juicios.",
+    "Gracias por confiar en mí para contarlo. Estoy aquí para ti 🌱.",
+    "Hablar ya es un paso enorme, gracias por hacerlo 💫."
+  ],
+  calma: [
+    "Respira un momento conmigo: inhala profundo... exhala lento 🌿.",
+    "Tomémonos un respiro juntos. No tienes que resolverlo todo ahora.",
+    "Estás haciendo lo mejor que puedes, y eso ya es suficiente 💜."
+  ],
+  conecta: [
+    "No estás sol@, estoy aquí para ti 💜.",
+    "Hablar ayuda, y es valiente que lo hagas.",
+    "Aunque sea virtualmente, estás acompañad@ ahora mismo 🤍."
+  ],
+  informa: [
+    "¿Quieres que te comparta una técnica breve para calmarte? 🌸",
+    "Podemos intentar una respiración guiada o un ejercicio de calma mental.",
+    "A veces escribir o moverte un poco puede ayudarte a soltar lo que sientes."
+  ],
+  protege: [
+    "💛 Lamento mucho que te sientas así. No estás sol@, y hay ayuda disponible.",
+    "Por favor contacta una línea de apoyo: Línea 106 (Colombia) o acude a un centro cercano 🕊️.",
+    "Hablar de esto ya es un paso enorme. No te quedes sol@, busca a alguien de confianza 💛."
+  ]
+};
+
+/* =====================================================
+   🧩 Frases de crisis
+===================================================== */
+const crisisPhrases = [
+  "me quiero morir",
+  "no aguanto más",
+  "quiero acabar con todo",
+  "no veo salida",
+  "ya no quiero existir",
+  "no vale la pena seguir viviendo",
+  "estoy pensando en hacerme daño"
+];
+
+/* =====================================================
+   🧩 Funciones auxiliares
+===================================================== */
 function detectarEmocion(texto) {
   const lower = texto.toLowerCase();
   for (const [emocion, palabras] of Object.entries(emotionMap)) {
-    if (palabras.some((p) => lower.includes(p))) return emocion;
+    if (palabras.some(p => lower.includes(p))) return emocion;
   }
   return "neutral";
 }
 
-// 💫 Función para generar respuesta empática
-function generarRespuestaEmpatica(emocion) {
-  const frases = respuestasEmpaticas[emocion] || respuestasEmpaticas.neutral;
-  return frases[Math.floor(Math.random() * frases.length)];
+function seleccionarRespuesta(etapa) {
+  const opciones = papResponses[etapa];
+  return opciones[Math.floor(Math.random() * opciones.length)];
 }
 
-// 💌 Endpoint principal del chatbot
+/* =====================================================
+   🧩 Ruta principal del chatbot
+===================================================== */
 router.post("/message", async (req, res) => {
-  try {
-    const { message } = req.body;
-    if (!message || message.trim() === "") {
-      return res.status(400).json({ msg: "Mensaje vacío o inválido" });
-    }
-
-    const emotion = detectarEmocion(message);
-    const botResponse = generarRespuestaEmpatica(emotion);
-
-    return res.status(200).json({
-      userMessage: message,
-      botResponse,
-      emotion,
-      timestamp: new Date(),
-    });
-  } catch (error) {
-    console.error("❌ Error en chatbot:", error);
-    res.status(500).json({ msg: "Error interno del chatbot" });
+  const { message } = req.body;
+  if (!message || !message.trim()) {
+    return res.status(400).json({ msg: "Mensaje vacío o inválido" });
   }
+
+  const lowerMsg = message.toLowerCase();
+
+  // 1️⃣ Detectar crisis
+  const isCrisis = crisisPhrases.some(p => lowerMsg.includes(p));
+  if (isCrisis) {
+    const crisisResponse = seleccionarRespuesta("protege");
+    chatHistory.push({ user: message, bot: crisisResponse, emotion: "crisis" });
+    return res.json({ emotion: "crisis", botResponse: crisisResponse, chatHistory });
+  }
+
+  // 2️⃣ Detectar emoción principal
+  const emotion = detectarEmocion(lowerMsg);
+
+  // 3️⃣ Asignar etapa PAP según emoción
+  let stage = "escucha";
+  if (emotion === "tristeza") stage = "calma";
+  else if (emotion === "estres") stage = "conecta";
+  else if (emotion === "enojo") stage = "informa";
+  else if (emotion === "miedo") stage = "calma";
+
+  // 4️⃣ Elegir respuesta empática
+  let empatheticResponse = seleccionarRespuesta(stage);
+
+  // 5️⃣ Personalizar con contexto anterior
+  const lastEmotion = chatHistory.length > 0 ? chatHistory.at(-1).emotion : null;
+  if (lastEmotion && lastEmotion === emotion) {
+    empatheticResponse = `Parece que aún te sientes ${emotion}. Gracias por seguir compartiéndolo 💜. ${empatheticResponse}`;
+  } else if (lastEmotion && lastEmotion !== emotion) {
+    empatheticResponse = `Noté un cambio en cómo te sientes, ahora parece más ${emotion}. ${empatheticResponse}`;
+  }
+
+  // 6️⃣ Guardar y limitar historial
+  chatHistory.push({ user: message, bot: empatheticResponse, emotion });
+  if (chatHistory.length > 10) chatHistory.shift();
+
+  // 7️⃣ Responder al cliente
+  return res.json({
+    emotion,
+    botResponse: empatheticResponse,
+    chatHistory,
+    timestamp: new Date()
+  });
 });
 
 module.exports = router;
