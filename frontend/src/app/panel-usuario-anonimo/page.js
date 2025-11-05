@@ -2,35 +2,21 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import {
-  MessageCircle,
-  BookOpen,
-  LogOut,
-  Lock,
-  Send,
-  Clock,
-} from "lucide-react";
+import { MessageCircle, BookOpen, LogOut, Lock, Send, Clock } from "lucide-react";
 
 export default function ChatPage() {
-  const [mounted, setMounted] = useState(false);
   const [input, setInput] = useState("");
-  const [messages, setMessages] = useState([]);
-
-  const chatEndRef = useRef(null);
-
-  useEffect(() => {
-    setMounted(true); // se asegura de que solo se renderice en el cliente
-    const welcomeMessage = {
+  const [messages, setMessages] = useState([
+    {
       id: 1,
-      text: "💜 ¡Hola! Soy MENTALIA Bot. Este es un espacio confidencial para ti. Puedes contarme cómo te sientes sin preocuparte por juicios. ¿Qué te gustaría contarme hoy?",
+      text: "💜 ¡Hola! Soy MENTALIA Bot. Este es un espacio confidencial y seguro para ti. Puedes contarme cómo te sientes, sin juicios.",
       sender: "bot",
-      time: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-    };
-    setMessages([welcomeMessage]);
-  }, []);
+      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    },
+  ]);
+
+  const [sessionId, setSessionId] = useState(null);
+  const chatEndRef = useRef(null);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -39,42 +25,52 @@ export default function ChatPage() {
   const handleSend = async () => {
     if (input.trim() === "") return;
 
-    const userMessage = {
+    const newMessage = {
       id: messages.length + 1,
       text: input,
       sender: "user",
-      time: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
+      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     };
-    setMessages((prev) => [...prev, userMessage]);
+
+    setMessages((prev) => [...prev, newMessage]);
+    const userInput = input;
     setInput("");
 
     try {
       const res = await fetch("http://localhost:4000/api/chatbot/message", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: input }),
+        body: JSON.stringify({
+          message: userInput,
+          sessionId: sessionId || null,
+          tone: "informal",
+        }),
       });
+
       const data = await res.json();
 
-     const botMessage = {
-  id: messages.length + 2,
-  text:
-    data.response ||
-    data.botResponse ||
-    data.currentResponse ||
-    "💭 No entendí muy bien, pero te estoy escuchando.",
-  sender: "bot",
-  emotion: data.emotion || "neutral",
-  confidence: data.confidence || null,
-  time: new Date().toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  }),
-};
+      // Si el backend crea una nueva sesión
+      if (!sessionId && data.sessionId) {
+        setSessionId(data.sessionId);
+        localStorage.setItem("chatSessionId", data.sessionId);
+      }
 
+      let botReply = data.currentResponse || "💭 No entendí muy bien, pero te estoy escuchando.";
+      if (data.crisis) {
+        botReply = "⚠️ " + botReply;
+      }
+
+      // Mostrar emoción detectada (opcional)
+      if (data.emotion && data.emotion !== "neutral") {
+        botReply += `\n\n💜 Detecté *${data.emotion}* (${Math.round(data.confidence * 100)}% de confianza)`;
+      }
+
+      const botMessage = {
+        id: messages.length + 2,
+        text: botReply,
+        sender: "bot",
+        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      };
 
       setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
@@ -85,10 +81,7 @@ export default function ChatPage() {
           id: messages.length + 2,
           text: "🚫 No pude conectarme al servidor. Intenta más tarde.",
           sender: "bot",
-          time: new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
+          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         },
       ]);
     }
@@ -98,30 +91,6 @@ export default function ChatPage() {
     if (e.key === "Enter") handleSend();
   };
 
-  const getEmotionColor = (emotion) => {
-    switch (emotion) {
-      case "tristeza": return "text-blue-600";
-      case "estres": return "text-yellow-700";
-      case "ansiedad": return "text-purple-700";
-      case "miedo": return "text-gray-600";
-      case "enojo": return "text-red-600";
-      default: return "text-gray-500";
-    }
-  };
-
-  const getEmotionIcon = (emotion) => {
-    switch (emotion) {
-      case "tristeza": return "💧";
-      case "estres": return "💢";
-      case "ansiedad": return "💭";
-      case "miedo": return "😔";
-      case "enojo": return "🔥";
-      default: return "💜";
-    }
-  };
-
-  if (!mounted) return null; // evita render SSR inicial
-
   return (
     <div className="flex flex-col h-screen bg-[#f6f4fb]">
       {/* HEADER */}
@@ -130,14 +99,12 @@ export default function ChatPage() {
           <h1 className="text-lg font-semibold">MENTALIA</h1>
           <p className="text-sm opacity-80">Plataforma de Apoyo Emocional - SENA</p>
         </div>
-
         <div className="flex items-center space-x-4 text-sm">
           <div className="text-right">
             <p className="font-semibold">Usuario Anónimo</p>
             <p className="text-xs opacity-80">anonimo@mentalia.com</p>
             <p className="text-xs">Sesión Temporal</p>
           </div>
-
           <Link
             href="/"
             className="flex items-center text-sm text-white hover:text-gray-200 bg-[#9f67ff] hover:bg-[#8b5cf6] px-3 py-2 rounded-md transition"
@@ -149,7 +116,7 @@ export default function ChatPage() {
 
       <div className="flex flex-1 overflow-hidden">
         {/* SIDEBAR */}
-        <aside className="w-60 bg-white border-r border-gray-200 py-4 px-4">
+        <aside className="w-60 bg-white border-r border-gray-200 py-4 px-4 flex flex-col justify-between">
           <nav className="space-y-3">
             <button className="flex items-center w-full px-3 py-2 text-left text-sm text-[#6b21a8] bg-purple-100 rounded-md">
               <MessageCircle size={18} className="mr-2" /> Chat de Apoyo
@@ -160,16 +127,21 @@ export default function ChatPage() {
           </nav>
         </aside>
 
-        {/* CHAT */}
+        {/* MAIN CHAT AREA */}
         <main className="flex-1 flex flex-col">
-          <div className="bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed] text-white p-4 flex justify-between items-center">
-            <h3 className="font-semibold">MENTALIA Bot</h3>
+          {/* Encabezado del chat */}
+          <div className="bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed] text-white p-4 rounded-t-md flex justify-between items-center">
+            <div>
+              <h3 className="font-semibold">MENTALIA Bot</h3>
+              <p className="text-xs">Disponible 24/7</p>
+            </div>
             <div className="flex items-center space-x-3 text-sm">
               <Clock size={14} /> <span>Sesión temporal</span>
               <Lock size={14} /> <span>Anónimo</span>
             </div>
           </div>
 
+          {/* Mensajes */}
           <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-white">
             {messages.map((msg) => (
               <div
@@ -177,26 +149,27 @@ export default function ChatPage() {
                 className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-lg px-4 py-3 rounded-2xl text-sm shadow-sm ${
+                  className={`max-w-lg px-4 py-3 rounded-2xl text-sm shadow-sm whitespace-pre-line ${
                     msg.sender === "user"
                       ? "bg-gradient-to-r from-[#8b5cf6] to-[#7c3aed] text-white"
-                      : "bg-purple-50 text-gray-800 border border-purple-100"
+                      : "bg-purple-100 text-gray-800"
                   }`}
                 >
-                  <p>{msg.text}</p>
-                  {msg.emotion && (
-                    <p className={`mt-1 text-xs ${getEmotionColor(msg.emotion)}`}>
-                      {getEmotionIcon(msg.emotion)} Detecté {msg.emotion}{" "}
-                      {msg.confidence ? `(confianza: ${msg.confidence}%)` : ""}
-                    </p>
-                  )}
-                  <p className="text-[10px] text-gray-400 mt-1 text-right">{msg.time}</p>
+                  {msg.text}
+                  <div
+                    className={`text-[10px] mt-1 text-right ${
+                      msg.sender === "user" ? "text-gray-200" : "text-gray-400"
+                    }`}
+                  >
+                    {msg.time}
+                  </div>
                 </div>
               </div>
             ))}
             <div ref={chatEndRef} />
           </div>
 
+          {/* Input */}
           <div className="p-3 bg-white border-t border-gray-200 flex items-center space-x-2">
             <input
               type="text"

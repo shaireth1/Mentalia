@@ -1,107 +1,236 @@
-// 📁 backend/controllers/chatbotController.js
+// backend/controllers/chatbotController.js
+const crypto = require("crypto");
+const ChatSession = require("../models/ChatSession");
+const anonymize = require("../utils/anonymize");
 
-// --- Base de emociones y respuestas empáticas según PAP ---
-const empatheticResponses = {
+// Banco ampliado de respuestas (PAP + variaciones)
+const empatheticBank = {
   tristeza: [
-    "Siento mucho que estés pasando por un momento así 💜. A veces no es fácil, pero estás haciendo bien al expresarlo.",
-    "Llorar o sentirse triste no te hace débil. Es una forma de sanar 💧.",
-    "Tu tristeza tiene un motivo, y está bien sentirla. No tienes que ocultarla.",
-    "Puedo quedarme contigo mientras te desahogas, si lo necesitas 💫.",
-  ],
-  estres: [
-    "El estrés puede ser abrumador 😣. Respira un momento, no tienes que hacerlo todo ya.",
-    "Tu mente está pidiendo una pausa, y eso es completamente válido 💜.",
-    "Recuerda que detenerte un momento también es avanzar 🌿.",
-    "¿Quieres que te comparta una técnica breve de relajación?",
+    "Siento que estás pasando un momento doloroso. Estoy aquí para escucharte. ¿Quieres contarme qué ocurrió?",
+    "Lamento que te sientas triste. A veces compartir lo que duele ayuda. ¿Qué ha pasado?",
+    "Entiendo... gracias por contármelo. Respira un momento, y si quieres, dime más de lo que sientes."
   ],
   ansiedad: [
-    "La ansiedad puede hacer que todo se sienta demasiado rápido 💭. Intenta inhalar profundo, y exhalar lento conmigo.",
-    "No estás sol@, la ansiedad no te define 💜.",
-    "Te entiendo, a veces la mente se llena de pensamientos difíciles. Estoy aquí para ayudarte a calmarte.",
-    "Podemos intentar enfocarnos en algo pequeño y real: tus manos, tu respiración, el momento presente 🌷.",
+    "Pareces estar experimentando ansiedad. Vamos a respirar juntos un par de veces: inhala lento... exhala. ¿Quieres intentar?",
+    "La ansiedad puede sentirse muy intensa. Está bien pedir calma. ¿Puedes describir qué pensamientos tienes ahora?",
+    "Veo que te sientes ansios@. ¿Quieres que te proponga una técnica breve para bajar la tensión?"
+  ],
+  estrés: [
+    "El estrés nos indica que te importa algo mucho. ¿Qué tarea o situación te está generando esto ahora?",
+    "Si te parece, podemos identificar un paso pequeño y concreto para aliviar un poco la carga. ¿Te gustaría eso?",
+    "Estás poniendo mucho esfuerzo; está bien parar y respirar. ¿Quieres que te sugiera una pausa rápida?"
   ],
   miedo: [
-    "Es válido tener miedo 💜. Nadie puede con todo siempre.",
-    "Tu miedo no te hace menos fuerte, te hace humano.",
-    "Puedes contarme qué te preocupa. A veces, ponerlo en palabras ayuda a que pese menos.",
-    "Estás a salvo aquí conmigo, podemos hablar de eso sin juicio 🕊️.",
+    "El miedo es una señal protectora. Está bien sentirlo. ¿Puedes decirme qué lo provoca en este momento?",
+    "Cuando el miedo aparece, a veces nombrarlo ayuda. ¿Te gustaría decirlo con tus propias palabras?",
+    "Entiendo que tengas miedo. Si quieres, podemos hablar de pasos pequeños y seguros para manejarlo."
   ],
   enojo: [
-    "Veo que estás molesto 😔. Tu enojo es válido, probablemente te han lastimado o algo no fue justo.",
-    "Puedes expresar tu enojo sin dañarte ni dañar a otros. Yo te escucho 💜.",
-    "La rabia a veces cubre tristeza o cansancio, ¿crees que pueda ser eso?",
-    "Respirar o moverte un poco puede ayudar a liberar parte de esa tensión 💢.",
+    "Es válido sentir enojo cuando algo nos afecta. ¿Quieres contarme qué pasó para que te enojes?",
+    "El enojo puede ser señal de límites que se han traspasado. ¿Te gustaría expresarlo conmigo sin filtros?",
+    "Gracias por compartir tu enojo. ¿Quieres que proponga una manera segura de descargar esa energía?"
   ],
   neutral: [
-    "Estoy aquí contigo 💜. Cuéntame lo que tengas en mente.",
-    "Gracias por escribirme. A veces no saber cómo sentirse también es una emoción válida.",
-    "Podemos hablar de lo que quieras, sin prisa ni juicios 🌿.",
-    "Tu bienestar importa, aunque hoy no lo sientas tan claro 💫.",
+    "Gracias por contarme. ¿Quieres profundizar en lo que sientes o prefieres una técnica para calmarte?",
+    "Veo que mencionas algo; si quieres, podemos explorar cómo afectó eso tu día.",
+    "Gracias por confiar en contarme. ¿Hay algo específico que quieras trabajar ahora?"
   ]
 };
 
-// --- Detección simple de emociones por palabras clave ---
-const detectEmotion = (text) => {
-  const lower = text.toLowerCase();
-  if (lower.match(/triste|deprimid|mal|llorar|solo|sola/)) return "tristeza";
-  if (lower.match(/estres|estresad|agotad|cansad/)) return "estres";
-  if (lower.match(/ansioso|nervioso|preocupad|inquiet/)) return "ansiedad";
-  if (lower.match(/miedo|temor|asustad/)) return "miedo";
-  if (lower.match(/enojad|rabia|furios|molest/)) return "enojo";
-  return "neutral";
-};
+// Frases de riesgo (configurable desde DB/archivo en futuro)
+let crisisPhrases = [
+  "me quiero morir",
+  "no aguanto más",
+  "quiero acabar con todo",
+  "no veo ninguna salida",
+  "ya no quiero existir",
+  "no vale la pena seguir viviendo",
+  "estoy pensando en hacerme daño",
+  "me quiero hacer daño"
+];
 
-// --- Simulación de nivel de confianza ---
-const calculateConfidence = (message) => {
-  const randomFactor = Math.random() * 0.3 + 0.7; // 70% a 100%
-  return Math.round(randomFactor * 100);
-};
+// Análisis simple con scoring (palabras y sinónimos)
+function analyzeEmotion(text) {
+  const t = text.toLowerCase();
 
-// --- Controlador principal ---
-exports.getResponse = async (req, res) => {
+  // Mapar palabras a emociones con peso
+  const lexicon = {
+    tristeza: ["triste", "deprim", "llor", "abat", "desanim", "melancol"],
+    ansiedad: ["ansios", "ansiedad", "nervios", "preocup", "panico", "angustia"],
+    estrés: ["estres", "agot", "sobrecarg", "presion", "estresado"],
+    miedo: ["miedo", "temor", "asust", "pavor"],
+    enojo: ["enoj", "ira", "rabia", "molest", "furia"]
+  };
+
+  // Score
+  const scores = { tristeza:0, ansiedad:0, estrés:0, miedo:0, enojo:0 };
+  for (const [emo, keywords] of Object.entries(lexicon)) {
+    for (const kw of keywords) {
+      // multiplicar matches
+      const re = new RegExp(kw, "gi");
+      const matches = (t.match(re) || []).length;
+      scores[emo] += matches;
+    }
+  }
+
+  // If no tokens matched, neutral small baseline
+  const total = Object.values(scores).reduce((a,b)=>a+b,0);
+  if (total === 0) return { emotion: "neutral", confidence: 0.55 }; // baja confianza
+
+  // decide mayor puntaje
+  let best = "neutral";
+  let bestScore = 0;
+  for (const [k,v] of Object.entries(scores)) {
+    if (v > bestScore) { best = k; bestScore = v; }
+  }
+
+  // simple confidence: normalized by total matches (soft)
+  const confidence = Math.min(0.99, (bestScore / (total)) * 0.9 + 0.1);
+
+  // Map 'estrés' key
+  const emotionKey = best === "estrés" ? "estrés" : best;
+
+  return { emotion: emotionKey, confidence: Number(confidence.toFixed(2)) };
+}
+
+// Crear respuesta basada en PAP + small logic
+function craftResponse({ emotion, confidence, tone, userText, needsConfirmation=false }) {
+  // choose bank
+  const bank = empatheticBank[emotion] || empatheticBank["neutral"];
+  // choose a variant
+  const template = bank[Math.floor(Math.random() * bank.length)];
+
+  // Tone handling (simple)
+  if (tone === "formal") {
+    return template.replace("¿", "Por favor, ¿").replace("Estoy", "Estoy aquí para ayudarle.");
+  }
+  return template;
+}
+
+function isCrisis(text) {
+  const t = text.toLowerCase();
+  return crisisPhrases.some(p => t.includes(p));
+}
+
+// generar sessionId
+function newSessionId() {
+  return crypto.randomBytes(12).toString("hex");
+}
+
+// Controller principal
+exports.message = async (req, res) => {
   try {
-    const { message } = req.body;
-
+    // tone: 'informal' or 'formal' -> can come from req.body.tone or header 'x-tone'
+    const tone = (req.body.tone || req.headers["x-tone"] || "informal").toLowerCase();
+    let { message, sessionId } = req.body;
     if (!message || typeof message !== "string") {
       return res.status(400).json({ msg: "Mensaje inválido" });
     }
 
-    // Analizar emoción
-    const emotion = detectEmotion(message);
-    const confidence = calculateConfidence(message);
+    // anonimizar input antes de procesar/almacenar
+    const anonText = anonymize(message);
 
-    // Si la confianza es baja (<60%), pedir confirmación
-    if (confidence < 60) {
+    // Si no hay sessionId, crear uno y nueva sesión
+    if (!sessionId) {
+      sessionId = newSessionId();
+      // crear registro inicial
+      const newSession = new ChatSession({ sessionId, anonymous: true, messages: [] });
+      await newSession.save();
+    }
+
+    // buscar sesión
+    let session = await ChatSession.findOne({ sessionId });
+    if (!session) {
+      session = new ChatSession({ sessionId, anonymous: true, messages: [] });
+    }
+
+    // Guardar mensaje del usuario anonimizado
+    session.messages.push({
+      sender: "user",
+      text: anonText,
+      emotion: "unknown",
+      confidence: 0,
+      tone
+    });
+
+    // Detección de frase de riesgo (crisis) - prioridad
+    if (isCrisis(anonText)) {
+      const botText = "💛 Lamento mucho que te sientas así. No estás sol@. Si estás en peligro inmediato, por favor contacta la línea 106 (Colombia) o acude al servicio de urgencias. ¿Quieres que te comparta contactos o recursos ahora?";
+      session.messages.push({
+        sender: "bot",
+        text: botText,
+        emotion: "crisis",
+        confidence: 1,
+        tone
+      });
+      await session.save();
       return res.json({
-        response: "No estoy muy segur@ de cómo te sientes 😔. ¿Dirías que es más tristeza, ansiedad o enojo?",
-        emotion: "indefinida",
-        confidence,
+        currentResponse: botText,
+        emotion: "crisis",
+        confidence: 1,
+        tone,
+        sessionId,
+        crisis: true
       });
     }
 
-    // Seleccionar respuesta basada en emoción detectada
-    const responses = empatheticResponses[emotion] || empatheticResponses.neutral;
-    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+    // Analizar emoción y confianza
+    const { emotion, confidence } = analyzeEmotion(anonText);
 
-    // Crear registro de análisis
-    const analysisResult = {
+    // Si confianza baja (< 0.60) pedimos confirmación (no asumimos)
+    if (confidence < 0.60) {
+      const ask = "Creo que no me queda del todo claro cómo te sientes. ¿Podrías decirme si te sientes: triste, ansios@, estresad@, con miedo o enojad@? Responde una palabra si puedes.";
+      session.messages.push({
+        sender: "bot",
+        text: ask,
+        emotion: "clarify",
+        confidence,
+        tone
+      });
+      await session.save();
+      return res.json({
+        currentResponse: ask,
+        emotion: "uncertain",
+        confidence,
+        tone,
+        sessionId,
+        needsConfirmation: true
+      });
+    }
+
+    // Si confianza suficiente -> generar respuesta (PAP)
+    const reply = craftResponse({ emotion, confidence, tone, userText: anonText });
+
+    // Guardamos análisis y respuesta
+    // actualizamos último message (user) con emotion/confidence
+    const lastIdx = session.messages.length - 1;
+    if (lastIdx >= 0) {
+      session.messages[lastIdx].emotion = emotion;
+      session.messages[lastIdx].confidence = confidence;
+    }
+
+    session.messages.push({
+      sender: "bot",
+      text: reply,
       emotion,
       confidence,
-      timestamp: new Date(),
-      userInput: message,
-      botResponse: randomResponse,
-    };
-
-    console.log("🧠 Análisis emocional:", analysisResult);
-
-    res.status(200).json({
-      currentResponse: randomResponse,
-      emotion,
-      confidence,
-      timestamp: analysisResult.timestamp,
+      tone
     });
-  } catch (error) {
-    console.error("❌ Error en chatbot:", error);
-    res.status(500).json({ msg: "Error en el chatbot", error: error.message });
+
+    // Guardar sesión (sin metadatos de usuario, es anónima)
+    await session.save();
+
+    // Devolver respuesta al frontend
+    return res.json({
+      currentResponse: reply,
+      emotion,
+      confidence,
+      tone,
+      sessionId,
+      crisis: false
+    });
+  } catch (err) {
+    console.error("❌ Error en chatbot:", err);
+    return res.status(500).json({ msg: "Error interno del chatbot", error: err.message });
   }
 };
