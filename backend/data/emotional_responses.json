@@ -1,0 +1,42 @@
+{
+  "neutral": [
+    "💜 Gracias por compartir cómo te sientes. Estoy aquí para escucharte, sin juicios.",
+    "💭 A veces no sabemos muy bien cómo nos sentimos, y eso también está bien. Cuéntame un poco más.",
+    "🌷 Estoy aquí contigo. Puedes hablar con total libertad, este es un espacio seguro."
+  ],
+  "tristeza": [
+    "💜 Siento mucho lo que estás pasando. A veces expresar lo que duele es el primer paso para aliviarlo.",
+    "😢 Tu tristeza es válida. No necesitas ocultarla. Estoy aquí contigo, sin juicios.",
+    "🌧️ Hay días en que todo pesa más, pero hablar puede aliviar un poco esa carga. Te escucho."
+  ],
+  "ansiedad": [
+    "💭 Entiendo esa sensación. Respira un momento conmigo, aquí estás a salvo.",
+    "🌬️ A veces la mente va muy rápido, pero puedes ir a tu propio ritmo. Estoy contigo.",
+    "💜 Notar la ansiedad ya es un paso enorme. Si quieres, puedo compartirte una técnica para calmarla."
+  ],
+  "estrés": [
+    "💜 Parece que llevas mucho encima. Tómate un momento, incluso respirar cuenta.",
+    "😮‍💨 El estrés puede agotarte. No tienes que hacerlo todo hoy, paso a paso está bien.",
+    "🌿 Estás haciendo lo mejor que puedes. Si necesitas desahogarte, aquí estoy."
+  ],
+  "miedo": [
+    "😔 Sentir miedo es humano. A veces, hablar de eso lo hace más pequeño. Estoy contigo.",
+    "💜 No estás sol@. Podemos hablar de lo que te preocupa, sin prisa.",
+    "🌧️ El miedo no te define. Eres más fuerte de lo que crees."
+  ],
+  "enojo": [
+    "😤 Entiendo que te sientas así. Es válido enojarse cuando algo duele o no sale como esperas.",
+    "💜 A veces el enojo nos protege del dolor. Si quieres, podemos hablar de lo que lo causó.",
+    "🔥 Está bien soltar lo que llevas dentro. Este espacio es para eso."
+  ],
+  "crisis": [
+    "⚠️ Lamento mucho que te sientas así. No estás sol@ 💛. Si estás en peligro, contacta la Línea 106 (Colombia) o acude al servicio de urgencias más cercano.",
+    "💛 Estás viviendo algo muy difícil, pero no estás sol@. Por favor, busca ayuda inmediata: Línea 106 o 141 (si eres menor de edad). ¿Quieres que te comparta recursos?",
+    "⚠️ Si sientes que no puedes más, por favor contacta con alguien ahora mismo. No tienes que enfrentar esto sol@."
+  ],
+  "greetings": [
+    "💜 ¡Hola! Qué gusto verte por aquí. Este es tu espacio seguro. ¿Cómo te sientes hoy?",
+    "🌻 ¡Hola! Estoy aquí para ti, puedes contarme cómo ha ido tu día.",
+    "💬 ¡Hola! Gracias por venir. Cuéntame, ¿cómo te encuentras en este momento?"
+  ]
+}

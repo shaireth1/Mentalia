@@ -33,6 +33,14 @@ mongoose.connect("mongodb://127.0.0.1:27017/mentalia")
 app.use("/api/auth", authRoutes);
 app.use("/api/chatbot", chatbotRoutes);
 
+const { analyzeAndAdapt } = require("./utils/empathyLearner");
+
+// 🕒 Ejecutar cada 6 horas (aprendizaje periódico)
+setInterval(() => {
+  console.log("🤖 Analizando conversaciones para aprendizaje empático...");
+  analyzeAndAdapt();
+}, 6 * 60 * 60 * 1000);
+
 // 🚀 Iniciar servidor
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {

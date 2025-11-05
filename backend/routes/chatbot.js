@@ -1,15 +1,16 @@
 // routes/chatbot.js
 const express = require("express");
 const router = express.Router();
-const Conversation = require("../models/Conversation"); // 👈 Importamos el modelo
+const { getResponse } = require("../utils/responseHelper");
+const Conversation = require("../models/Conversation");
 
-// 🎯 Diccionario de palabras clave asociadas a emociones
+// 🎯 Diccionario básico de palabras clave para detectar emociones
 const emotionKeywords = {
   tristeza: ["triste", "llorar", "solo", "sola", "vacío", "extraño", "perdí", "murió", "muerte", "pena", "nostalgia"],
-  ansiedad: ["ansioso", "ansiosa", "nervioso", "nerviosa", "preocupado", "preocupada", "estresado", "estresada", "presión", "inquieto"],
-  miedo: ["miedo", "temor", "asustado", "asustada", "pánico", "terror", "preocupación", "inseguro"],
-  enojo: ["enojado", "enojada", "rabia", "furioso", "molesto", "ira", "odio"],
-  estrés: ["agotado", "estresado", "cansado", "presión", "saturado", "bloqueado"],
+  ansiedad: ["ansioso", "ansiosa", "nervioso", "nerviosa", "preocupado", "preocupada", "inquieto", "inquieta"],
+  miedo: ["miedo", "temor", "asustado", "asustada", "pánico", "terror", "inseguro", "inseguridad"],
+  enojo: ["enojado", "enojada", "rabia", "furioso", "molesto", "ira", "odio", "fastidio"],
+  estrés: ["estresado", "estresada", "cansado", "cansada", "agotado", "presión", "saturado", "bloqueado"],
 };
 
 // ⚠️ Frases de riesgo (RF9)
@@ -24,77 +25,39 @@ const crisisPhrases = [
   "suicidarme",
 ];
 
-// 💬 Respuestas empáticas (PAP)
-const responsesByEmotion = {
-  tristeza: [
-    "💜 Lamento mucho lo que estás pasando. Lo que sientes es completamente válido.",
-    "💜 Puedo sentir tu tristeza. Gracias por confiar en mí para compartirla. No estás sol@.",
-    "💜 A veces llorar o sentirse mal es una forma de sanar. Estoy aquí contigo.",
-  ],
-  ansiedad: [
-    "💭 Respira conmigo un momento. Inhala profundo... exhala lento. Estoy aquí contigo.",
-    "💜 Entiendo esa sensación de ansiedad. ¿Quieres que te enseñe una técnica breve para calmarte?",
-    "💜 Estás haciendo lo mejor que puedes, incluso si no se siente así ahora.",
-  ],
-  miedo: [
-    "💜 Entiendo que tengas miedo. A veces el miedo solo quiere protegernos. Cuéntame más si quieres.",
-    "💜 No estás sol@. Hablar del miedo hace que pierda fuerza.",
-    "💜 Está bien sentir miedo, no significa debilidad. Estoy contigo.",
-  ],
-  enojo: [
-    "😤 Puedo notar tu enojo. Es válido sentirse así cuando algo duele o se siente injusto.",
-    "💜 A veces el enojo es una forma de decir 'me importa'. Cuéntame qué pasó.",
-    "💜 Puedes soltar un poco esa rabia aquí, estoy para escucharte sin juzgar.",
-  ],
-  estrés: [
-    "💜 Parece que estás agotad@. Has estado haciendo mucho, mereces un respiro.",
-    "💭 El estrés puede ser abrumador, pero no estás sol@. Podemos hablar de lo que te presiona.",
-    "💜 Quizás necesites pausar un momento. Estoy aquí contigo.",
-  ],
-  neutral: [
-    "💜 Gracias por hablar conmigo. Cuéntame cómo te sientes hoy.",
-    "💜 Te escucho con atención, sin juicios. ¿Cómo va tu día?",
-  ],
-  crisis: [
-    "⚠️ Lamento mucho que te sientas así. No estás sol@ 💛. Por favor contacta la línea 106 (Colombia) o acude a urgencias. ¿Quieres que te comparta contactos ahora?",
-    "⚠️ Entiendo que todo puede sentirse muy pesado. No enfrentes esto sol@. Línea 106 o el 141 (si eres menor).",
-  ],
-};
-
-// 🧠 Detección de emoción
+// 🧠 Detectar emoción en el texto
 function detectEmotion(message) {
   const lower = message.toLowerCase();
   for (const [emotion, keywords] of Object.entries(emotionKeywords)) {
-    if (keywords.some(word => lower.includes(word))) return emotion;
+    if (keywords.some((word) => lower.includes(word))) return emotion;
   }
   return "neutral";
 }
 
-// 🗣️ Endpoint principal del chatbot
+// 📍 Endpoint principal del chatbot
 router.post("/message", async (req, res) => {
   try {
     const { message } = req.body;
-    if (!message || message.trim() === "") {
+    if (!message || message.trim() === "")
       return res.status(400).json({ response: "Por favor, escribe algo." });
-    }
 
     const lowerMsg = message.toLowerCase();
 
-    // 🔎 Detección de crisis
-    const isCrisis = crisisPhrases.some(p => lowerMsg.includes(p));
-    if (isCrisis) {
-      const response = responsesByEmotion.crisis[Math.floor(Math.random() * responsesByEmotion.crisis.length)];
-      return res.json({ response, emotion: "crisis", isCrisis: true });
-    }
+    // 🔹 Detectar si el usuario está saludando
+    const isGreeting = ["hola", "buenas", "hey", "holi"].some((word) =>
+      lowerMsg.includes(word)
+    );
 
-    // 💬 Detección de emoción
+    // 🔹 Detectar si hay frases de crisis
+    const isCrisis = crisisPhrases.some((p) => lowerMsg.includes(p));
+
+    // 🔹 Detectar emoción
     const emotion = detectEmotion(lowerMsg);
 
-    // 🩷 Seleccionar respuesta empática
-    const responses = responsesByEmotion[emotion] || responsesByEmotion.neutral;
-    const response = responses[Math.floor(Math.random() * responses.length)];
+    // 🔹 Generar respuesta empática desde el JSON
+    const response = getResponse(emotion, isGreeting, isCrisis);
 
-    // 🧾 Guardar conversación en MongoDB (por sesión)
+    // 💾 Guardar la conversación (sesión temporal)
     const sessionId = req.session.id;
     let convo = await Conversation.findOne({ sessionId });
 
@@ -106,7 +69,9 @@ router.post("/message", async (req, res) => {
     convo.messages.push({ sender: "bot", text: response, emotion });
     await convo.save();
 
-    res.json({ response, emotion, isCrisis: false });
+    // 📤 Enviar respuesta al frontend
+    res.json({ response, emotion, isCrisis });
+
   } catch (error) {
     console.error("❌ Error en chatbot:", error);
     res.status(500).json({ response: "Error interno del chatbot." });
