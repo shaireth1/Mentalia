@@ -51,40 +51,46 @@ export default function ChatPage() {
       const data = await res.json();
 
       // 🔹 Interpretamos la emoción y elegimos un mensaje humano
-      let botReply = "💭 Estoy aquí para escucharte.";
-      const emotion = data.emotion || "neutral";
+      // 🧠 Usar directamente la respuesta del backend si existe
+let botReply = data.response;
 
-      if (data.isCrisis) {
+if (!botReply) {
+  // Si el backend no devuelve nada, generar respuesta alternativa
+  const emotion = data.emotion || "neutral";
+
+  if (data.isCrisis) {
+    botReply =
+      "⚠️ Lamento mucho que te sientas así. No estás sol@ 💛. Si estás en peligro, contacta la línea 106 (Colombia) o acude al servicio de urgencias más cercano. ¿Quieres que te comparta contactos o recursos ahora?";
+  } else {
+    switch (emotion) {
+      case "tristeza":
         botReply =
-          "⚠️ Lamento mucho que te sientas así. No estás sol@ 💛. Si estás en peligro, contacta la línea 106 (Colombia) o acude al servicio de urgencias más cercano. ¿Quieres que te comparta contactos o recursos ahora?";
-      } else {
-        switch (emotion) {
-          case "tristeza":
-            botReply =
-              "💜 Lamento que te sientas triste. A veces hablar puede aliviar un poco la carga. Estoy aquí contigo.";
-            break;
-          case "estrés":
-            botReply =
-              "😔 Parece que estás pasando por mucho estrés. Respira un momento, aquí puedes desahogarte, te escucho.";
-            break;
-          case "ansiedad":
-            botReply =
-              "💭 Entiendo esa sensación de ansiedad, puede ser abrumadora. Estoy aquí para acompañarte, ¿quieres que hablemos de lo que la causa?";
-            break;
-          case "miedo":
-            botReply =
-              "😢 Sentir miedo es humano. Cuéntame un poco más si quieres, estoy aquí para escucharte sin juzgar.";
-            break;
-          case "enojo":
-            botReply =
-              "😤 A veces la rabia aparece porque algo nos importa. Puedes contarme qué te hizo sentir así, si quieres.";
-            break;
-          default:
-            botReply =
-              "💜 Te estoy escuchando. Cuéntame un poco más, lo que sientas que necesitas expresar.";
-            break;
-        }
-      }
+          "💜 Lamento que te sientas triste. A veces hablar puede aliviar un poco la carga. Estoy aquí contigo.";
+        break;
+      case "estrés":
+        botReply =
+          "😔 Parece que estás pasando por mucho estrés. Respira un momento, aquí puedes desahogarte, te escucho.";
+        break;
+      case "ansiedad":
+        botReply =
+          "💭 Entiendo esa sensación de ansiedad, puede ser abrumadora. Estoy aquí para acompañarte, ¿quieres que hablemos de lo que la causa?";
+        break;
+      case "miedo":
+        botReply =
+          "😢 Sentir miedo es humano. Cuéntame un poco más si quieres, estoy aquí para escucharte sin juzgar.";
+        break;
+      case "enojo":
+        botReply =
+          "😤 A veces la rabia aparece porque algo nos importa. Puedes contarme qué te hizo sentir así, si quieres.";
+        break;
+      default:
+        botReply =
+          "💜 Te estoy escuchando. Cuéntame un poco más, lo que sientas que necesitas expresar.";
+        break;
+    }
+  }
+}
+
 
       const botMessage = {
         id: messages.length + 2,
