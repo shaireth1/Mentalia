@@ -1,36 +1,34 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { MessageSquare, Send } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { SendHorizonal, Bot } from "lucide-react";
 
 export default function ChatbotView() {
   const [messages, setMessages] = useState([
     {
       sender: "bot",
-      text: "💜 ¡Hola! Soy MENTALIA Bot. Este es un espacio confidencial y seguro para ti. Puedes contarme cómo te sientes, sin juicios.",
+      text: "💜 ¡Hola! Soy MENTALIA Bot. Estoy aquí para acompañarte y escucharte. ¿Cómo te sientes hoy?",
       time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     },
   ]);
 
   const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
   const chatEndRef = useRef(null);
 
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  const handleSend = async (e) => {
-    e.preventDefault();
+  // 🔹 Enviar mensaje al backend y mostrar respuesta
+  const handleSend = async () => {
     if (!input.trim()) return;
 
-    // Mensaje del usuario
     const userMessage = {
       sender: "user",
-      text: input,
+      text: input.trim(),
       time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     };
+
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
+    setLoading(true);
 
     try {
       const res = await fetch("http://localhost:4000/api/chatbot/message", {
@@ -41,130 +39,108 @@ export default function ChatbotView() {
 
       const data = await res.json();
 
-      let botReply = data.response;
-
-      if (!botReply) {
-        const emotion = data.emotion || "neutral";
-
-        if (data.isCrisis) {
-          botReply =
-            "⚠️ Lamento mucho que te sientas así. No estás sol@ 💛. Si estás en peligro, contacta la línea 106 (Colombia) o acude al servicio de urgencias más cercano. ¿Quieres que te comparta contactos o recursos ahora?";
-        } else {
-          switch (emotion) {
-            case "tristeza":
-              botReply =
-                "💜 Lamento que te sientas triste. A veces hablar puede aliviar un poco la carga. Estoy aquí contigo.";
-              break;
-            case "estrés":
-              botReply =
-                "😔 Parece que estás pasando por mucho estrés. Respira un momento, aquí puedes desahogarte, te escucho.";
-              break;
-            case "ansiedad":
-              botReply =
-                "💭 Entiendo esa sensación de ansiedad, puede ser abrumadora. Estoy aquí para acompañarte, ¿quieres que hablemos de lo que la causa?";
-              break;
-            case "miedo":
-              botReply =
-                "😢 Sentir miedo es humano. Cuéntame un poco más si quieres, estoy aquí para escucharte sin juzgar.";
-              break;
-            case "enojo":
-              botReply =
-                "😤 A veces la rabia aparece porque algo nos importa. Puedes contarme qué te hizo sentir así, si quieres.";
-              break;
-            default:
-              botReply =
-                "💜 Te estoy escuchando. Cuéntame un poco más, lo que sientas que necesitas expresar.";
-              break;
-          }
-        }
-      }
-
-      // Respuesta del bot
       const botMessage = {
         sender: "bot",
-        text: botReply,
+        text:
+          data.response ||
+          "✨ Gracias por compartirlo. Estoy aquí para escucharte, cuéntame más si lo deseas.",
         time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       };
+
       setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
-      console.error("❌ Error al conectar con el backend:", error);
+      console.error("❌ Error de conexión con el backend:", error);
       setMessages((prev) => [
         ...prev,
         {
           sender: "bot",
-          text: "🚫 No pude conectarme al servidor. Intenta más tarde.",
+          text: "🚫 Ocurrió un error al conectar con el servidor. Intenta más tarde, por favor.",
           time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         },
       ]);
+    } finally {
+      setLoading(false);
     }
   };
 
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") handleSend();
+  };
+
+  // 🔹 Desplazamiento automático hacia el último mensaje
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
   return (
-    <div className="flex flex-col h-full w-full bg-[#faf8ff] rounded-xl shadow-sm border border-transparent">
-      {/* Encabezado */}
-      <div className="p-4 rounded-t-xl bg-gradient-to-r from-[#7b2ff7] to-[#9f44d3] flex items-center justify-between text-white">
-        <div className="flex items-center gap-2">
-          <MessageSquare size={20} />
-          <div>
-            <h2 className="font-semibold">MENTALIA Bot</h2>
-            <p className="text-xs text-white/80">
-              Disponible 24/7 • Conversación confidencial
-            </p>
-          </div>
+    <div className="flex flex-col w-full h-[calc(100vh-100px)] bg-[#faf7ff] rounded-2xl shadow-sm border border-[#e9e3fa] overflow-hidden">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-[#7B3EF3] to-[#B266FF] text-white py-4 px-6 rounded-t-2xl flex items-center gap-3">
+        <div className="bg-white/20 p-2 rounded-full">
+          <Bot className="text-white" size={22} />
+        </div>
+        <div>
+          <h2 className="font-semibold text-lg">MENTALIA Bot</h2>
+          <p className="text-sm opacity-90">
+            Disponible 24/7 · Espacio de apoyo emocional
+          </p>
         </div>
       </div>
 
-      {/* Mensajes */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-3 bg-gradient-to-b from-[#faf8ff] to-[#f5edff]">
-        {messages.map((msg, index) => (
+      {/* Chat messages */}
+      <div className="flex-1 p-6 overflow-y-auto space-y-4">
+        {messages.map((msg, i) => (
           <div
-            key={index}
-            className={`flex ${
-              msg.sender === "bot" ? "justify-start" : "justify-end"
-            }`}
+            key={i}
+            className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`p-3 rounded-2xl max-w-[70%] shadow-sm text-sm ${
-                msg.sender === "bot"
-                  ? "bg-[#f3e7ff] text-gray-700"
-                  : "bg-[#d9c6ff] text-gray-800"
+              className={`max-w-[80%] rounded-2xl px-4 py-3 shadow-sm ${
+                msg.sender === "user"
+                  ? "bg-[#e7d8fb] text-gray-800"
+                  : "bg-[#f3eaff] text-gray-800"
               }`}
             >
-              <p>{msg.text}</p>
-              <span className="text-xs text-gray-500 mt-1 block text-right">
-                {msg.time}
-              </span>
+              <p className="text-sm">{msg.text}</p>
+              <span className="text-xs text-gray-500 mt-1 block text-right">{msg.time}</span>
             </div>
           </div>
         ))}
+
+        {loading && (
+          <div className="flex justify-start">
+            <div className="bg-[#f3eaff] text-gray-700 px-4 py-3 rounded-2xl text-sm animate-pulse">
+              💭 Estoy pensando en la mejor manera de responderte...
+            </div>
+          </div>
+        )}
         <div ref={chatEndRef} />
       </div>
 
-      {/* Entrada de mensaje */}
-      <form
-        onSubmit={handleSend}
-        className="p-4 bg-white rounded-b-xl flex items-center gap-2 border-t border-gray-100"
-      >
-        <input
-          type="text"
-          placeholder="Escribe tu mensaje aquí..."
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          className="flex-1 p-2 border border-[#d7baff] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#a96cff]"
-        />
-        <button
-          type="submit"
-          className="bg-[#b46dff] hover:bg-[#9f44d3] text-white rounded-full p-2 transition"
-        >
-          <Send size={18} />
-        </button>
-      </form>
-
-      <p className="text-center text-xs text-gray-500 py-2">
-        💡 Presiona Enter para enviar • Tu conversación es confidencial
-      </p>
+      {/* Input */}
+      <div className="border-t border-[#e9e3fa] bg-white p-4 rounded-b-2xl">
+        <div className="flex items-center gap-3">
+          <input
+            type="text"
+            placeholder="Escribe tu mensaje aquí..."
+            className="flex-1 border border-[#e0d5f5] focus:ring-2 focus:ring-[#b97eff] focus:outline-none rounded-xl px-4 py-2 text-sm"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyPress}
+          />
+          <button
+            onClick={handleSend}
+            disabled={loading}
+            className="bg-[#cfa3ff] hover:bg-[#b97eff] transition p-2 rounded-xl disabled:opacity-50"
+          >
+            <SendHorizonal size={18} className="text-white" />
+          </button>
+        </div>
+        <p className="text-xs text-gray-500 mt-2">
+          💬 Presiona Enter para enviar · Tu bienestar es importante 💜
+        </p>
+      </div>
     </div>
   );
 }
-
 
