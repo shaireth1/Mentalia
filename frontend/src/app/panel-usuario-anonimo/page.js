@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { LogOut, MessageCircle, BookOpen, Lock, Clock } from "lucide-react";
 import ChatbotView from "../vistas-reutilizables/ChatbotView";
+import RecursosView from "../vistas-reutilizables/RecursosView";
 
 export default function ChatPageAnonimo() {
   const [activeView, setActiveView] = useState("chat");
