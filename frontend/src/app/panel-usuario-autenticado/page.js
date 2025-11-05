@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import SettingsView from "./SettingsView";
 import DiarioEmocional from "./DiarioEmocional";
+import ChatbotView from "../vistas-reutilizables/ChatbotView"; 
 
 export default function Dashboard() {
   const [selectedMood, setSelectedMood] = useState("");
@@ -99,6 +100,9 @@ export default function Dashboard() {
           {/* Vista Diario Emocional */}
           {activeView === "Diario Emocional" && <DiarioEmocional />}
 
+          {/* Vista Chatbot */}
+          {activeView === "Chatbot" && <ChatbotView />} {/* 👈 agregado */}
+
           {/* Vista Inicio */}
           {activeView === "Inicio" && (
             <>
@@ -159,19 +163,14 @@ export default function Dashboard() {
                     Tu semana emocional
                   </h3>
                   <ul className="space-y-2">
-                    {[
-                      { day: "Lun", val: 4 },
+                    {[{ day: "Lun", val: 4 },
                       { day: "Mar", val: 3 },
                       { day: "Mié", val: 5 },
                       { day: "Jue", val: 2 },
                       { day: "Vie", val: 4 },
                       { day: "Sáb", val: 5 },
-                      { day: "Dom", val: 3 },
-                    ].map(({ day, val }) => (
-                      <li
-                        key={day}
-                        className="flex items-center justify-between text-sm"
-                      >
+                      { day: "Dom", val: 3 }].map(({ day, val }) => (
+                      <li key={day} className="flex items-center justify-between text-sm">
                         <span>{day}</span>
                         <div className="flex-1 mx-2 bg-purple-100 h-2 rounded-full">
                           <div
@@ -268,6 +267,7 @@ export default function Dashboard() {
     </div>
   );
 }
+
 
 
 
