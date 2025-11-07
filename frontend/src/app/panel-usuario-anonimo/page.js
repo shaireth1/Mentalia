@@ -1,14 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import { LogOut, MessageCircle, BookOpen, Lock, Clock } from "lucide-react";
-import ChatbotView from "../vistas-reutilizables/ChatbotView";
-import RecursosView from "../vistas-reutilizables/RecursosView";
+import { MessageCircle, BookOpen, LogOut, Lock, Clock } from "lucide-react";
+import ChatbotView from "@/vistas-reutilizables/ChatbotView"; // ✅ Importar componente nuevo
 
-export default function ChatPageAnonimo() {
-  const [activeView, setActiveView] = useState("chat");
-
+export default function ChatPage() {
   return (
     <div className="flex flex-col h-screen bg-[#f6f4fb]">
       {/* HEADER */}
@@ -36,37 +32,20 @@ export default function ChatPageAnonimo() {
         {/* SIDEBAR */}
         <aside className="w-60 bg-white border-r border-gray-200 py-4 px-4 flex flex-col justify-between">
           <nav className="space-y-3">
-            <button
-              onClick={() => setActiveView("chat")}
-              className={`flex items-center w-full px-3 py-2 text-left text-sm rounded-md transition ${
-                activeView === "chat"
-                  ? "bg-purple-100 text-[#6b21a8]"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
-            >
+            <button className="flex items-center w-full px-3 py-2 text-left text-sm text-[#6b21a8] bg-purple-100 rounded-md">
               <MessageCircle size={18} className="mr-2" /> Chat de Apoyo
             </button>
-            <button
-              onClick={() => setActiveView("recursos")}
-              className={`flex items-center w-full px-3 py-2 text-left text-sm rounded-md transition ${
-                activeView === "recursos"
-                  ? "bg-purple-100 text-[#6b21a8]"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
-            >
+            <button className="flex items-center w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-md">
               <BookOpen size={18} className="mr-2" /> Recursos y Técnicas
             </button>
           </nav>
-
         </aside>
 
-        {/* MAIN CONTENT */}
-        <main className="flex-1 p-4">
-          {activeView === "chat" ? <ChatbotView /> : <RecursosView />}
+        {/* CHAT PRINCIPAL */}
+        <main className="flex-1 flex flex-col p-4">
+          <ChatbotView mode="anonimo" /> {/* ✅ Aquí usamos el componente unificado */}
         </main>
       </div>
     </div>
   );
 }
-
-

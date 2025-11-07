@@ -3,18 +3,42 @@
 import { useState, useRef, useEffect } from "react";
 import { SendHorizonal, Bot } from "lucide-react";
 
-export default function ChatbotView() {
-  const [messages, setMessages] = useState([
-    {
-      sender: "bot",
-      text: "💜 ¡Hola! Soy MENTALIA Bot. Estoy aquí para acompañarte y escucharte. ¿Cómo te sientes hoy?",
-      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-    },
-  ]);
+export default function ChatbotView({ mode = "anonimo" }) {
+  const [messages, setMessages] = useState(() => {
+    // Recuperar historial temporal de la sesión (solo si está disponible)
+    const saved = sessionStorage.getItem("chatHistory");
+    return saved
+      ? JSON.parse(saved)
+      : [
+          {
+            sender: "bot",
+            text: "💜 ¡Hola! Soy MENTALIA Bot. Estoy aquí para acompañarte y escucharte. ¿Cómo te sientes hoy?",
+            time: new Date().toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+          },
+        ];
+  });
 
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const chatEndRef = useRef(null);
+
+  // 🔹 Guardar historial durante la sesión
+  useEffect(() => {
+    sessionStorage.setItem("chatHistory", JSON.stringify(messages));
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // 🔹 Eliminar historial al cerrar la pestaña
+  useEffect(() => {
+    const clearSession = () => {
+      sessionStorage.removeItem("chatHistory");
+    };
+    window.addEventListener("beforeunload", clearSession);
+    return () => window.removeEventListener("beforeunload", clearSession);
+  }, []);
 
   // 🔹 Enviar mensaje al backend y mostrar respuesta
   const handleSend = async () => {
@@ -37,25 +61,34 @@ export default function ChatbotView() {
         body: JSON.stringify({ message: input }),
       });
 
+      if (!res.ok) throw new Error("Servidor no disponible");
+
       const data = await res.json();
 
       const botMessage = {
         sender: "bot",
         text:
+          data.currentResponse ||
           data.response ||
           "✨ Gracias por compartirlo. Estoy aquí para escucharte, cuéntame más si lo deseas.",
-        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        time: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
       };
 
       setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
-      console.error("❌ Error de conexión con el backend:", error);
+      console.error("❌ Error al conectar con el backend:", error);
       setMessages((prev) => [
         ...prev,
         {
           sender: "bot",
           text: "🚫 Ocurrió un error al conectar con el servidor. Intenta más tarde, por favor.",
-          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          time: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
         },
       ]);
     } finally {
@@ -67,10 +100,11 @@ export default function ChatbotView() {
     if (e.key === "Enter") handleSend();
   };
 
-  // 🔹 Desplazamiento automático hacia el último mensaje
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  // 🔹 Header dinámico según el modo
+  const headerTitle =
+    mode === "anonimo"
+      ? "MENTALIA Bot — Sesión anónima"
+      : "MENTALIA Bot — Chat de apoyo";
 
   return (
     <div className="flex flex-col w-full h-[calc(100vh-100px)] bg-[#faf7ff] rounded-2xl shadow-sm border border-[#e9e3fa] overflow-hidden">
@@ -80,9 +114,9 @@ export default function ChatbotView() {
           <Bot className="text-white" size={22} />
         </div>
         <div>
-          <h2 className="font-semibold text-lg">MENTALIA Bot</h2>
+          <h2 className="font-semibold text-lg">{headerTitle}</h2>
           <p className="text-sm opacity-90">
-            Disponible 24/7 · Espacio de apoyo emocional
+            Disponible 24/7 · Espacio confidencial y de apoyo emocional
           </p>
         </div>
       </div>
@@ -95,14 +129,16 @@ export default function ChatbotView() {
             className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`max-w-[80%] rounded-2xl px-4 py-3 shadow-sm ${
+              className={`max-w-[80%] rounded-2xl px-4 py-3 shadow-sm whitespace-pre-line ${
                 msg.sender === "user"
                   ? "bg-[#e7d8fb] text-gray-800"
                   : "bg-[#f3eaff] text-gray-800"
               }`}
             >
               <p className="text-sm">{msg.text}</p>
-              <span className="text-xs text-gray-500 mt-1 block text-right">{msg.time}</span>
+              <span className="text-xs text-gray-500 mt-1 block text-right">
+                {msg.time}
+              </span>
             </div>
           </div>
         ))}
@@ -143,4 +179,3 @@ export default function ChatbotView() {
     </div>
   );
 }
-
