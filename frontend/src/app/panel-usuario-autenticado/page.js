@@ -16,8 +16,8 @@ import {
 } from "lucide-react";
 import SettingsView from "./SettingsView";
 import DiarioEmocional from "./DiarioEmocional";
-import ChatbotView from "./ChatbotView";
-import RecursosView from "./RecursosView";
+import ChatbotView from "../vistas-reutilizables/ChatbotView";
+import RecursosView from "../vistas-reutilizables/RecursosView";
 
 export default function Dashboard() {
   const [selectedMood, setSelectedMood] = useState("");
