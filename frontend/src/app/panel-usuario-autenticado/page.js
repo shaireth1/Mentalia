@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import SettingsView from "./SettingsView";
 import DiarioEmocional from "./DiarioEmocional";
-import ChatbotView from "../vistas-reutilizables/ChatbotView";
+import ChatbotView from "../vistas-reutilizables/ChatbotView"; // ✅ Unificado
 import RecursosView from "../vistas-reutilizables/RecursosView";
 
 export default function Dashboard() {
@@ -97,8 +97,10 @@ export default function Dashboard() {
         <main className="flex-1 p-6 overflow-y-auto">
           {activeView === "Ajustes" && <SettingsView />}
           {activeView === "Diario Emocional" && <DiarioEmocional />}
-          {activeView === "Chatbot" && <ChatbotView />}
           {activeView === "Recursos" && <RecursosView />}
+
+          {/* ✅ Chatbot conectado a modo autenticado */}
+          {activeView === "Chatbot" && <ChatbotView mode="autenticado" />}
 
           {/* 🔹 VISTA INICIO */}
           {activeView === "Inicio" && (
@@ -160,7 +162,7 @@ export default function Dashboard() {
                     Tu semana emocional
                   </h3>
                   <ul className="space-y-2">
-                    {[
+                    {[ 
                       { day: "Lun", val: 4 },
                       { day: "Mar", val: 3 },
                       { day: "Mié", val: 5 },
