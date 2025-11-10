@@ -1,7 +1,7 @@
 // utils/chatbotLearning.js
-const Conversation = require("../models/Conversation");
+import Conversation from "../models/Conversation.js"; // ojo, .js si es módulo ES
 
-async function analyzeConversations() {
+export async function analyzeConversations() {
   const convos = await Conversation.find();
   const emotionStats = {};
 
@@ -23,5 +23,3 @@ async function analyzeConversations() {
 
   return emotionStats;
 }
-
-module.exports = { analyzeConversations };
