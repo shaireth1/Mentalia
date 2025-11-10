@@ -1,14 +1,6 @@
 // utils/emotionAnalyzer.js
 /**
  * 🔍 Analizador emocional del chatbot MENTALIA
- * -----------------------------------------------------
- * Este módulo implementa un modelo ligero de PLN que:
- *  - Analiza texto en español.
- *  - Detecta emociones básicas (tristeza, estrés, ansiedad, miedo, enojo, neutral).
- *  - Calcula un nivel de confianza entre 0 y 100.
- *  - Es extensible a futuro para incluir embeddings o IA avanzada.
- * -----------------------------------------------------
- * Cumple con RF8: reconocimiento emocional básico en español
  */
 
 const emotionKeywords = {
@@ -36,10 +28,6 @@ const emotionKeywords = {
   ],
 };
 
-/**
- * 🔢 Simula la confianza del modelo (85–100% si hay coincidencia clara)
- *  y (40–70%) si la emoción no está claramente definida.
- */
 function computeConfidence(matches) {
   if (matches >= 3) return 95 + Math.random() * 5;
   if (matches === 2) return 85 + Math.random() * 10;
@@ -47,12 +35,7 @@ function computeConfidence(matches) {
   return 40 + Math.random() * 15;
 }
 
-/**
- * 🧠 Analiza el mensaje del usuario
- * @param {string} text - Texto ingresado por el usuario
- * @returns {{ emotion: string, confidence: number }}
- */
-function analyzeEmotion(text) {
+export function analyzeEmotion(text) {
   const lower = text.toLowerCase();
   let detectedEmotion = "neutral";
   let maxMatches = 0;
@@ -65,10 +48,6 @@ function analyzeEmotion(text) {
     }
   }
 
-  // Calcular confianza
   const confidence = computeConfidence(maxMatches);
-
   return { emotion: detectedEmotion, confidence: Math.round(confidence) };
 }
-
-module.exports = { analyzeEmotion };

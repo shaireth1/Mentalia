@@ -1,11 +1,13 @@
-const express = require("express");
-const router = express.Router();
-const { handleAnonChat, handleAuthChat } = require("../controllers/chatbotController");
+// backend/routes/chatbot.js
+import express from "express";
+import { handleAnonChat, handleAuthChat } from "../controllers/chatbotController.js";
 
-// 🧠 Chat para usuario anónimo
+const router = express.Router();
+
+// 🟣 Chat para sesión anónima
 router.post("/anonimo", handleAnonChat);
 
-// 🧠 Chat para usuario autenticado
+// 🔵 Chat para usuario autenticado
 router.post("/autenticado", handleAuthChat);
 
-module.exports = router;
+export default router;

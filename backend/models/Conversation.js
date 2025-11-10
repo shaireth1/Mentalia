@@ -1,5 +1,5 @@
-// models/Conversation.js
-const mongoose = require("mongoose");
+// backend/models/Conversation.js
+import mongoose from "mongoose";
 
 const messageSchema = new mongoose.Schema({
   sender: { type: String, enum: ["user", "bot"], required: true },
@@ -17,12 +17,8 @@ const conversationSchema = new mongoose.Schema({
   endedAt: { type: Date }
 });
 
-// 🔹 Si es anónimo, se eliminará automáticamente 10 minutos después de su última actualización
-conversationSchema.index(
-  { updatedAt: 1 },
-  { expireAfterSeconds: 600 } // 600 segundos = 10 minutos
-);
-
+conversationSchema.index({ updatedAt: 1 }, { expireAfterSeconds: 600 });
 conversationSchema.set("timestamps", true);
 
-module.exports = mongoose.model("Conversation", conversationSchema);
+const Conversation = mongoose.model("Conversation", conversationSchema);
+export default Conversation;

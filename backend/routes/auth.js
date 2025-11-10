@@ -1,23 +1,9 @@
-const express = require("express");
+import express from "express";
+import { loginUser, registerUser } from "../controllers/authController.js";
+
 const router = express.Router();
 
-// 🔹 Importar controladores
-const authController = require("../controllers/authController");
-const passwordController = require("../controllers/passwordController");
+router.post("/login", loginUser);
+router.post("/register", registerUser);
 
-// 🔹 Registro
-router.post("/register", authController.registerUser);
-
-// 🔹 Login
-router.post("/login", authController.loginUser);
-
-// 🔹 Recuperar contraseña (enviar correo con token)
-router.post("/forgot-password", passwordController.forgotPassword);
-
-// 🔹 Restablecer contraseña (desde el link con token)
-router.post("/reset-password", passwordController.resetPassword);
-
-// 🔹 Logout
-router.post("/logout", authController.logoutUser);
-router.get("/verify", authController.verifyToken);
-module.exports = router;
+export default router;

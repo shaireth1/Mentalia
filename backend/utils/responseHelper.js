@@ -1,32 +1,29 @@
-// utils/responseHelper.js
-const fs = require("fs");
-const path = require("path");
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
-// Ruta del archivo JSON
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const RESPONSES_PATH = path.join(__dirname, "../data/emotional_responses.json");
 
-// Cargar frases empáticas
-function loadResponses() {
-  const raw = fs.readFileSync(RESPONSES_PATH, "utf-8");
-  return JSON.parse(raw);
-}
+export function getResponse(emotion, isGreeting = false, isCrisis = false) {
+  try {
+    const raw = fs.readFileSync(RESPONSES_PATH, "utf-8");
+    const responses = JSON.parse(raw);
 
-// Obtener respuesta según emoción o tipo de mensaje
-function getResponse(emotion, isGreeting = false, isCrisis = false) {
-  const responses = loadResponses();
+    if (isCrisis) {
+      const crisis = responses.crisis;
+      return crisis[Math.floor(Math.random() * crisis.length)];
+    }
 
-  if (isCrisis) {
-    const crisisSet = responses.crisis;
-    return crisisSet[Math.floor(Math.random() * crisisSet.length)];
+    if (isGreeting) {
+      const greetings = responses.greetings;
+      return greetings[Math.floor(Math.random() * greetings.length)];
+    }
+
+    const emotionSet = responses[emotion] || responses.neutral;
+    return emotionSet[Math.floor(Math.random() * emotionSet.length)];
+  } catch (err) {
+    console.error("Error al cargar respuestas:", err);
+    return "💜 Estoy aquí para escucharte, aunque algo falló con mis respuestas.";
   }
-
-  if (isGreeting) {
-    const greetSet = responses.greetings;
-    return greetSet[Math.floor(Math.random() * greetSet.length)];
-  }
-
-  const emotionSet = responses[emotion] || responses.neutral;
-  return emotionSet[Math.floor(Math.random() * emotionSet.length)];
 }
-
-module.exports = { getResponse };

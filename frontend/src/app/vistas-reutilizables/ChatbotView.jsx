@@ -61,11 +61,11 @@ export default function ChatbotView({ mode = "anonimo" }) {
     setInput("");
 
     try {
-      // 🔹 Elegir endpoint correcto según el tipo de usuario
+      // 🔹 CORREGIDO: rutas reales del backend
       const endpoint =
         mode === "anonimo"
-          ? "http://localhost:4000/api/chatbot/anonimo"
-          : "http://localhost:4000/api/chatbot/autenticado";
+          ? "http://localhost:4000/api/chatbot/anon"
+          : "http://localhost:4000/api/chatbot/auth";
 
       const res = await fetch(endpoint, {
         method: "POST",

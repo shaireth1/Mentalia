@@ -1,43 +1,71 @@
-// controllers/chatbotController.js
+// backend/controllers/chatbotController.js
+import { analyzeEmotion } from "../utils/emotionAnalyzer.js";
+import { getResponse } from "../utils/responseHelper.js";
+import Conversation from "../models/Conversation.js";
+import ChatSession from "../models/ChatSession.js";
 
-export const handleAnonChat = (req, res) => {
-  const { message } = req.body;
-  const reply = generateReply(message, "anonimo");
-  res.json({ reply });
-};
+export async function handleAnonChat(req, res) {
+  try {
+    const { message } = req.body;
+    if (!message || message.trim() === "")
+      return res.status(400).json({ reply: "Por favor, escribe un mensaje." });
 
-export const handleAuthChat = (req, res) => {
-  const { message } = req.body;
-  const reply = generateReply(message, "autenticado");
-  res.json({ reply });
-};
+    // 🔹 Analizar emoción
+    const { emotion, confidence } = analyzeEmotion(message);
 
-// 🧠 Función para generar respuestas contextuales
-function generateReply(message, mode) {
-  const msg = message.toLowerCase();
+    // 🔹 Detectar crisis
+    const isCrisis =
+      /suicid|matarme|morir|quitarme la vida|no quiero vivir/i.test(message);
 
-  // Casos críticos
-  if (msg.includes("suicidar") || msg.includes("morir") || msg.includes("matarme")) {
-    return `⚠️ Lamento mucho que te sientas así. No estás sol@. 
-Si estás en peligro o pensando en hacerte daño, por favor contacta de inmediato a la línea 123 opción 5 o acércate al centro de atención más cercano. 
-Tu vida es valiosa. 💜`;
+    // 🔹 Obtener respuesta
+    const reply = getResponse(emotion, /hola|buenas/i.test(message), isCrisis);
+
+    // 🔹 Guardar sesión temporal (solo en Mongo)
+    const sessionId = "anon-" + Math.random().toString(36).substring(2, 10);
+    const chat = new ChatSession({
+      sessionId,
+      anonymous: true,
+      messages: [
+        { sender: "user", text: message, emotion, confidence },
+        { sender: "bot", text: reply, emotion },
+      ],
+    });
+    await chat.save();
+
+    res.json({ reply });
+  } catch (error) {
+    console.error("❌ Error en handleAnonChat:", error);
+    res
+      .status(500)
+      .json({ reply: "Ocurrió un error procesando tu mensaje. 😔" });
   }
+}
 
-  // Casos de tristeza
-  if (msg.includes("triste") || msg.includes("mal") || msg.includes("solo")) {
-    return "🌧️ Entiendo que estás pasando por un momento difícil. A veces hablar de lo que sientes puede aliviar un poco la carga. Estoy aquí para escucharte.";
+export async function handleAuthChat(req, res) {
+  try {
+    const { message, userId } = req.body;
+    if (!message)
+      return res.status(400).json({ reply: "Por favor, escribe un mensaje." });
+
+    const { emotion, confidence } = analyzeEmotion(message);
+    const isCrisis =
+      /suicid|matarme|morir|quitarme la vida|no quiero vivir/i.test(message);
+    const reply = getResponse(emotion, /hola|buenas/i.test(message), isCrisis);
+
+    // 🔹 Guardar conversación del usuario autenticado
+    const conversation = new Conversation({
+      userId,
+      type: "registrado",
+      messages: [
+        { sender: "user", text: message, emotion, confidence },
+        { sender: "bot", text: reply, emotion },
+      ],
+    });
+    await conversation.save();
+
+    res.json({ reply });
+  } catch (error) {
+    console.error("❌ Error en handleAuthChat:", error);
+    res.status(500).json({ reply: "No se pudo procesar tu mensaje. 😔" });
   }
-
-  // Casos de estrés o ansiedad
-  if (msg.includes("estres") || msg.includes("ansioso") || msg.includes("angustia")) {
-    return "💭 El estrés puede sentirse abrumador. Intenta hacer una pausa, respirar profundamente y centrarte en algo que te calme por un momento.";
-  }
-
-  // Saludos o inicio de conversación
-  if (msg.includes("hola") || msg.includes("buenas") || msg.includes("saludo")) {
-    return "💜 ¡Hola! Qué gusto verte por aquí. Este es tu espacio seguro. ¿Cómo te sientes hoy?";
-  }
-
-  // Respuesta genérica
-  return `💭 Gracias por confiar en mí. Cuéntame más, te estoy escuchando.`;
 }
