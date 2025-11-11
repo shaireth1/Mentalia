@@ -1,23 +1,19 @@
-// scripts/runLearning.js
-require("dotenv").config();
-const mongoose = require("mongoose");
-const { analyzeAndAdapt } = require("../utils/empathyLearner");
+// backend/scripts/runLearning.js
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+import { analyzeAndAdapt } from "../utils/empathyLearner.js";
 
-async function run() {
+dotenv.config();
+
+(async () => {
   try {
-    // 🔗 Conexión manual a MongoDB
-    await mongoose.connect("mongodb://127.0.0.1:27017/mentalia");
+    await mongoose.connect(process.env.MONGO_URI);
     console.log("✅ Conectado a MongoDB");
-
-    // Ejecutar aprendizaje empático
     await analyzeAndAdapt();
-
-    console.log("✅ Proceso de aprendizaje completado con éxito");
+    console.log("🧠 Proceso de aprendizaje empático finalizado");
     process.exit(0);
   } catch (error) {
-    console.error("❌ Error al ejecutar el aprendizaje:", error);
+    console.error("❌ Error ejecutando aprendizaje:", error);
     process.exit(1);
   }
-}
-
-run();
+})();
