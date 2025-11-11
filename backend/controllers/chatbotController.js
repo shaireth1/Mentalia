@@ -58,10 +58,11 @@ export async function handleAuthChat(req, res) {
     const { emotion, confidence } = analyzeEmotion(message);
 
     // ⚠️ Detectar crisis
-    const isCrisis =
-      /suicid|matarme|morir|quitarme la vida|no quiero vivir|acabar con todo|ya no quiero existir/i.test(
-        message
-      );
+   // Detección extendida de frases de crisis (RF9)
+// Detección ampliada de frases de crisis (RF9 completo)
+const isCrisis = /suicid|matarme|morir|quitarme\s+la\s+vida|no\s+quiero\s+vivir|no\s+aguanto\s+m[aá]s|quiero\s+acabar\s+con\s+todo|no\s+veo(\s+ninguna)?\s+salida|no\s+vale\s+la\s+pena\s+vivir|hacerme\s+daño/i.test(message);
+
+
 
     // 💬 Obtener respuesta empática
     const reply = getResponse(emotion, /hola|buenas/i.test(message), isCrisis, tone);
