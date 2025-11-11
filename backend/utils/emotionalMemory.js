@@ -28,7 +28,7 @@ function saveMemory(memory) {
   }
 }
 
-// 🧠 Actualizar la memoria con nuevos patrones
+// 🧠 Actualizar memoria emocional con datos recientes
 export async function updateEmotionalMemory() {
   try {
     const stats = await analyzeConversations();
@@ -38,14 +38,14 @@ export async function updateEmotionalMemory() {
       const ratio = data.total ? data.positive / data.total : 0;
       if (!memory[emotion]) memory[emotion] = { score: 0 };
 
-      // Ajuste gradual — refuerza emociones positivas
+      // Refuerza emociones positivas o atenúa las negativas
       memory[emotion].score = Math.min(1, memory[emotion].score + (ratio - 0.5) * 0.2);
     }
 
     saveMemory(memory);
     return memory;
-  } catch (error) {
-    console.error("❌ Error actualizando memoria emocional:", error);
+  } catch (err) {
+    console.error("❌ Error actualizando memoria emocional:", err);
     return {};
   }
 }

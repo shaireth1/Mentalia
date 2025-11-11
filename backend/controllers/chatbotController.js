@@ -1,37 +1,35 @@
 // backend/controllers/chatbotController.js
 import { analyzeEmotion } from "../utils/emotionAnalyzer.js";
 import { getResponse } from "../utils/responseHelper.js";
-import { updateEmotionalMemory, loadMemory } from "../utils/emotionalMemory.js";
+import { updateEmotionalMemory } from "../utils/emotionalMemory.js";
 import Conversation from "../models/Conversation.js";
 import ChatSession from "../models/ChatSession.js";
 
 export async function handleAnonChat(req, res) {
   try {
-    const { message } = req.body;
-    if (!message?.trim()) {
-      return res.status(400).json({ reply: "Por favor, escribe un mensaje." });
-    }
+    const { message, tone = "informal" } = req.body;
 
-    // 🔹 Analizar emoción del mensaje
+    if (!message || message.trim() === "")
+      return res.status(400).json({ reply: "Por favor, escribe un mensaje." });
+
+    // 🧠 Analizar emoción del mensaje
     const { emotion, confidence } = analyzeEmotion(message);
 
-    // 🔹 Detectar crisis
-    const isCrisis = /suicid|matarme|morir|quitarme la vida|no quiero vivir/i.test(message);
+    // ⚠️ Detectar frases de crisis o riesgo
+    const isCrisis =
+      /suicid|matarme|morir|quitarme la vida|no quiero vivir|acabar con todo|ya no quiero existir/i.test(
+        message
+      );
 
-    // 🔹 Obtener respuesta base
-    let reply = getResponse(emotion, /hola|buenas/i.test(message), isCrisis);
+    // 💬 Obtener respuesta empática
+    const reply = getResponse(emotion, /hola|buenas/i.test(message), isCrisis, tone);
 
-    // 🔹 Ajustar respuesta según memoria emocional (si existe)
-    const memory = loadMemory();
-    if (memory[emotion]?.score > 0.3) {
-      reply += " 🌱 Gracias por seguir confiando en mí. Estoy aprendiendo de ti.";
-    }
-
-    // 🔹 Guardar sesión temporal en MongoDB
+    // 🧾 Crear sesión temporal anónima
     const sessionId = "anon-" + Math.random().toString(36).substring(2, 10);
     const chat = new ChatSession({
       sessionId,
       anonymous: true,
+      tone,
       messages: [
         { sender: "user", text: message, emotion, confidence },
         { sender: "bot", text: reply, emotion },
@@ -39,7 +37,7 @@ export async function handleAnonChat(req, res) {
     });
     await chat.save();
 
-    // 🧠 Actualizar memoria emocional después de cada mensaje
+    // 🔄 Actualizar memoria emocional del sistema
     await updateEmotionalMemory();
 
     res.json({ reply });
@@ -51,24 +49,24 @@ export async function handleAnonChat(req, res) {
 
 export async function handleAuthChat(req, res) {
   try {
-    const { message, userId } = req.body;
-    if (!message?.trim()) {
+    const { message, userId, tone = "formal" } = req.body;
+
+    if (!message)
       return res.status(400).json({ reply: "Por favor, escribe un mensaje." });
-    }
 
-    // 🔹 Analizar emoción
+    // 🧠 Analizar emoción
     const { emotion, confidence } = analyzeEmotion(message);
-    const isCrisis = /suicid|matarme|morir|quitarme la vida|no quiero vivir/i.test(message);
 
-    // 🔹 Generar respuesta
-    let reply = getResponse(emotion, /hola|buenas/i.test(message), isCrisis);
+    // ⚠️ Detectar crisis
+    const isCrisis =
+      /suicid|matarme|morir|quitarme la vida|no quiero vivir|acabar con todo|ya no quiero existir/i.test(
+        message
+      );
 
-    const memory = loadMemory();
-    if (memory[emotion]?.score > 0.4) {
-      reply += " 💜 He notado que te sientes un poco mejor últimamente. Me alegra eso.";
-    }
+    // 💬 Obtener respuesta empática
+    const reply = getResponse(emotion, /hola|buenas/i.test(message), isCrisis, tone);
 
-    // 🔹 Guardar conversación
+    // 🧾 Guardar conversación en base de datos
     const conversation = new Conversation({
       userId,
       type: "registrado",
@@ -79,6 +77,7 @@ export async function handleAuthChat(req, res) {
     });
     await conversation.save();
 
+    // 🔄 Actualizar memoria emocional
     await updateEmotionalMemory();
 
     res.json({ reply });

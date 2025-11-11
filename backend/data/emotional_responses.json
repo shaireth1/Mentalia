@@ -1,42 +1,135 @@
 {
   "neutral": [
-    "💜 Gracias por compartir cómo te sientes. Estoy aquí para escucharte, sin juicios.",
+    "💜 Gracias por contarme cómo te sientes. Estoy aquí para escucharte sin juicios.",
     "💭 A veces no sabemos muy bien cómo nos sentimos, y eso también está bien. Cuéntame un poco más.",
-    "🌷 Estoy aquí contigo. Puedes hablar con total libertad, este es un espacio seguro."
+    "🌷 Estoy aquí contigo. Puedes hablar con total libertad, este es un espacio seguro.",
+    "💜 Te escucho con atención. Si quieres, podemos explorar lo que te preocupa paso a paso."
   ],
   "tristeza": [
     "💜 Siento mucho lo que estás pasando. A veces expresar lo que duele es el primer paso para aliviarlo.",
     "😢 Tu tristeza es válida. No necesitas ocultarla. Estoy aquí contigo, sin juicios.",
-    "🌧️ Hay días en que todo pesa más, pero hablar puede aliviar un poco esa carga. Te escucho."
+    "🌧️ Hay días en que todo pesa más, pero hablar puede aliviar un poco esa carga. Te escucho.",
+    "💜 Si te sientes sin energía, no te presiones. Estás haciendo lo mejor que puedes hoy."
   ],
   "ansiedad": [
     "💭 Entiendo esa sensación. Respira un momento conmigo, aquí estás a salvo.",
     "🌬️ A veces la mente va muy rápido, pero puedes ir a tu propio ritmo. Estoy contigo.",
-    "💜 Notar la ansiedad ya es un paso enorme. Si quieres, puedo compartirte una técnica para calmarla."
+    "💜 Notar la ansiedad ya es un paso enorme. Si quieres, puedo compartirte una técnica para calmarla.",
+    "🌱 La ansiedad no te define. Mereces sentirte en calma, poco a poco lo lograrás."
   ],
   "estrés": [
     "💜 Parece que llevas mucho encima. Tómate un momento, incluso respirar cuenta.",
     "😮‍💨 El estrés puede agotarte. No tienes que hacerlo todo hoy, paso a paso está bien.",
-    "🌿 Estás haciendo lo mejor que puedes. Si necesitas desahogarte, aquí estoy."
+    "🌿 Estás haciendo lo mejor que puedes. Si necesitas desahogarte, aquí estoy.",
+    "💜 Un descanso breve también es un avance. No te exijas tanto, tu bienestar importa."
   ],
   "miedo": [
     "😔 Sentir miedo es humano. A veces, hablar de eso lo hace más pequeño. Estoy contigo.",
     "💜 No estás sol@. Podemos hablar de lo que te preocupa, sin prisa.",
-    "🌧️ El miedo no te define. Eres más fuerte de lo que crees."
+    "🌧️ El miedo no te define. Eres más fuerte de lo que crees.",
+    "💭 Está bien sentir incertidumbre. Estoy aquí para acompañarte en ese proceso."
   ],
   "enojo": [
     "😤 Entiendo que te sientas así. Es válido enojarse cuando algo duele o no sale como esperas.",
     "💜 A veces el enojo nos protege del dolor. Si quieres, podemos hablar de lo que lo causó.",
-    "🔥 Está bien soltar lo que llevas dentro. Este espacio es para eso."
+    "🔥 Está bien soltar lo que llevas dentro. Este espacio es para eso.",
+    "💭 No todo enojo es negativo; a veces, es tu forma de poner límites. Eso también es importante."
   ],
   "crisis": [
     "⚠️ Lamento mucho que te sientas así. No estás sol@ 💛. Si estás en peligro, contacta la Línea 106 (Colombia) o acude al servicio de urgencias más cercano.",
     "💛 Estás viviendo algo muy difícil, pero no estás sol@. Por favor, busca ayuda inmediata: Línea 106 o 141 (si eres menor de edad). ¿Quieres que te comparta recursos?",
-    "⚠️ Si sientes que no puedes más, por favor contacta con alguien ahora mismo. No tienes que enfrentar esto sol@."
+    "⚠️ Si sientes que no puedes más, por favor contacta con alguien ahora mismo. No tienes que enfrentar esto sol@.",
+    "💛 Es importante que no estés sol@ ahora. Te recomiendo comunicarte con un profesional o línea de apoyo cuanto antes."
   ],
   "greetings": [
     "💜 ¡Hola! Qué gusto verte por aquí. Este es tu espacio seguro. ¿Cómo te sientes hoy?",
     "🌻 ¡Hola! Estoy aquí para ti, puedes contarme cómo ha ido tu día.",
-    "💬 ¡Hola! Gracias por venir. Cuéntame, ¿cómo te encuentras en este momento?"
-  ]
+    "💬 ¡Hola! Gracias por venir. Cuéntame, ¿cómo te encuentras en este momento?",
+    "💜 ¡Hola! Soy MENTALIA Bot. Estoy aquí para escucharte. ¿Cómo te sientes hoy?"
+  ],
+  "autocuidado": [
+    "💧 Recuerda hidratarte. Tu cuerpo también necesita cuidados para que tu mente se sienta mejor.",
+    "☕ Haz una pausa, respira profundo y estira los hombros. Lo estás haciendo bien.",
+    "🌿 Una caminata corta, escuchar tu canción favorita o tomar aire fresco puede ayudarte a liberar tensión.",
+    "💜 Cuidarte no es egoísmo, es una forma de mantenerte fuerte."
+  ],
+  "motivacion": [
+    "🌞 Hoy es un nuevo día, una nueva oportunidad para cuidar de ti.",
+    "💜 No importa el ritmo, lo importante es seguir avanzando, aunque sea un paso pequeño.",
+    "✨ Estás haciendo más de lo que crees. Cada esfuerzo cuenta.",
+    "🌻 Eres valiente por seguir aquí, incluso cuando no es fácil."
+  ],
+  "tecnica_respiracion": [
+    "🫁 Vamos a intentarlo juntos: inhala profundo por la nariz durante 4 segundos, mantén el aire 4 segundos, y exhala lentamente por la boca durante 6 segundos. Repite 3 veces.",
+    "🌬️ Respirar consciente te ayuda a calmar el cuerpo y despejar la mente. Pruébalo ahora, sin prisa.",
+    "💭 Inhala calma, exhala tensión. Puedes hacerlo a tu ritmo."
+  ],
+  "bienestar": [
+    "💜 ¿Sabías que escribir cómo te sientes puede ayudarte a entenderte mejor? Puedes usar tu diario emocional.",
+    "🌼 Un pequeño acto de autocuidado hoy puede cambiar tu estado de ánimo: toma un descanso, sal a caminar o escucha música.",
+    "🌿 Cada emoción que sientes tiene un propósito. Permítete sentir sin juzgar.",
+    "💬 Si quieres, puedo compartirte una frase motivadora o una técnica de relajación."
+  ],
+  "formal": {
+    "neutral": [
+      "🤍 Le agradezco por compartir cómo se siente. Este es un espacio confidencial y seguro.",
+      "💭 A veces las emociones pueden ser confusas. Si lo desea, puedo acompañarle a entenderlas mejor.",
+      "🌼 Estoy disponible para escucharle sin juicios. Puede expresarse libremente."
+    ],
+    "tristeza": [
+      "🤍 Lamento que esté atravesando este momento difícil. Hablar de ello puede aliviar un poco la carga.",
+      "😢 Su tristeza es válida. No necesita ocultarla. Estoy aquí para escucharle.",
+      "💭 A veces el dolor pesa mucho, pero compartirlo es un paso hacia el alivio."
+    ],
+    "ansiedad": [
+      "🌬️ Comprendo su sensación. Respire un momento, aquí está a salvo.",
+      "💭 Reconocer la ansiedad ya es un gran paso. Si desea, puedo sugerirle una forma de calmarla.",
+      "🤍 Estoy aquí para acompañarle en este proceso con calma."
+    ],
+    "estrés": [
+      "🤍 Parece que ha estado bajo mucha presión. Tómese un momento para respirar profundamente.",
+      "😮‍💨 El estrés puede ser agotador. No tiene que hacerlo todo hoy, paso a paso está bien.",
+      "🌿 Está haciendo su mejor esfuerzo. Reconozca eso, y descanse si lo necesita."
+    ],
+    "miedo": [
+      "💭 Sentir miedo es humano. Hablar sobre ello puede reducir su peso emocional.",
+      "🤍 No está sol@ en esto. Si desea, podemos hablar de lo que le preocupa.",
+      "🌼 La incertidumbre puede ser difícil, pero no está enfrentándola sol@."
+    ],
+    "enojo": [
+      "😤 Entiendo que se sienta así. Es válido experimentar enojo en momentos difíciles.",
+      "🤍 El enojo puede ser una forma de protegerse. Si desea, puedo ayudarle a canalizarlo.",
+      "💭 Expresar sus emociones también es una forma de cuidar de usted."
+    ],
+    "crisis": [
+      "⚠️ Siento mucho que esté atravesando una situación crítica. Le recomiendo contactar la Línea 106 o acudir a urgencias más cercanas.",
+      "💛 No está sol@. Es importante buscar apoyo inmediato de un profesional de salud mental.",
+      "⚠️ Le sugiero comunicarse ahora mismo con alguien de confianza o un servicio de ayuda profesional. Su bienestar es prioridad."
+    ],
+    "greetings": [
+      "🤍 Buen día. Soy MENTALIA Bot, su asistente de apoyo emocional. ¿Cómo se siente hoy?",
+      "🌼 Bienvenid@ nuevamente. Estoy aquí para escucharle y acompañarle en lo que necesite.",
+      "💭 Hola, me alegra que haya decidido conversar hoy. ¿Cómo se encuentra?"
+    ],
+    "autocuidado": [
+      "🤍 Recuerde cuidar su bienestar físico y mental. Un descanso breve puede marcar la diferencia.",
+      "🌿 Tomarse unos minutos para respirar profundamente le ayudará a mantener la calma.",
+      "💭 Cuidar de usted también es una forma de avanzar hacia el equilibrio emocional."
+    ],
+    "motivacion": [
+      "🌼 Cada día es una nueva oportunidad para crecer y aprender sobre sí mism@.",
+      "🤍 Su esfuerzo y constancia merecen reconocimiento. Continúe a su propio ritmo.",
+      "💭 Incluso los pequeños pasos forman parte del progreso. No subestime su fortaleza."
+    ],
+    "tecnica_respiracion": [
+      "🫁 Practique una respiración consciente: inhale 4 segundos, mantenga 4, exhale 6. Esto puede ayudarle a relajarse.",
+      "🤍 Respirar pausadamente le ayudará a reducir la tensión física y mental.",
+      "🌼 Puede realizar respiraciones profundas varias veces al día para mantener la calma."
+    ],
+    "bienestar": [
+      "🤍 Le sugiero registrar sus pensamientos en su diario emocional para procesarlos mejor.",
+      "🌿 Realizar una actividad que disfrute puede mejorar su bienestar general.",
+      "💭 Si desea, puedo compartirle una técnica de relajación o un mensaje positivo."
+    ]
+  }
 }
