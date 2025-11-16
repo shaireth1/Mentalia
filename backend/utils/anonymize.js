@@ -1,19 +1,40 @@
-// backend/utils/anonymize.js
-function anonymize(text = "") {
-  if (typeof text !== "string") return text;
+// utils/anonymize.js
+// 🟣 Limpieza de datos sensibles para usuarios anónimos
 
-  // Reemplazar emails
-  text = text.replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, "[correo]");
+export function anonymizeText(text = "") {
+if (!text) return text;
 
-  // Reemplazar números largos (posibles identificaciones / teléfonos)
-  text = text.replace(/\b\d{6,}\b/g, "[número]");
+let clean = text;
 
-  // Reemplazar teléfonos con guiones/espacios
-  text = text.replace(/\b(\+?\d{1,3}[-.\s]?){1,4}\d{4,}\b/g, "[teléfono]");
+// 🧹 1. Correos
+clean = clean.replace(
+/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g,
+"[correo]"
+);
 
-  // Reemplazar nombres propios simples (opcional, heurístico)
-  // Nota: no es infalible; para PII serio, usar técnicas más fuertes
-  return text;
+// 🧹 2. Números largos (teléfonos / documentos)
+clean = clean.replace(/\b\d{7,15}\b/g, "[numero]");
+
+// 🧹 3. Nombres comunes (lista base)
+const names = [
+"juan", "pedro", "maria", "jose", "ana", "luisa",
+"carlos", "laura", "valentina", "andres",
+"camila", "luis", "john", "mateo", "daniel"
+];
+
+names.forEach(name => {
+const regex = new RegExp("\\b" + name + "\\b", "gi");
+clean = clean.replace(regex, "[nombre]");
+});
+
+// 🧹 4. Direcciones (calle, cra, carrera)
+clean = clean.replace(
+/(calle|cra|carrera|avenida|av|cll|crr|#)\s*[0-9a-zA-Z\-]+/gi,
+"[direccion]"
+);
+
+// 🧹 5. Frases identificables tipo "mi nombre es ..."
+clean = clean.replace(/mi nombre es [a-zA-Záéíóúñ ]+/gi, "mi nombre es [oculto]");
+
+return clean;
 }
-
-module.exports = anonymize;
