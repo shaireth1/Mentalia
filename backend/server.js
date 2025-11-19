@@ -8,10 +8,11 @@ import morgan from "morgan";
 // Rutas
 import chatbotRoutes from "./routes/chatbot.js";
 import authRoutes from "./routes/auth.js";
+import sessionRoutes from "./routes/session.js";
 
 dotenv.config();
 
-const app = express();
+const app = express(); // 👈 DEBE ESTAR ANTES DE app.use()
 
 // 🧠 Middlewares globales
 app.use(cors());
@@ -28,6 +29,7 @@ mongoose
 // 🔹 Rutas principales
 app.use("/api/chatbot", chatbotRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/sessions", sessionRoutes); // 👈 YA ES SEGURO USAR app.use
 
 // 🔹 Puerto de ejecución
 const PORT = process.env.PORT || 4000;

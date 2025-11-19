@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Heart,
   LogOut,
@@ -16,13 +16,22 @@ import {
 } from "lucide-react";
 import SettingsView from "./SettingsView";
 import DiarioEmocional from "./DiarioEmocional";
-import ChatbotView from "../vistas-reutilizables/ChatbotView"; // ✅ Unificado
+import ChatbotView from "../vistas-reutilizables/ChatbotView";
 import RecursosView from "../vistas-reutilizables/RecursosView";
 
 export default function Dashboard() {
   const [selectedMood, setSelectedMood] = useState("");
   const [activeView, setActiveView] = useState("Inicio");
+  const [storedUser, setStoredUser] = useState(null);
   const router = useRouter();
+
+  // 🔹 Cargar usuario real desde localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const userData = JSON.parse(localStorage.getItem("user"));
+      setStoredUser(userData);
+    }
+  }, []);
 
   const moods = [
     { name: "Feliz", color: "bg-green-100 border-green-400 text-green-700" },
@@ -60,9 +69,14 @@ export default function Dashboard() {
 
         <div className="flex items-center space-x-3 text-sm">
           <div className="text-right">
-            <p className="font-semibold leading-tight">Usuario</p>
-            <p className="text-xs opacity-80">shairethbenavidez@gmail.com</p>
+            <p className="font-semibold leading-tight">
+              {storedUser?.nombre || "Usuario"}
+            </p>
+            <p className="text-xs opacity-80">
+              {storedUser?.email || "correo@ejemplo.com"}
+            </p>
           </div>
+
           <button
             title="Cerrar sesión"
             className="p-2 rounded hover:bg-white/20 transition-colors"
@@ -98,20 +112,19 @@ export default function Dashboard() {
           {activeView === "Ajustes" && <SettingsView />}
           {activeView === "Diario Emocional" && <DiarioEmocional />}
           {activeView === "Recursos" && <RecursosView />}
-
-          {/* ✅ Chatbot conectado a modo autenticado */}
           {activeView === "Chatbot" && <ChatbotView mode="autenticado" />}
 
           {/* 🔹 VISTA INICIO */}
           {activeView === "Inicio" && (
             <>
-              {/* Encabezado */}
               <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-2xl flex justify-between items-center mb-6">
                 <div>
-                  <h1 className="text-2xl font-bold mb-2">¡Hola, Usuario! 👋</h1>
+                  <h1 className="text-2xl font-bold mb-2">
+                    ¡Hola, {storedUser?.nombre?.split(" ")[0] || "Usuario"}! 👋
+                  </h1>
                   <p>
-                    ¿Cómo te sientes hoy? Tu bienestar emocional es importante para
-                    nosotros.
+                    ¿Cómo te sientes hoy? Tu bienestar emocional es importante
+                    para nosotros.
                   </p>
                 </div>
                 <Image
@@ -123,7 +136,7 @@ export default function Dashboard() {
                 />
               </div>
 
-              {/* Selector de estado de ánimo */}
+              {/* Selector de estado */}
               <div className="bg-white rounded-2xl p-6 mb-6 shadow-sm">
                 <h3 className="font-medium text-gray-700 mb-4 flex items-center gap-2">
                   <Calendar className="h-5 w-5 text-purple-600" />
@@ -147,22 +160,21 @@ export default function Dashboard() {
                 {selectedMood && (
                   <div className="mt-3 p-3 bg-purple-50 border border-purple-200 rounded-lg text-purple-700 text-sm flex items-center gap-2">
                     <span className="text-lg">✨</span>
-                    Gracias por compartir cómo te sientes. Tu estado emocional ha sido
-                    registrado.
+                    Gracias por compartir cómo te sientes. Tu estado emocional ha
+                    sido registrado.
                   </div>
                 )}
               </div>
 
-              {/* Semana emocional y recordatorios */}
+              {/* Semana emocional + recordatorios */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                {/* Semana emocional */}
                 <div className="bg-white rounded-2xl p-6 shadow-sm">
                   <h3 className="font-semibold text-gray-700 mb-4 flex items-center gap-2">
                     <BarChart className="h-5 w-5 text-green-600" />
                     Tu semana emocional
                   </h3>
                   <ul className="space-y-2">
-                    {[ 
+                    {[
                       { day: "Lun", val: 4 },
                       { day: "Mar", val: 3 },
                       { day: "Mié", val: 5 },
@@ -183,12 +195,8 @@ export default function Dashboard() {
                       </li>
                     ))}
                   </ul>
-                  <p className="mt-3 text-xs text-gray-500 flex items-center gap-1">
-                    💡 Registra tu estado emocional diariamente para un mejor seguimiento.
-                  </p>
                 </div>
 
-                {/* Recordatorios */}
                 <div className="bg-white rounded-2xl p-6 shadow-sm">
                   <h3 className="font-semibold text-gray-700 mb-4 flex items-center gap-2">
                     <BookOpen className="h-5 w-5 text-yellow-500" />
@@ -198,21 +206,27 @@ export default function Dashboard() {
                     <li className="bg-yellow-50 p-3 rounded-lg border border-yellow-100 flex items-center gap-2">
                       <Coffee className="h-4 w-4 text-yellow-600" />
                       <span>
-                        <span className="font-medium text-yellow-700">Rutina matutina:</span>{" "}
+                        <span className="font-medium text-yellow-700">
+                          Rutina matutina:
+                        </span>{" "}
                         Tómate 5 minutos para respirar profundamente
                       </span>
                     </li>
                     <li className="bg-blue-50 p-3 rounded-lg border border-blue-100 flex items-center gap-2">
                       <Notebook className="h-4 w-4 text-blue-600" />
                       <span>
-                        <span className="font-medium text-blue-700">Diario emocional:</span>{" "}
+                        <span className="font-medium text-blue-700">
+                          Diario emocional:
+                        </span>{" "}
                         Escribe sobre tu día antes de dormir
                       </span>
                     </li>
                     <li className="bg-green-50 p-3 rounded-lg border border-green-100 flex items-center gap-2">
                       <Heart className="h-4 w-4 text-green-600" />
                       <span>
-                        <span className="font-medium text-green-700">Autocuidado:</span>{" "}
+                        <span className="font-medium text-green-700">
+                          Autocuidado:
+                        </span>{" "}
                         Recuerda hidratarte y tomar descansos
                       </span>
                     </li>
@@ -220,40 +234,42 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* 🔹 Acciones rápidas */}
+              {/* Acciones rápidas */}
               <div className="mt-6">
-                <h3 className="font-semibold text-gray-700 mb-4">Acciones rápidas</h3>
+                <h3 className="font-semibold text-gray-700 mb-4">
+                  Acciones rápidas
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Chatbot */}
                   <button
                     onClick={() => setActiveView("Chatbot")}
                     className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-purple-500 hover:bg-purple-50 transition text-left"
                   >
                     <p className="font-medium text-purple-700 flex items-center gap-2">
-                      <Bot className="h-4 w-4 text-purple-600" /> Hablar con MENTALIA Bot
+                      <Bot className="h-4 w-4 text-purple-600" /> Hablar con
+                      MENTALIA Bot
                     </p>
                     <p className="text-sm text-gray-600 mt-1">
                       Conversa con nuestro asistente de apoyo emocional 24/7
                     </p>
                   </button>
 
-                  {/* Progreso */}
                   <div className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-green-500 hover:bg-green-50 transition">
                     <p className="font-medium text-green-700 flex items-center gap-2">
-                      <TrendingUp className="h-4 w-4 text-green-600" /> Ver mi progreso
+                      <TrendingUp className="h-4 w-4 text-green-600" /> Ver mi
+                      progreso
                     </p>
                     <p className="text-sm text-gray-600 mt-1">
                       Revisa tu evolución emocional de esta semana
                     </p>
                   </div>
 
-                  {/* Diario emocional */}
                   <button
                     onClick={() => setActiveView("Diario Emocional")}
                     className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-500 hover:bg-blue-50 transition text-left"
                   >
                     <p className="font-medium text-blue-700 flex items-center gap-2">
-                      <Notebook className="h-4 w-4 text-blue-600" /> Escribir en mi diario
+                      <Notebook className="h-4 w-4 text-blue-600" /> Escribir en
+                      mi diario
                     </p>
                     <p className="text-sm text-gray-600 mt-1">
                       Reflexiona sobre tus pensamientos y emociones

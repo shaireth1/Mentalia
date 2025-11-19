@@ -1,6 +1,8 @@
+// backend/controllers/authController.js
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import Session from "../models/Session.js";
 
 // 🟢 Registro de usuario (RF1, RF4, RNF1)
 export async function registerUser(req, res) {
@@ -17,12 +19,10 @@ export async function registerUser(req, res) {
       password,
     } = req.body;
 
-    // Validación RNF1
     if (password.length < 8) {
       return res.status(400).json({ msg: "La contraseña debe tener al menos 8 caracteres." });
     }
 
-    // Validación RF4 - correo único
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({ msg: "El correo ya está registrado." });
@@ -43,8 +43,8 @@ export async function registerUser(req, res) {
     });
 
     await newUser.save();
-
     res.status(201).json({ msg: "Usuario registrado correctamente." });
+
   } catch (error) {
     console.error("Error en registerUser:", error);
     res.status(500).json({ msg: "Error en el registro." });
@@ -65,10 +65,19 @@ export async function loginUser(req, res) {
     const token = jwt.sign(
       { id: user._id, email: user.email },
       process.env.JWT_SECRET,
-      { expiresIn: "30m" } // RNF2 - expira 30 min
+      { expiresIn: "30m" }
     );
 
-    res.json({
+    // Crear sesión en la colección Session (RF3)
+    await Session.create({
+      userId: user._id,
+      token,
+      userAgent: req.headers["user-agent"],
+      ip: req.ip,
+      lastActivity: new Date(),
+    });
+
+    return res.json({
       msg: "Inicio de sesión exitoso.",
       token,
       user: {
