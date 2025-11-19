@@ -1,17 +1,18 @@
-// utils/sendEmail.js
-const sgMail = require("@sendgrid/mail");
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+import nodemailer from "nodemailer";
 
-async function sendEmail({ to, subject, html }) {
-  const msg = {
+export async function sendEmail({ to, subject, html }) {
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.FROM_EMAIL,
+      pass: process.env.EMAIL_PASSWORD,
+    },
+  });
+
+  await transporter.sendMail({
+    from: process.env.FROM_EMAIL,
     to,
-    from: "mentaliachatbot@gmail.com", // 👈 tu correo verificado en SendGrid
     subject,
     html,
-  };
-
-  await sgMail.send(msg);
-  console.log("📨 Correo enviado a:", to);
+  });
 }
-
-module.exports = { sendEmail };
