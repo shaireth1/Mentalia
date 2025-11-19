@@ -4,11 +4,16 @@ import { forgotPassword, resetPassword } from "../controllers/passwordController
 
 const router = express.Router();
 
+// Registro
 router.post("/register", registerUser);
+
+// Login
 router.post("/login", loginUser);
 
-// recuperar contraseña
+// Recuperar contraseña (envía correo)
 router.post("/forgot-password", forgotPassword);
-router.post("/reset-password", resetPassword);
+
+// Restablecer contraseña (cambia password)
+router.post("/reset-password/:token", resetPassword);
 
 export default router;
