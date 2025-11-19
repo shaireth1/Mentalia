@@ -5,6 +5,12 @@ import Image from "next/image";
 import { Heart, ArrowLeft, Eye } from "lucide-react";
 import { useState } from "react";
 
+/* 🔹 Estilos */
+const label =
+  "block text-sm font-semibold text-purple-700 mb-1 tracking-wide";
+const input =
+  "w-full border border-purple-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-purple-400 focus:outline-none text-sm";
+
 export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -23,10 +29,10 @@ export default function Register() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // 📌 Registro
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // 🔁 Convertir nombres al formato que el backend espera
     const body = {
       nombre: formData.fullName,
       identificacion: formData.idNumber,
@@ -35,7 +41,7 @@ export default function Register() {
       programa: formData.program,
       ficha: formData.ficha,
       telefono: formData.phone,
-      email: formData.email,
+      email: formData.email, // 👈 CAMPO CORRECTO
       password: formData.password,
     };
 
@@ -47,19 +53,21 @@ export default function Register() {
       });
 
       const data = await res.json();
+
       if (res.ok) {
         alert("✅ Usuario registrado con éxito");
-        console.log("Respuesta del servidor:", data);
       } else {
         alert("❌ Error: " + (data.msg || data.error));
       }
     } catch (err) {
       console.error("Error en el registro:", err);
+      alert("❌ Error inesperado.");
     }
   };
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-[#f3e8ff] font-sans p-6 relative">
+      
       {/* Botón volver */}
       <div className="absolute top-6 left-6 flex items-center gap-2 text-purple-700 hover:underline cursor-pointer">
         <ArrowLeft className="w-4 h-4" />
@@ -77,8 +85,8 @@ export default function Register() {
         <span className="text-xs text-purple-500 -mt-1">SENA</span>
       </div>
 
-      {/* Contenedor principal con ambos paneles */}
       <div className="flex flex-col md:flex-row max-w-6xl w-full gap-8 items-stretch">
+        
         {/* Panel izquierdo */}
         <div className="bg-white rounded-2xl shadow-md overflow-hidden w-full md:w-1/2 flex flex-col">
           <div className="h-[360px] w-full overflow-hidden">
@@ -112,132 +120,130 @@ export default function Register() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+
               <div>
-                <label className="label">Nombre Completo</label>
+                <label className={label}>Nombre Completo *</label>
                 <input
                   name="fullName"
                   type="text"
                   placeholder="Tu nombre completo"
-                  className="input"
+                  className={input}
                   onChange={handleChange}
                   required
                 />
               </div>
 
               <div>
-                <label className="label">Identificación</label>
+                <label className={label}>Identificación *</label>
                 <input
                   name="idNumber"
                   type="text"
                   placeholder="Número de documento"
-                  className="input"
+                  className={input}
                   onChange={handleChange}
                   required
                 />
               </div>
 
               <div>
-                <label className="label">Edad</label>
+                <label className={label}>Edad *</label>
                 <input
                   name="age"
                   type="number"
                   placeholder="Tu edad"
-                  className="input"
+                  className={input}
                   onChange={handleChange}
                   required
                 />
               </div>
 
               <div>
-                <label className="label">Selecciona</label>
+                <label className={label}>Género *</label>
                 <select
                   name="gender"
-                  className="input"
+                  className={input}
                   onChange={handleChange}
                   required
                 >
-                  <option value="">tu género</option>
-                  <option value="female">Femenino</option>
-                  <option value="male">Masculino</option>
-                  <option value="other">Otro</option>
+                  <option value="">Selecciona tu género</option>
+                  <option value="femenino">Femenino</option>
+                  <option value="masculino">Masculino</option>
+                  <option value="otro">Otro</option>
                 </select>
               </div>
-              
-              
-              <div className="md:col-span-2">
-  <label className={label}>Programa de Formación *</label>
-  <select
-    name="program"
-    value={formData.program}
-    onChange={handleChange}
-    required
-    className={input}
-  >
-    <option value="">Selecciona tu programa</option>
-    <option value="Análisis y Desarrollo de Software">
-      Análisis y Desarrollo de Software
-    </option>
-    <option value="Producción de Multimedia">
-      Producción de Multimedia
-    </option>
-    <option value="Gestión de Redes de Datos">
-      Gestión de Redes de Datos
-    </option>
-    <option value="Contabilidad y Finanzas">
-      Contabilidad y Finanzas
-    </option>
-    <option value="Gestión del Talento Humano">
-      Gestión del Talento Humano
-    </option>
-    <option value="Otro">Otro</option>
-  </select>
-</div>
 
+              <div className="md:col-span-2">
+                <label className={label}>Programa de Formación *</label>
+                <select
+                  name="program"
+                  className={input}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">Selecciona tu programa</option>
+                  <option value="Análisis y Desarrollo de Software">
+                    Análisis y Desarrollo de Software
+                  </option>
+                  <option value="Producción de Multimedia">
+                    Producción de Multimedia
+                  </option>
+                  <option value="Gestión de Redes de Datos">
+                    Gestión de Redes de Datos
+                  </option>
+                  <option value="Contabilidad y Finanzas">
+                    Contabilidad y Finanzas
+                  </option>
+                  <option value="Gestión del Talento Humano">
+                    Gestión del Talento Humano
+                  </option>
+                  <option value="Otro">Otro</option>
+                </select>
+              </div>
 
               <div>
-                <label className="label">Número de Ficha</label>
+                <label className={label}>Número de Ficha *</label>
                 <input
                   name="ficha"
                   type="text"
                   placeholder="Número de ficha"
-                  className="input"
+                  className={input}
                   onChange={handleChange}
                   required
                 />
               </div>
 
               <div>
-                <label className="label">Teléfono</label>
+                <label className={label}>Teléfono *</label>
                 <input
                   name="phone"
                   type="text"
                   placeholder="Número de teléfono"
-                  className="input"
+                  className={input}
                   onChange={handleChange}
                   required
                 />
               </div>
 
               <div className="md:col-span-2">
-                <label className="label">Correo Electrónico</label>
+                <label className={label}>Correo Electrónico *</label>
                 <input
                   name="email"
                   type="email"
-                  placeholder="tu.email@gmail.com"
-                  className="input"
+                  placeholder="tu.email@sena.edu.co"
+                  className={input}
                   onChange={handleChange}
                   required
                 />
               </div>
 
               <div className="md:col-span-2 relative">
-                <label className="label">Contraseña</label>
+                <label className={label}>Contraseña *</label>
                 <div className="relative">
                   <input
                     name="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="Mínimo 8 caracteres"
-                    className="input pr-10"
+                    className={`${input} pr-10`}
                     onChange={handleChange}
                     required
                   />
@@ -250,6 +256,7 @@ export default function Register() {
                   Debe incluir mayúsculas, números y símbolos
                 </p>
               </div>
+
             </div>
 
             <button
@@ -274,7 +281,3 @@ export default function Register() {
     </main>
   );
 }
- const label =
-  "block text-sm font-semibold text-purple-700 mb-1 tracking-wide";
-const input =
-  "w-full border border-purple-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-purple-400 focus:outline-none text-sm";
