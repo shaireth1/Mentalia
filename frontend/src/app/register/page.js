@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Heart, ArrowLeft, Eye } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation"; // <-- Necesario para redirección
 
 /* 🔹 Estilos */
 const label =
@@ -12,6 +13,8 @@ const input =
   "w-full border border-purple-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-purple-400 focus:outline-none text-sm";
 
 export default function Register() {
+  const router = useRouter(); // <-- Inicializar router
+
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "",
@@ -41,7 +44,7 @@ export default function Register() {
       programa: formData.program,
       ficha: formData.ficha,
       telefono: formData.phone,
-      email: formData.email, // 👈 CAMPO CORRECTO
+      email: formData.email,
       password: formData.password,
     };
 
@@ -56,6 +59,8 @@ export default function Register() {
 
       if (res.ok) {
         alert("✅ Usuario registrado con éxito");
+        router.push("/login"); // <-- Redirección restaurada
+        return;
       } else {
         alert("❌ Error: " + (data.msg || data.error));
       }

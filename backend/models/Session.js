@@ -7,14 +7,19 @@ const sessionSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
+
+  // ❌ Eliminado el token porque no lo usas ni debe ser requerido
+  /*
   token: {
     type: String,
     required: true,
     index: true,
   },
+  */
+
   userAgent: String,
   ip: String,
-  location: String, // opcional, por si luego usas geolocalización
+  location: String, // opcional
   isActive: {
     type: Boolean,
     default: true,
@@ -28,5 +33,8 @@ const sessionSchema = new mongoose.Schema({
     default: Date.now,
   },
 });
+
+// Eliminamos cualquier índice que dependa del token
+// sessionSchema.index({ token: 1 });
 
 export default mongoose.model("Session", sessionSchema);

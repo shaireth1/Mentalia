@@ -14,6 +14,7 @@ import {
   Notebook,
   TrendingUp,
 } from "lucide-react";
+
 import SettingsView from "./SettingsView";
 import DiarioEmocional from "./DiarioEmocional";
 import ChatbotView from "../vistas-reutilizables/ChatbotView";
@@ -23,15 +24,48 @@ export default function Dashboard() {
   const [selectedMood, setSelectedMood] = useState("");
   const [activeView, setActiveView] = useState("Inicio");
   const [storedUser, setStoredUser] = useState(null);
+
   const router = useRouter();
 
-  // 🔹 Cargar usuario real desde localStorage
+  // 🔹 Cargar usuario desde localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
       const userData = JSON.parse(localStorage.getItem("user"));
       setStoredUser(userData);
     }
   }, []);
+
+  // ------------------------------------------------------------
+  // 🔥 RNF2: DETECTAR EXPIRACIÓN AUTOMÁTICA DE SESIÓN
+  // ------------------------------------------------------------
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    // 🔁 Ping pasivo cada 20 segundos
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch("http://localhost:4000/api/sessions/ping", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        // Código 440 = Sesión expirada por inactividad
+        if (res.status === 440 || res.status === 401) {
+          alert("Tu sesión expiró por inactividad.");
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          router.push("/login");
+        }
+      } catch (err) {
+        console.log("Error verificando sesión:", err);
+      }
+    }, 180000); // 20 segundos
+
+    return () => clearInterval(interval);
+  }, [router]);
+
+  // ------------------------------------------------------------
 
   const moods = [
     { name: "Feliz", color: "bg-green-100 border-green-400 text-green-700" },
@@ -41,7 +75,9 @@ export default function Dashboard() {
   ];
 
   const handleLogout = () => {
-    router.push("/");
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    router.push("/login");
   };
 
   const sidebarItems = [
@@ -55,7 +91,7 @@ export default function Dashboard() {
 
   return (
     <div className="flex h-screen bg-[#f6f4fb] text-gray-800 flex-col">
-      {/* 🔹 BARRA SUPERIOR */}
+      {/* 🔹 HEADER */}
       <header className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white flex justify-between items-center px-8 py-4 shadow-md">
         <div className="flex items-center space-x-3">
           <Heart className="w-6 h-6 text-white" />
@@ -114,7 +150,7 @@ export default function Dashboard() {
           {activeView === "Recursos" && <RecursosView />}
           {activeView === "Chatbot" && <ChatbotView mode="autenticado" />}
 
-          {/* 🔹 VISTA INICIO */}
+          {/* 🔹 VISTA DE INICIO */}
           {activeView === "Inicio" && (
             <>
               <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-2xl flex justify-between items-center mb-6">
@@ -123,8 +159,7 @@ export default function Dashboard() {
                     ¡Hola, {storedUser?.nombre?.split(" ")[0] || "Usuario"}! 👋
                   </h1>
                   <p>
-                    ¿Cómo te sientes hoy? Tu bienestar emocional es importante
-                    para nosotros.
+                    ¿Cómo te sientes hoy? Tu bienestar emocional es importante para nosotros.
                   </p>
                 </div>
                 <Image
@@ -142,6 +177,7 @@ export default function Dashboard() {
                   <Calendar className="h-5 w-5 text-purple-600" />
                   ¿Cómo te sientes hoy?
                 </h3>
+
                 <div className="grid grid-cols-4 gap-4 mb-4">
                   {moods.map((mood) => (
                     <button
@@ -157,22 +193,24 @@ export default function Dashboard() {
                     </button>
                   ))}
                 </div>
+
                 {selectedMood && (
                   <div className="mt-3 p-3 bg-purple-50 border border-purple-200 rounded-lg text-purple-700 text-sm flex items-center gap-2">
                     <span className="text-lg">✨</span>
-                    Gracias por compartir cómo te sientes. Tu estado emocional ha
-                    sido registrado.
+                    Gracias por compartir cómo te sientes. Tu estado emocional ha sido registrado.
                   </div>
                 )}
               </div>
 
               {/* Semana emocional + recordatorios */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                {/* Semana emocional */}
                 <div className="bg-white rounded-2xl p-6 shadow-sm">
                   <h3 className="font-semibold text-gray-700 mb-4 flex items-center gap-2">
                     <BarChart className="h-5 w-5 text-green-600" />
                     Tu semana emocional
                   </h3>
+
                   <ul className="space-y-2">
                     {[
                       { day: "Lun", val: 4 },
@@ -197,6 +235,7 @@ export default function Dashboard() {
                   </ul>
                 </div>
 
+                {/* Recordatorios */}
                 <div className="bg-white rounded-2xl p-6 shadow-sm">
                   <h3 className="font-semibold text-gray-700 mb-4 flex items-center gap-2">
                     <BookOpen className="h-5 w-5 text-yellow-500" />
@@ -206,28 +245,22 @@ export default function Dashboard() {
                     <li className="bg-yellow-50 p-3 rounded-lg border border-yellow-100 flex items-center gap-2">
                       <Coffee className="h-4 w-4 text-yellow-600" />
                       <span>
-                        <span className="font-medium text-yellow-700">
-                          Rutina matutina:
-                        </span>{" "}
-                        Tómate 5 minutos para respirar profundamente
+                        <span className="font-medium text-yellow-700">Rutina matutina:</span>{" "}
+                        Tómate 5 minutos para respirar profundamente.
                       </span>
                     </li>
                     <li className="bg-blue-50 p-3 rounded-lg border border-blue-100 flex items-center gap-2">
                       <Notebook className="h-4 w-4 text-blue-600" />
                       <span>
-                        <span className="font-medium text-blue-700">
-                          Diario emocional:
-                        </span>{" "}
-                        Escribe sobre tu día antes de dormir
+                        <span className="font-medium text-blue-700">Diario emocional:</span>{" "}
+                        Escribe sobre tu día antes de dormir.
                       </span>
                     </li>
                     <li className="bg-green-50 p-3 rounded-lg border border-green-100 flex items-center gap-2">
                       <Heart className="h-4 w-4 text-green-600" />
                       <span>
-                        <span className="font-medium text-green-700">
-                          Autocuidado:
-                        </span>{" "}
-                        Recuerda hidratarte y tomar descansos
+                        <span className="font-medium text-green-700">Autocuidado:</span>{" "}
+                        Recuerda hidratarte y tomar descansos.
                       </span>
                     </li>
                   </ul>
@@ -236,30 +269,26 @@ export default function Dashboard() {
 
               {/* Acciones rápidas */}
               <div className="mt-6">
-                <h3 className="font-semibold text-gray-700 mb-4">
-                  Acciones rápidas
-                </h3>
+                <h3 className="font-semibold text-gray-700 mb-4">Acciones rápidas</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <button
                     onClick={() => setActiveView("Chatbot")}
                     className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-purple-500 hover:bg-purple-50 transition text-left"
                   >
                     <p className="font-medium text-purple-700 flex items-center gap-2">
-                      <Bot className="h-4 w-4 text-purple-600" /> Hablar con
-                      MENTALIA Bot
+                      <Bot className="h-4 w-4 text-purple-600" /> Hablar con MENTALIA Bot
                     </p>
                     <p className="text-sm text-gray-600 mt-1">
-                      Conversa con nuestro asistente de apoyo emocional 24/7
+                      Conversa con nuestro asistente de apoyo emocional 24/7.
                     </p>
                   </button>
 
                   <div className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-green-500 hover:bg-green-50 transition">
                     <p className="font-medium text-green-700 flex items-center gap-2">
-                      <TrendingUp className="h-4 w-4 text-green-600" /> Ver mi
-                      progreso
+                      <TrendingUp className="h-4 w-4 text-green-600" /> Ver mi progreso
                     </p>
                     <p className="text-sm text-gray-600 mt-1">
-                      Revisa tu evolución emocional de esta semana
+                      Revisa tu evolución emocional de esta semana.
                     </p>
                   </div>
 
@@ -268,11 +297,10 @@ export default function Dashboard() {
                     className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-500 hover:bg-blue-50 transition text-left"
                   >
                     <p className="font-medium text-blue-700 flex items-center gap-2">
-                      <Notebook className="h-4 w-4 text-blue-600" /> Escribir en
-                      mi diario
+                      <Notebook className="h-4 w-4 text-blue-600" /> Escribir en mi diario
                     </p>
                     <p className="text-sm text-gray-600 mt-1">
-                      Reflexiona sobre tus pensamientos y emociones
+                      Reflexiona sobre tus pensamientos y emociones.
                     </p>
                   </button>
                 </div>

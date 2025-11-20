@@ -34,11 +34,14 @@ export default function ResetPasswordPage() {
     setMessage("");
 
     try {
-      const res = await fetch("http://localhost:4000/api/auth/reset-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, password }),
-      });
+      const res = await fetch(`http://localhost:4000/api/auth/reset-password/${token}`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ newPassword: password }),
+});
+
+
+
 
       const data = await res.json();
       if (res.ok) {
