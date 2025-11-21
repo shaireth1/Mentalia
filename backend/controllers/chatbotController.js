@@ -6,6 +6,7 @@ import ChatSession from "../models/ChatSession.js";
 import { updateEmotionalMemory } from "../utils/emotionalMemory.js";
 import { toneTransform } from "../utils/tones.js";
 import CrisisPhrase from "../models/CrisisPhrase.js";
+import { anonymizeText } from "../utils/anonymize.js";
 
 // 🧠 Memoria contextual por sesión (no se guarda en BD)
 const sessionContext = new Map();
@@ -20,50 +21,88 @@ const crisisKeywordsStatic = [
   "suicidio",
   "suicidarme",
   "matarme",
+  "me voy a matar",
   "hacerme daño",
+  "estoy pensando en hacerme daño",
   "no aguanto más",
   "no aguanto mas",
   "acabar con todo",
   "no veo salida",
   "no vale la pena vivir",
+  "no vale la pena seguir viviendo",
   "ya no quiero existir",
   "ya no quiero exisitir",
   "ya no quiero seguir",
 
   // posibles a terceros
+  "voy a matar a mi amigo",
+  "voy a matar a alguien",
+  "voy a matar",
   "matar a alguien",
-  "hacerse daño a alguien",
+  "matar a mi amigo",
+  "lo voy a matar",
   "hacer daño a alguien",
 ];
 
-// para detectar rápidamente presencia de términos generales
+// ⚡ Términos rápidos para decidir si vale la pena buscar crisis
 const crisisQuickTerms = [
-  "morir",
-  "morirme",
-  "morirme",
+  "me quiero morir",
+  "me voy a matar",
+  "quiero morir",
+  "quitarme la vida",
   "suicid",
-  "matarme",
-  "matar a alguien",
-  "no aguanto",
-  "no quiero vivir",
+  "no aguanto más",
+  "no aguanto mas",
   "acabar con todo",
   "no veo salida",
-  "no quiero existir",
+  "no vale la pena",
+  "no quiero vivir",
+  "ya no quiero existir",
+  "ya no quiero seguir",
+  "estoy pensando en hacerme daño",
   "hacerme daño",
+  "dañarme",
+  "matarme",
+  "voy a matar",
+  "matar a",
+  "matar a alguien",
+  "matar a mi",
+  "lo voy a matar",
 ];
 
 // 🟣 Otras listas
 const positiveKeywords = [
-  "gracias", "mejor", "bien", "tranquil@", "tranquila",
-  "aliviad@", "funcionó", "me ayudó", "sirvió"
+  "gracias",
+  "mejor",
+  "bien",
+  "tranquil@",
+  "tranquila",
+  "tranquilo",
+  "aliviad@",
+  "aliviada",
+  "aliviado",
+  "funcionó",
+  "funciono",
+  "me ayudó",
+  "me ayudo",
+  "sirvió",
+  "sirvio",
 ];
 
 // 🟣 Detectores auxiliares no-crisis
-const detectGreeting = (t = "") => /\b(hola|buenas|hey|ey|hi|hello)\b/i.test(t);
+const detectGreeting = (t = "") =>
+  /\b(hola|buenas|hey|ey|hi|hello)\b/i.test(t);
+
 const detectOffTopic = (t = "") =>
-  /\b(celular|precio|dinero|plata|tel[eé]fono|computador|juego|musica|video)\b/i.test(t);
-const detectAffirmative = (t = "") => /\b(s[ií]|claro|dale|ok|de una|por favor)\b/i.test(t);
-const detectPositive = (t = "") => positiveKeywords.some(k => t.toLowerCase().includes(k));
+  /\b(celular|precio|dinero|plata|tel[eé]fono|computador|juego|juegos|m[úu]sica|musica|video|videos)\b/i.test(
+    t
+  );
+
+const detectAffirmative = (t = "") =>
+  /\b(s[ií]|sí|si|claro|dale|ok|okay|de una|por favor|bueno|vale)\b/i.test(t);
+
+const detectPositive = (t = "") =>
+  positiveKeywords.some((k) => t.toLowerCase().includes(k));
 
 // 🟣 Contexto por sesión
 function getContext(id) {
@@ -82,10 +121,36 @@ function setContext(id, ctx) {
   sessionContext.set(id, { ...prev, ...ctx });
 }
 
+// 🧩 Fallback de emoción cuando el modelo tiene poca confianza (RF8)
+function inferEmotionFromWords(lower = "") {
+  if (
+    /triste|tristeza|deprimid[oa]|sin ganas|lloro|llorando/i.test(lower)
+  ) {
+    return "tristeza";
+  }
+  if (
+    /ansios[oa]|ansiedad|nervios[oa]|nervioso|preocupad[oa]|angustiad[oa]|agobiad[oa]/i.test(
+      lower
+    )
+  ) {
+    return "ansiedad";
+  }
+  if (/estr[eé]s|estresad[oa]|saturad[oa]|reventad[oa]/i.test(lower)) {
+    return "estrés";
+  }
+  if (/miedo|temor|asustad[oa]|p[áa]nico|terror/i.test(lower)) {
+    return "miedo";
+  }
+  if (/enojo|enojad[oa]|rabia|ira|furios[oa]|odio|odiar/i.test(lower)) {
+    return "enojo";
+  }
+  return null;
+}
+
 // 🟣 Técnicas por emoción
 const techniques = {
   ansiedad: [
-    "🌬️ **Técnica 4-2-6:** inhala 4s, mantén 2s y exhala 6s. Hazlo 3 veces.",
+    "🌬️ **Técnica 4-2-6:** inhala 4 segundos, mantén 2 y exhala 6. Hazlo 3 veces.",
     "💜 Prueba 3-2-1: nombra 3 cosas que ves, 2 que escuchas y 1 que sientes.",
     "🫶 Repite: *Estoy a salvo, puedo ir a mi ritmo.*",
   ],
@@ -144,17 +209,14 @@ async function loadCrisisPhrases() {
 async function detectCrisisAdvanced(text) {
   const lower = text.toLowerCase();
 
-  // 1️⃣ filtro rápido — si ni siquiera hay términos de riesgo, ahorramos trabajo
+  // 1️⃣ filtro rápido — si no hay términos de riesgo, hacemos una revisión mínima
   if (!crisisQuickTerms.some((t) => lower.includes(t))) {
-    // igual revisamos palabras exactas por si el admin configuró otras frases
     const phrases = await loadCrisisPhrases();
     for (const p of phrases) {
       if (lower.includes(p.text.toLowerCase())) {
         return { source: "db", phrase: p };
       }
     }
-
-    // ni rastro → sin crisis
     return null;
   }
 
@@ -169,12 +231,19 @@ async function detectCrisisAdvanced(text) {
   // 3️⃣ fallback estático (por si la BD aún está vacía)
   const staticHit = crisisKeywordsStatic.find((k) => lower.includes(k));
   if (staticHit) {
-    // intento simple de clasificar
-    let target = "unspecified";
-    if (lower.includes("matar a alguien") || lower.includes("hacer daño a otros")) {
+    // intento simple de clasificar hacia quién va el riesgo
+    let target = "self";
+
+    if (
+      lower.includes("matar a ") ||
+      lower.includes("voy a matar ") ||
+      lower.includes("lo voy a matar") ||
+      lower.includes("matar a mi") ||
+      lower.includes("matar a alguien") ||
+      lower.includes("matar a mi amigo") ||
+      lower.includes("voy a matar a")
+    ) {
       target = "others";
-    } else {
-      target = "self";
     }
 
     return {
@@ -191,9 +260,9 @@ async function detectCrisisAdvanced(text) {
   return null;
 }
 
-// crear mensaje de contención según el tipo detectado
+// crear mensaje de contención según el tipo detectado (RF10)
 function buildCrisisReply(match) {
-  const { category, severity, target } = match.phrase;
+  const { target } = match.phrase;
 
   // riesgo hacia sí mismo (suicidio / autolesión / ideación de muerte)
   if (target === "self") {
@@ -225,10 +294,57 @@ function buildCrisisReply(match) {
 }
 
 // ===========================================================
+//     🧩 Helper para guardar turno en BD (RF11 + RNF4–5)
+// ===========================================================
+async function saveTurn({
+  sessionId,
+  type,
+  userId,
+  userText,
+  replyText,
+  emotion,
+  confidence = null,
+}) {
+  const chatModel = type === "anonimo" ? ChatSession : Conversation;
+
+  const chat = new chatModel({
+    sessionId,
+    anonymous: type === "anonimo",
+    userId: type === "registrado" ? userId : null,
+    type,
+    messages: [
+      {
+        sender: "user",
+        text: userText,
+        emotion,
+        confidence,
+      },
+      {
+        sender: "bot",
+        text: replyText,
+        emotion,
+      },
+    ],
+  });
+
+  await chat.save();
+  updateEmotionalMemory().catch(() => {});
+}
+
+// ===========================================================
 //     🧩 PROCESAMIENTO PRINCIPAL DEL MENSAJE
 // ===========================================================
-async function processMessage(message, type = "anonimo", userId = null, tone = "informal") {
-  const lower = message.toLowerCase();
+async function processMessage(
+  message,
+  type = "anonimo",
+  userId = null,
+  tone = "informal"
+) {
+  const original = message || "";
+
+  // 🟣 RNF5 — Anonimización ANTES de procesar o almacenar (solo anónimo)
+  const text = type === "anonimo" ? anonymizeText(original) : original;
+  const lower = text.toLowerCase();
 
   const sessionId =
     type === "anonimo"
@@ -238,7 +354,26 @@ async function processMessage(message, type = "anonimo", userId = null, tone = "
   const ctx = getContext(sessionId);
   setContext(sessionId, { tone });
 
-  // 1️⃣ si hay técnica pendiente y el usuario dice que sí
+  // 1️⃣ RF9 — DETECCIÓN DE CRISIS (PRIORIDAD MÁXIMA)
+  const crisisMatch = await detectCrisisAdvanced(lower);
+  if (crisisMatch) {
+    const baseReply = buildCrisisReply(crisisMatch);
+    const finalReply = toneTransform[tone](baseReply);
+
+    await saveTurn({
+      sessionId,
+      type,
+      userId,
+      userText: text,
+      replyText: baseReply,
+      emotion: "crisis",
+      confidence: 100,
+    });
+
+    return { reply: finalReply, emotion: "crisis" };
+  }
+
+  // 2️⃣ Técnica pendiente (offer_technique) → usuario responde que sí
   if (ctx.pendingIntent === "offer_technique" && detectAffirmative(lower)) {
     const emotion = ctx.lastEmotion || "ansiedad";
     const list = techniques[emotion] || techniques.ansiedad;
@@ -246,27 +381,46 @@ async function processMessage(message, type = "anonimo", userId = null, tone = "
 
     setContext(sessionId, { lastEmotion: emotion, pendingIntent: null });
 
+    const finalReply = toneTransform[tone](tip);
+
+    await saveTurn({
+      sessionId,
+      type,
+      userId,
+      userText: text,
+      replyText: tip,
+      emotion,
+      confidence: null,
+    });
+
     return {
-      reply: toneTransform[tone](tip),
+      reply: finalReply,
       emotion,
     };
   }
 
-  // 2️⃣ RESPUESTA POSITIVA
+  // 3️⃣ RESPUESTA POSITIVA (gracias, mejor…)
   if (detectPositive(lower)) {
-    const reply = positiveReplies[Math.floor(Math.random() * positiveReplies.length)];
+    const baseReply =
+      positiveReplies[Math.floor(Math.random() * positiveReplies.length)];
+
+    const finalReply = toneTransform[tone](baseReply);
+    const emotion = ctx.lastEmotion || "neutral";
+
+    await saveTurn({
+      sessionId,
+      type,
+      userId,
+      userText: text,
+      replyText: baseReply,
+      emotion,
+      confidence: null,
+    });
 
     return {
-      reply: toneTransform[tone](reply),
-      emotion: ctx.lastEmotion || "neutral",
+      reply: finalReply,
+      emotion,
     };
-  }
-
-  // 3️⃣ RF9 PRO — DETECCIÓN DE CRISIS
-  const crisisMatch = await detectCrisisAdvanced(lower);
-  if (crisisMatch) {
-    const reply = buildCrisisReply(crisisMatch);
-    return { reply: toneTransform[tone](reply), emotion: "crisis" };
   }
 
   // 4️⃣ SALUDOS
@@ -276,38 +430,88 @@ async function processMessage(message, type = "anonimo", userId = null, tone = "
       "🌻 ¡Hola! Estoy aquí para escucharte, sin juicios.",
       "💜 ¡Hola! Cuéntame cómo te sientes en este momento.",
     ];
-    const reply = options[Math.floor(Math.random() * options.length)];
-    return { reply: toneTransform[tone](reply), emotion: "neutral" };
+    const baseReply = options[Math.floor(Math.random() * options.length)];
+    const finalReply = toneTransform[tone](baseReply);
+
+    await saveTurn({
+      sessionId,
+      type,
+      userId,
+      userText: text,
+      replyText: baseReply,
+      emotion: "neutral",
+      confidence: null,
+    });
+
+    return { reply: finalReply, emotion: "neutral" };
   }
 
   // 5️⃣ OFF-TOPIC
   if (detectOffTopic(lower)) {
-    const reply =
+    const baseReply =
       "Ese tema se sale un poco de lo emocional 💭. Pero si te parece, cuéntame cómo te has sentido hoy y vemos algo práctico juntos.";
-    return { reply: toneTransform[tone](reply), emotion: "neutral" };
+    const finalReply = toneTransform[tone](baseReply);
+
+    await saveTurn({
+      sessionId,
+      type,
+      userId,
+      userText: text,
+      replyText: baseReply,
+      emotion: "neutral",
+      confidence: null,
+    });
+
+    return { reply: finalReply, emotion: "neutral" };
   }
 
-  // 6️⃣ ANÁLISIS EMOCIONAL
-  const { emotion, confidence } = analyzeEmotion(message);
+  // 6️⃣ ANÁLISIS EMOCIONAL (RF8)
+  const { emotion: rawEmotion, confidence } = analyzeEmotion(text);
   const lastEmotion = ctx.lastEmotion;
 
-  if (confidence < 60 && !lastEmotion) {
-    const reply =
-      "🤔 No estoy completamente segur@ de cómo te sientes. ¿Dirías que es tristeza, ansiedad, estrés, miedo o enojo?";
-    return { reply: toneTransform[tone](reply), emotion: "neutral" };
+  let effectiveEmotion = rawEmotion;
+  let finalConfidence = confidence;
+
+  // Fallback inteligente cuando la confianza es baja
+  if (confidence < 60) {
+    const inferred = inferEmotionFromWords(lower);
+
+    if (inferred) {
+      effectiveEmotion = inferred;
+      finalConfidence = 75;
+    } else if (lastEmotion) {
+      // usar la última emoción conocida
+      effectiveEmotion = lastEmotion;
+    } else {
+      const baseReply =
+        "🤔 No estoy completamente segur@ de cómo te sientes. ¿Dirías que es tristeza, ansiedad, estrés, miedo o enojo?";
+      const finalReply = toneTransform[tone](baseReply);
+
+      await saveTurn({
+        sessionId,
+        type,
+        userId,
+        userText: text,
+        replyText: baseReply,
+        emotion: "neutral",
+        confidence,
+      });
+
+      return { reply: finalReply, emotion: "neutral" };
+    }
   }
 
-  const effectiveEmotion = confidence < 60 && lastEmotion ? lastEmotion : emotion;
-
+  // si llegamos aquí, tenemos una emoción efectiva
   setContext(sessionId, { lastEmotion: effectiveEmotion, pendingIntent: null });
 
-  // 7️⃣ RESPUESTA EMPÁTICA BASE
-  let reply = getResponse(effectiveEmotion);
+  // 7️⃣ RESPUESTA EMPÁTICA BASE (RF7)
+  let baseReply = getResponse(effectiveEmotion);
 
-  // 8️⃣ OFRECER TÉCNICA
+  // 8️⃣ OFRECER TÉCNICA (solo algunas emociones)
   if (["ansiedad", "estrés", "tristeza"].includes(effectiveEmotion)) {
     if (Math.random() < 0.5) {
-      reply += " 💜 Si quieres, puedo compartirte una técnica breve para calmarte.";
+      baseReply +=
+        " 💜 Si quieres, puedo compartirte una técnica breve para calmarte.";
       setContext(sessionId, {
         lastEmotion: effectiveEmotion,
         pendingIntent: "offer_technique",
@@ -315,25 +519,21 @@ async function processMessage(message, type = "anonimo", userId = null, tone = "
     }
   }
 
-  // 9️⃣ GUARDAR CONVERSACIÓN EN BD
-  const chatModel = type === "anonimo" ? ChatSession : Conversation;
+  const finalReply = toneTransform[tone](baseReply);
 
-  const chat = new chatModel({
+  // 9️⃣ GUARDAR CONVERSACIÓN EN BD (RF11 + RNF4–5)
+  await saveTurn({
     sessionId,
-    anonymous: type === "anonimo",
-    userId: type === "registrado" ? userId : null,
-    type: type,
-    messages: [
-      { sender: "user", text: message, emotion: effectiveEmotion, confidence },
-      { sender: "bot", text: reply, emotion: effectiveEmotion },
-    ],
+    type,
+    userId,
+    userText: text,
+    replyText: baseReply,
+    emotion: effectiveEmotion,
+    confidence: finalConfidence,
   });
 
-  await chat.save();
-  updateEmotionalMemory().catch(() => {});
-
   return {
-    reply: toneTransform[tone](reply),
+    reply: finalReply,
     emotion: effectiveEmotion,
   };
 }
@@ -349,11 +549,18 @@ export async function handleAnonChat(req, res) {
       return res.status(400).json({ reply: "Por favor, escribe un mensaje." });
     }
 
-    const response = await processMessage(message, "anonimo", null, tone || "informal");
+    const response = await processMessage(
+      message,
+      "anonimo",
+      null,
+      tone || "informal"
+    );
     res.json(response);
   } catch (err) {
     console.error("❌ Error en handleAnonChat:", err);
-    res.status(500).json({ reply: "Ocurrió un error procesando tu mensaje. 😔" });
+    res
+      .status(500)
+      .json({ reply: "Ocurrió un error procesando tu mensaje. 😔" });
   }
 }
 
@@ -365,10 +572,17 @@ export async function handleAuthChat(req, res) {
       return res.status(400).json({ reply: "Por favor, escribe un mensaje." });
     }
 
-    const response = await processMessage(message, "registrado", userId, tone || "informal");
+    const response = await processMessage(
+      message,
+      "registrado",
+      userId,
+      tone || "informal"
+    );
     res.json(response);
   } catch (err) {
     console.error("❌ Error en handleAuthChat:", err);
-    res.status(500).json({ reply: "No se pudo procesar tu mensaje. 😔" });
+    res
+      .status(500)
+      .json({ reply: "No se pudo procesar tu mensaje. 😔" });
   }
 }

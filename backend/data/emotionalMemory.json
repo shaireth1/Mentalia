@@ -1,20 +1,23 @@
 {
   "neutral": {
-    "score": -5.399999999999997
+    "score": -5.1
   },
   "tristeza": {
-    "score": -4.08
+    "score": -4.99
   },
   "ansiedad": {
-    "score": 0.30000000000000004
+    "score": -3.18
   },
   "estrés": {
-    "score": -0.8999999999999999
+    "score": -2.13
   },
   "enojo": {
     "score": -1.78
   },
   "miedo": {
-    "score": -2.75
+    "score": -3.89
+  },
+  "crisis": {
+    "score": -2.55
   }
 }

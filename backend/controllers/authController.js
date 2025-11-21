@@ -61,6 +61,7 @@ export async function registerUser(req, res) {
       telefono,
       email,
       password: hashedPassword,
+      // 🔹 no hace falta setear tone: usa el default "informal"
     });
 
     await newUser.save();
@@ -141,7 +142,7 @@ export async function loginUser(req, res) {
       return res.status(400).json({ msg: "Credenciales incorrectas." });
     }
 
-    // Crear token JWT (🔥 aquí añadimos rol)
+    // Crear token JWT (rol incluido)
     const token = jwt.sign(
       { id: user._id, email: user.email, rol: user.rol },
       process.env.JWT_SECRET,
@@ -163,7 +164,8 @@ export async function loginUser(req, res) {
         nombre: user.nombre,
         email: user.email,
         programa: user.programa,
-        rol: user.rol, // 🔥 añadido para redirecciones
+        rol: user.rol,
+        tone: user.tone, // 🔹 👈 AQUÍ MANDAMOS EL TONO
       },
     });
   } catch (error) {

@@ -1,31 +1,47 @@
 // utils/tones.js
-// 🎚️ Conversión de tono formal / informal para respuestas del chatbot
+// 🎚️ Transformación de tono para el chatbot (Formal Empático Cálido)
 
 export const toneTransform = {
-// 🤝 Informal → tal cual lo escribiste en emotional_responses.json
-informal: (text) => text,
 
-// 🧑‍⚕️ Formal → neutral, sin emojis y sin diminutivos
-formal: (text) => {
-if (!text) return text;
+  // 🤝 INFORMAL (tal cual)
+  informal: (text) => text,
 
-let out = text;
+  // 🧑‍⚕️ FORMAL EMPÁTICO CÁLIDO — versión optimizada
+  formal: (text) => {
+    if (!text) return text;
 
-// Quitar emojis
-out = out.replace(
-/[\u{1F300}-\u{1FAFF}]/gu,
-""
-);
+    let out = text;
 
-// Frases suavizadas
-out = out
-.replace(/estoy aquí contigo/gi, "estoy aquí para apoyarte")
-.replace(/estoy contigo/gi, "estoy para acompañarte")
-.replace(/si quieres/gi, "si lo deseas");
+    // 1) Quitar TODOS los emojis
+    out = out.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, "");
 
-// Quitar dobles espacios
-out = out.replace(/\s{2,}/g, " ");
+    // 2) Sustituciones para mantener tono cálido y profesional
+    const replacements = [
+      { from: /estoy aquí contigo/gi, to: "estoy aquí para acompañarle" },
+      { from: /estoy contigo/gi, to: "estoy aquí para apoyarle" },
+      { from: /estoy aquí para escucharte/gi, to: "estoy aquí para escucharle" },
+      { from: /si quieres/gi, to: "si lo desea puedo orientarle" },
+      { from: /si lo deseas/gi, to: "si lo desea puedo orientarle" },
+      { from: /tranquil@/gi, to: "puede tomárselo con calma" },
+      { from: /puedo compartirte/gi, to: "puedo compartirle" },
+      { from: /compartirte/gi, to: "compartirle" },
+      { from: /contigo/gi, to: "con usted" },
+      { from: /estás/gi, to: "se encuentra" },
+      { from: /sientes/gi, to: "se siente" },
+      { from: /tu/gi, to: "su" },
+      { from: /tú/gi, to: "usted" }
+    ];
 
-return out.trim();
-}
+    replacements.forEach(r => {
+      out = out.replace(r.from, r.to);
+    });
+
+    // 3) Quitar espacios dobles
+    out = out.replace(/\s{2,}/g, " ");
+
+    // 4) Quitar puntos duplicados
+    out = out.replace(/\.{2,}/g, ".");
+
+    return out.trim();
+  }
 };

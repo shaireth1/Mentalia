@@ -15,6 +15,13 @@ const userSchema = new mongoose.Schema({
 
   rol: { type: String, enum: ["usuario", "admin"], default: "usuario" },
 
+  // 🔹 Tono preferido del chatbot (RF12)
+  tone: {
+    type: String,
+    enum: ["informal", "formal"],
+    default: "informal",
+  },
+
   creadoEn: { type: Date, default: Date.now },
 
   resetPasswordToken: { type: String },

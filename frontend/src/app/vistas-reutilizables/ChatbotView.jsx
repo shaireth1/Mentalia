@@ -8,7 +8,7 @@ export default function ChatbotView({ mode = "anonimo" }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [tone, setTone] = useState("informal");
-  const [isBotTyping, setIsBotTyping] = useState(false); // ⭐ NUEVO
+  const [isBotTyping, setIsBotTyping] = useState(false);
   const chatEndRef = useRef(null);
 
   const baseUrl =
@@ -17,6 +17,24 @@ export default function ChatbotView({ mode = "anonimo" }) {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // 🔹 Cargar tono por defecto si el usuario está autenticado
+  useEffect(() => {
+    if (!mounted) return;
+    if (mode !== "autenticado") return;
+
+    try {
+      const rawUser = localStorage.getItem("user");
+      if (rawUser) {
+        const user = JSON.parse(rawUser);
+        if (user.tone === "formal" || user.tone === "informal") {
+          setTone(user.tone);
+        }
+      }
+    } catch (err) {
+      console.error("Error leyendo tono de usuario:", err);
+    }
+  }, [mode, mounted]);
 
   // 🧹 RF6 — BORRAR HISTORIAL ANÓNIMO CUANDO SE CIERRA LA PESTAÑA
   useEffect(() => {
@@ -39,8 +57,7 @@ export default function ChatbotView({ mode = "anonimo" }) {
     if (!mounted) return;
 
     try {
-      const storage =
-        mode === "anonimo" ? sessionStorage : localStorage;
+      const storage = mode === "anonimo" ? sessionStorage : localStorage;
 
       const raw = storage.getItem("chatHistory");
       if (raw) {
@@ -81,8 +98,7 @@ export default function ChatbotView({ mode = "anonimo" }) {
   useEffect(() => {
     if (!mounted) return;
     try {
-      const storage =
-        mode === "anonimo" ? sessionStorage : localStorage;
+      const storage = mode === "anonimo" ? sessionStorage : localStorage;
       storage.setItem("chatHistory", JSON.stringify(messages));
     } catch (e) {
       console.error("Error guardando historial:", e);
@@ -94,6 +110,37 @@ export default function ChatbotView({ mode = "anonimo" }) {
     if (!mounted) return;
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isBotTyping, mounted]);
+
+  // 🔄 Cambiar tono (y si es autenticado, persistir en backend)
+  const changeTone = async (newTone) => {
+    setTone(newTone);
+
+    if (mode !== "autenticado") return;
+
+    try {
+      const token = localStorage.getItem("token");
+      const rawUser = localStorage.getItem("user");
+
+      if (token) {
+        await fetch(`${baseUrl}/api/users/tone`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ tone: newTone }),
+        });
+      }
+
+      if (rawUser) {
+        const user = JSON.parse(rawUser);
+        user.tone = newTone;
+        localStorage.setItem("user", JSON.stringify(user));
+      }
+    } catch (err) {
+      console.error("Error actualizando tono en backend:", err);
+    }
+  };
 
   // 🧠 Enviar mensaje
   const sendMessage = async () => {
@@ -122,13 +169,25 @@ export default function ChatbotView({ mode = "anonimo" }) {
         : `${baseUrl}/api/chatbot/autenticado`;
 
     try {
+      // 🔥 NUEVO → Tomar userId solo si está autenticado
+      let userIdToSend = null;
+      if (mode === "autenticado") {
+        try {
+          const saved = JSON.parse(localStorage.getItem("user"));
+          userIdToSend = saved?.id || saved?._id || null;
+        } catch {}
+      }
+
+      const bodyPayload = {
+        message: textToSend,
+        tone: tone,
+        userId: userIdToSend, // 🔥 ENVIAMOS userId
+      };
+
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: textToSend,
-          tone: tone,
-        }),
+        body: JSON.stringify(bodyPayload),
       });
 
       if (!res.ok) {
@@ -208,7 +267,7 @@ export default function ChatbotView({ mode = "anonimo" }) {
         <span>Tono del chatbot:</span>
 
         <button
-          onClick={() => setTone("informal")}
+          onClick={() => changeTone("informal")}
           className={`px-3 py-1 rounded-full text-xs border ${
             tone === "informal"
               ? "bg-purple-600 text-white border-purple-600"
@@ -219,7 +278,7 @@ export default function ChatbotView({ mode = "anonimo" }) {
         </button>
 
         <button
-          onClick={() => setTone("formal")}
+          onClick={() => changeTone("formal")}
           className={`px-3 py-1 rounded-full text-xs border ${
             tone === "formal"
               ? "bg-purple-600 text-white border-purple-600"
