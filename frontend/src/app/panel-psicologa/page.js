@@ -1,80 +1,102 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
-export default function PsicologaPage() {
+import LayoutAdmin from "./LayoutAdmin";
+import AlertaCritica from "./AlertaCritica";
+import DashboardTabs from "./DashboardTabs";
+import EstadisticasCards from "./EstadisticasCards";
+import GraficaUsoChatbot from "./GraficaUsoChatbot";
+import GraficaEmociones from "./GraficaEmociones";
+
+import SettingsView from "../vistas-reutilizables/SettingsView"; // Reutilizable
+
+export default function PanelPsicologa() {
   const router = useRouter();
+  const [storedUser, setStoredUser] = useState(null);
+  const [activeTab, setActiveTab] = useState("Dashboard");
+
+  useEffect(() => {
+    const rawUser = localStorage.getItem("user");
+    if (!rawUser) {
+      router.replace("/login");
+      return;
+    }
+
+    try {
+      const user = JSON.parse(rawUser);
+      if (user?.rol !== "admin") {
+        router.replace("/dashboard");
+        return;
+      }
+      setStoredUser(user);
+    } catch {
+      router.replace("/login");
+    }
+  }, []);
+
+  if (!storedUser) return null;
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-indigo-100 to-white text-gray-800 flex flex-col">
-      {/* Header */}
-      <header className="bg-white/70 backdrop-blur-md shadow-md p-5 flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-indigo-700">Mentalia — Psicóloga</h1>
-        <nav className="space-x-6 text-indigo-700 font-medium">
-          <button onClick={() => router.push("/psicologa/ajustes")} className="hover:text-indigo-500 transition">Ajustes</button>
-          <button onClick={() => router.push("/")} className="hover:text-indigo-500 transition">Cerrar sesión</button>
-        </nav>
-      </header>
+    <LayoutAdmin user={storedUser}>
+      {/* Alerta crítica */}
+      <div className="p-4">
+        <AlertaCritica cantidad={1} />
+      </div>
 
-      {/* Contenido principal */}
-      <section className="flex flex-col items-center justify-center flex-1 px-6 py-10">
-        <h2 className="text-3xl md:text-4xl font-extrabold text-indigo-700 mb-4">
-          Bienvenida, Psicóloga 👩‍⚕️
-        </h2>
-        <p className="text-gray-700 text-center max-w-2xl mb-10">
-          Desde este panel puedes acceder a todas las herramientas de seguimiento, 
-          gestión y análisis para apoyar tu labor clínica.  
-          Selecciona una sección para comenzar.
+      {/* Título */}
+      <div className="px-6 mt-3">
+        <h1 className="text-2xl font-semibold text-gray-900">
+          Panel de Psicóloga Institucional
+        </h1>
+        <p className="text-gray-500">
+          Monitoreo y gestión de la plataforma MENTALIA
         </p>
+      </div>
 
-        {/* Tarjetas / botones de navegación */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl">
-          <div
-            onClick={() => router.push("/psicologa/dashboard")}
-            className="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl hover:scale-105 transition cursor-pointer text-center"
-          >
-            <h3 className="text-xl font-semibold text-indigo-700 mb-2">📊 Dashboard</h3>
-            <p className="text-gray-600 text-sm">Visualiza estadísticas y progreso general.</p>
-          </div>
+      {/* Tabs */}
+      <div className="mt-6 px-6">
+        <DashboardTabs 
+          activeTab={activeTab} 
+          setActiveTab={setActiveTab} 
+          includeSettings={true} // habilita Ajustes como pestaña
+        />
+      </div>
 
-          <div
-            onClick={() => router.push("/psicologa/alertas")}
-            className="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl hover:scale-105 transition cursor-pointer text-center"
-          >
-            <h3 className="text-xl font-semibold text-indigo-700 mb-2">🚨 Alertas</h3>
-            <p className="text-gray-600 text-sm">Revisa señales o frases de riesgo detectadas.</p>
-          </div>
+      {/* Contenido según Tab */}
+      <main className="px-6 mt-4 pb-10">
+        {activeTab === "Dashboard" && (
+          <>
+            <EstadisticasCards />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+              <GraficaUsoChatbot />
+              <GraficaEmociones />
+            </div>
+          </>
+        )}
 
-          <div
-            onClick={() => router.push("/psicologa/frases")}
-            className="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl hover:scale-105 transition cursor-pointer text-center"
-          >
-            <h3 className="text-xl font-semibold text-indigo-700 mb-2">💬 Frases de riesgo</h3>
-            <p className="text-gray-600 text-sm">Accede a frases sensibles o de riesgo.</p>
-          </div>
+        {activeTab === "Alertas" && (
+          <div className="p-6 text-gray-700">Aquí irán las alertas…</div>
+        )}
 
-          <div
-            onClick={() => router.push("/psicologa/contenido")}
-            className="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl hover:scale-105 transition cursor-pointer text-center"
-          >
-            <h3 className="text-xl font-semibold text-indigo-700 mb-2">📚 Contenido</h3>
-            <p className="text-gray-600 text-sm">Administra material de apoyo y recursos.</p>
-          </div>
+        {activeTab === "Frases de Riesgo" && (
+          <div className="p-6 text-gray-700">Vista de frases de riesgo…</div>
+        )}
 
-          <div
-            onClick={() => router.push("/psicologa/exportaciones")}
-            className="bg-white p-8 rounded-2xl shadow-md hover:shadow-xl hover:scale-105 transition cursor-pointer text-center"
-          >
-            <h3 className="text-xl font-semibold text-indigo-700 mb-2">📤 Exportaciones</h3>
-            <p className="text-gray-600 text-sm">Genera reportes o descargas de datos.</p>
-          </div>
-        </div>
-      </section>
+        {activeTab === "Contenido" && (
+          <div className="p-6 text-gray-700">Gestión de contenido…</div>
+        )}
 
-      {/* Footer */}
-      <footer className="bg-indigo-50 text-center py-4 text-sm text-gray-500">
-        © 2025 Mentalia | Plataforma para profesionales de la salud mental
-      </footer>
-    </main>
+        {activeTab === "Exportaciones" && (
+          <div className="p-6 text-gray-700">Exportaciones e informes…</div>
+        )}
+
+        {activeTab === "Ajustes" && <SettingsView />}
+      </main>
+    </LayoutAdmin>
   );
 }
+
+
+
