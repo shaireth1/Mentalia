@@ -14,9 +14,9 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
 
   rol: { type: String, enum: ["usuario", "admin"], default: "usuario" },
+
   creadoEn: { type: Date, default: Date.now },
 
-  // 🔥 NECESARIO PARA RECUPERACIÓN DE CONTRASEÑA
   resetPasswordToken: { type: String },
   resetPasswordExpire: { type: Date }
 });

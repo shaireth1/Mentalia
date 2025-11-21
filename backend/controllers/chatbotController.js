@@ -5,132 +5,65 @@ import Conversation from "../models/Conversation.js";
 import ChatSession from "../models/ChatSession.js";
 import { updateEmotionalMemory } from "../utils/emotionalMemory.js";
 import { toneTransform } from "../utils/tones.js";
+import CrisisPhrase from "../models/CrisisPhrase.js";
 
 // 🧠 Memoria contextual por sesión (no se guarda en BD)
 const sessionContext = new Map();
 
-/**
- * 🔎 PALABRAS CLAVE DE CRISIS
- */
-
-// ⛔ Crisis de autolesión / suicidio (RF9)
-const selfHarmKeywords = [
-  // Frases explícitas del requisito
+// 🟣 Palabras clave estáticas de crisis (fallback)
+const crisisKeywordsStatic = [
   "me quiero morir",
-  "no aguanto más",
-  "no aguanto mas",
-  "quiero acabar con todo",
-  "no veo ninguna salida",
-  "ya no quiero existir",
-  "no vale la pena seguir viviendo",
-  "estoy pensando en hacerme daño",
-
-  // Variantes y sinónimos
   "quiero morir",
-  "quiero morirme",
-  "me voy a morir",
-  "me voy a matar",
-  "me quiero matar",
-  "quiero suicidarme",
-  "voy a suicidarme",
-  "suicidarme",
-  "suicidio",
-  "suicidar",
-  "quitarme la vida",
-  "quitarme mi vida",
   "no quiero vivir",
-  "acabar con mi vida",
-  "terminar con mi vida",
-  "ya no doy más",
-  "ya no doy mas",
-  "no puedo más con esto",
-  "no puedo mas con esto",
-  "ya no puedo con la vida",
-  "preferiría estar muert",
-  "preferiria estar muert",
-  "morir",        // intencionalmente amplio para el prototipo
-  "morirme",
-  "desaparecer",
-];
-
-// ⚠️ Crisis de violencia hacia OTRAS personas
-const violenceKeywords = [
-  "matar a alguien",
-  "matar a todos",
-  "matar a todo el mundo",
-  "los voy a matar",
-  "las voy a matar",
-  "lo voy a matar",
-  "la voy a matar",
-  "voy a matar a",
-  "voy a matarlos",
-  "voy a matarlas",
-  "asesinar a alguien",
-  "asesinar a esa persona",
-  "hacerle daño a alguien",
-  "hacer daño a alguien",
-  "lastimar a alguien",
-  "lastimar a esa persona",
-  "pegarle a alguien",
-  "golpear a alguien",
-  "disparar a alguien",
-  "atacar a alguien",
-  "hacer algo muy malo a alguien",
-];
-
-// Frases de malestar extremo pero menos explícitas
-const genericCrisisKeywords = [
+  "prefiero morir",
+  "quitarme la vida",
+  "suicidio",
+  "suicidarme",
+  "matarme",
+  "hacerme daño",
   "no aguanto más",
   "no aguanto mas",
   "acabar con todo",
   "no veo salida",
-  "no veo ninguna salida",
-  "ya no puedo más",
-  "ya no puedo mas",
-  "no tiene sentido seguir",
+  "no vale la pena vivir",
+  "ya no quiero existir",
+  "ya no quiero exisitir",
+  "ya no quiero seguir",
+
+  // posibles a terceros
+  "matar a alguien",
+  "hacerse daño a alguien",
+  "hacer daño a alguien",
 ];
 
+// para detectar rápidamente presencia de términos generales
+const crisisQuickTerms = [
+  "morir",
+  "morirme",
+  "morirme",
+  "suicid",
+  "matarme",
+  "matar a alguien",
+  "no aguanto",
+  "no quiero vivir",
+  "acabar con todo",
+  "no veo salida",
+  "no quiero existir",
+  "hacerme daño",
+];
+
+// 🟣 Otras listas
 const positiveKeywords = [
-  "gracias",
-  "mejor",
-  "bien",
-  "tranquil@",
-  "tranquila",
-  "aliviad@",
-  "funcionó",
-  "me ayudó",
-  "sirvió",
+  "gracias", "mejor", "bien", "tranquil@", "tranquila",
+  "aliviad@", "funcionó", "me ayudó", "sirvió"
 ];
 
-// Detectores básicos
-const detectSelfHarmCrisis = (t = "") => {
-  const text = t.toLowerCase();
-  return selfHarmKeywords.some((k) => text.includes(k));
-};
-
-const detectViolenceCrisis = (t = "") => {
-  const text = t.toLowerCase();
-  return violenceKeywords.some((k) => text.includes(k));
-};
-
-const detectGenericCrisis = (t = "") => {
-  const text = t.toLowerCase();
-  return genericCrisisKeywords.some((k) => text.includes(k));
-};
-
-const detectGreeting = (t = "") =>
-  /\b(hola|buenas|hey|ey|hi|hello)\b/i.test(t);
-
+// 🟣 Detectores auxiliares no-crisis
+const detectGreeting = (t = "") => /\b(hola|buenas|hey|ey|hi|hello)\b/i.test(t);
 const detectOffTopic = (t = "") =>
-  /\b(celular|precio|dinero|plata|tel[eé]fono|computador|juego|musica|video)\b/i.test(
-    t
-  );
-
-const detectAffirmative = (t = "") =>
-  /\b(s[ií]|claro|dale|ok|de una|por favor)\b/i.test(t);
-
-const detectPositive = (t = "") =>
-  positiveKeywords.some((k) => t.toLowerCase().includes(k));
+  /\b(celular|precio|dinero|plata|tel[eé]fono|computador|juego|musica|video)\b/i.test(t);
+const detectAffirmative = (t = "") => /\b(s[ií]|claro|dale|ok|de una|por favor)\b/i.test(t);
+const detectPositive = (t = "") => positiveKeywords.some(k => t.toLowerCase().includes(k));
 
 // 🟣 Contexto por sesión
 function getContext(id) {
@@ -139,7 +72,7 @@ function getContext(id) {
       lastEmotion: null,
       pendingIntent: null,
       lastReplyType: null,
-      tone: "informal", // ⭐ tono por defecto
+      tone: "informal",
     }
   );
 }
@@ -152,9 +85,9 @@ function setContext(id, ctx) {
 // 🟣 Técnicas por emoción
 const techniques = {
   ansiedad: [
-    "🌬️ **Técnica 4-2-6:** inhala 4 segundos, mantén 2 y exhala 6. Hazlo 3 veces.",
+    "🌬️ **Técnica 4-2-6:** inhala 4s, mantén 2s y exhala 6s. Hazlo 3 veces.",
     "💜 Prueba 3-2-1: nombra 3 cosas que ves, 2 que escuchas y 1 que sientes.",
-    "🫶 Repite: *Estoy a salvo, puedo ir a mi propio ritmo.*",
+    "🫶 Repite: *Estoy a salvo, puedo ir a mi ritmo.*",
   ],
   estrés: [
     "😮‍💨 **Pausa consciente:** respira hondo y estira los hombros 3 veces.",
@@ -162,8 +95,8 @@ const techniques = {
     "💭 Bebe agua lentamente y respira. A veces lo simple ayuda.",
   ],
   tristeza: [
-    "💜 Escribe lo que sientes sin juzgarlo. Puede ayudarte a liberar un poco lo que llevas dentro.",
-    "🌷 Abraza algo cálido o suave para calmar tu cuerpo.",
+    "💜 Escribe lo que sientes sin juzgarlo. Te puede liberar un poco.",
+    "🌷 Abraza algo cálido o suave para calmar el cuerpo.",
     "💭 Escoge una canción tranquila y respira mientras la escuchas.",
   ],
 };
@@ -177,15 +110,125 @@ const positiveReplies = [
   "🌻 Me alegra mucho leer eso. Respira un momento y agradécete.",
 ];
 
-// 🧩 PROCESAMIENTO PRINCIPAL DEL MENSAJE
-async function processMessage(
-  message,
-  type = "anonimo",
-  userId = null,
-  tone = "informal"
-) {
+// ===========================================================
+//    🔥 RF9 PRO — DETECCIÓN DE FRASES DE RIESGO DINÁMICA
+// ===========================================================
+
+// caché simple en memoria para no ir a la BD en cada mensaje
+let crisisCache = {
+  lastLoad: 0,
+  phrases: [],
+};
+
+async function loadCrisisPhrases() {
+  const now = Date.now();
+  // recargar cada 60 segundos
+  if (now - crisisCache.lastLoad < 60 * 1000 && crisisCache.phrases.length > 0) {
+    return crisisCache.phrases;
+  }
+
+  try {
+    const list = await CrisisPhrase.find();
+    crisisCache = {
+      lastLoad: now,
+      phrases: list,
+    };
+    return list;
+  } catch (err) {
+    console.error("❌ Error cargando CrisisPhrase desde BD:", err);
+    return crisisCache.phrases || [];
+  }
+}
+
+// detectar crisis desde BD + fallback estático
+async function detectCrisisAdvanced(text) {
+  const lower = text.toLowerCase();
+
+  // 1️⃣ filtro rápido — si ni siquiera hay términos de riesgo, ahorramos trabajo
+  if (!crisisQuickTerms.some((t) => lower.includes(t))) {
+    // igual revisamos palabras exactas por si el admin configuró otras frases
+    const phrases = await loadCrisisPhrases();
+    for (const p of phrases) {
+      if (lower.includes(p.text.toLowerCase())) {
+        return { source: "db", phrase: p };
+      }
+    }
+
+    // ni rastro → sin crisis
+    return null;
+  }
+
+  // 2️⃣ revisar en BD configurada por la psicóloga
+  const phrases = await loadCrisisPhrases();
+  for (const p of phrases) {
+    if (lower.includes(p.text.toLowerCase())) {
+      return { source: "db", phrase: p };
+    }
+  }
+
+  // 3️⃣ fallback estático (por si la BD aún está vacía)
+  const staticHit = crisisKeywordsStatic.find((k) => lower.includes(k));
+  if (staticHit) {
+    // intento simple de clasificar
+    let target = "unspecified";
+    if (lower.includes("matar a alguien") || lower.includes("hacer daño a otros")) {
+      target = "others";
+    } else {
+      target = "self";
+    }
+
+    return {
+      source: "static",
+      phrase: {
+        text: staticHit,
+        category: "suicidio",
+        severity: "alto",
+        target,
+      },
+    };
+  }
+
+  return null;
+}
+
+// crear mensaje de contención según el tipo detectado
+function buildCrisisReply(match) {
+  const { category, severity, target } = match.phrase;
+
+  // riesgo hacia sí mismo (suicidio / autolesión / ideación de muerte)
+  if (target === "self") {
+    return (
+      "💛 Lo que estás sintiendo es muy importante y no estás sol@ en esto. " +
+      "En este momento es muy importante que no te quedes con esto en silencio. " +
+      "Si estás en Colombia, puedes comunicarte con la Línea 106 o con emergencias al 123. " +
+      "También puedes hablar con un profesional de tu institución o alguien de confianza. " +
+      "Si sientes que corres peligro inmediato, por favor busca ayuda de urgencias de inmediato."
+    );
+  }
+
+  // riesgo hacia otros (ira / violencia / daño a terceros)
+  if (target === "others") {
+    return (
+      "⚠️ Lo que mencionas refleja mucha intensidad emocional. " +
+      "Hacer daño a otras personas no es una solución y puede traer consecuencias muy graves para ti y para los demás. " +
+      "Te sugiero hablar con un profesional de salud mental o con alguien de confianza para procesar lo que sientes. " +
+      "Si sientes que podrías perder el control, busca apoyo profesional o de emergencia en tu zona."
+    );
+  }
+
+  // caso genérico / no especificado
+  return (
+    "💛 Percibo que estás pasando por un momento muy difícil. " +
+    "No tienes que atravesarlo en soledad. Hablar con alguien de confianza o con un profesional puede marcar la diferencia. " +
+    "Si estás en una situación de riesgo, por favor comunícate con una línea de ayuda o con servicios de urgencias en tu localidad."
+  );
+}
+
+// ===========================================================
+//     🧩 PROCESAMIENTO PRINCIPAL DEL MENSAJE
+// ===========================================================
+async function processMessage(message, type = "anonimo", userId = null, tone = "informal") {
   const lower = message.toLowerCase();
-  const applyTone = toneTransform[tone] || toneTransform.informal;
 
   const sessionId =
     type === "anonimo"
@@ -195,30 +238,7 @@ async function processMessage(
   const ctx = getContext(sessionId);
   setContext(sessionId, { tone });
 
-  /**
-   * 1️⃣ MANEJO DE CRISIS (RF9 + RF10)
-   *    - Se prioriza SIEMPRE sobre cualquier otra lógica.
-   */
-
-  // 🔴 Autolesión / suicidio
-  if (detectSelfHarmCrisis(lower) || detectGenericCrisis(lower)) {
-    const reply =
-      "💛 Lo que estás expresando es muy delicado y merece atención inmediata. No estás sol@ en esto. En Colombia puedes comunicarte con la Línea 106 o, si eres menor de edad, con la Línea 141. También puedes acudir al servicio de urgencias más cercano o hablar con alguien de confianza en tu entorno.";
-
-    return { reply: applyTone(reply), emotion: "crisis_autolesion" };
-  }
-
-  // 🟠 Violencia hacia otras personas
-  if (detectViolenceCrisis(lower)) {
-    const reply =
-      "⚠️ Lo que comentas implica hacer daño a otra persona. No puedo apoyar ni validar ninguna forma de violencia. Es muy importante que hables con un profesional o con alguien de confianza sobre lo que estás sintiendo. Si sientes que puedes lastimar a alguien, por favor busca ayuda inmediata llamando a una línea de emergencia (por ejemplo, el 123 en Colombia) o acudiendo al servicio de urgencias más cercano.";
-
-    return { reply: applyTone(reply), emotion: "crisis_violencia" };
-  }
-
-  /**
-   * 2️⃣ INTENCIÓN PENDIENTE (técnica de regulación)
-   */
+  // 1️⃣ si hay técnica pendiente y el usuario dice que sí
   if (ctx.pendingIntent === "offer_technique" && detectAffirmative(lower)) {
     const emotion = ctx.lastEmotion || "ansiedad";
     const list = techniques[emotion] || techniques.ansiedad;
@@ -227,27 +247,29 @@ async function processMessage(
     setContext(sessionId, { lastEmotion: emotion, pendingIntent: null });
 
     return {
-      reply: applyTone(tip),
+      reply: toneTransform[tone](tip),
       emotion,
     };
   }
 
-  /**
-   * 3️⃣ RESPUESTA POSITIVA (agradecimientos, mejoría)
-   */
+  // 2️⃣ RESPUESTA POSITIVA
   if (detectPositive(lower)) {
-    const reply =
-      positiveReplies[Math.floor(Math.random() * positiveReplies.length)];
+    const reply = positiveReplies[Math.floor(Math.random() * positiveReplies.length)];
 
     return {
-      reply: applyTone(reply),
+      reply: toneTransform[tone](reply),
       emotion: ctx.lastEmotion || "neutral",
     };
   }
 
-  /**
-   * 4️⃣ SALUDOS
-   */
+  // 3️⃣ RF9 PRO — DETECCIÓN DE CRISIS
+  const crisisMatch = await detectCrisisAdvanced(lower);
+  if (crisisMatch) {
+    const reply = buildCrisisReply(crisisMatch);
+    return { reply: toneTransform[tone](reply), emotion: "crisis" };
+  }
+
+  // 4️⃣ SALUDOS
   if (detectGreeting(lower)) {
     const options = [
       "💬 ¡Hola! Qué gusto tenerte aquí. ¿Cómo te sientes hoy?",
@@ -255,48 +277,37 @@ async function processMessage(
       "💜 ¡Hola! Cuéntame cómo te sientes en este momento.",
     ];
     const reply = options[Math.floor(Math.random() * options.length)];
-
-    return { reply: applyTone(reply), emotion: "neutral" };
+    return { reply: toneTransform[tone](reply), emotion: "neutral" };
   }
 
-  /**
-   * 5️⃣ MENSAJES FUERA DE TEMA
-   */
+  // 5️⃣ OFF-TOPIC
   if (detectOffTopic(lower)) {
     const reply =
-      "Ese tema se sale un poco de lo emocional 💭. Pero si te parece, cuéntame cómo te has sentido hoy y buscamos algo que pueda ayudarte.";
-
-    return { reply: applyTone(reply), emotion: "neutral" };
+      "Ese tema se sale un poco de lo emocional 💭. Pero si te parece, cuéntame cómo te has sentido hoy y vemos algo práctico juntos.";
+    return { reply: toneTransform[tone](reply), emotion: "neutral" };
   }
 
-  /**
-   * 6️⃣ ANÁLISIS EMOCIONAL (RF8)
-   */
+  // 6️⃣ ANÁLISIS EMOCIONAL
   const { emotion, confidence } = analyzeEmotion(message);
   const lastEmotion = ctx.lastEmotion;
 
-  // Confianza baja (<60%) y sin historial → pedir aclaración
   if (confidence < 60 && !lastEmotion) {
     const reply =
-      "🤔 No estoy completamente segur@ de cómo te sientes. ¿Dirías que se parece más a tristeza, ansiedad, estrés, miedo o enojo?";
-
-    return { reply: applyTone(reply), emotion: "neutral" };
+      "🤔 No estoy completamente segur@ de cómo te sientes. ¿Dirías que es tristeza, ansiedad, estrés, miedo o enojo?";
+    return { reply: toneTransform[tone](reply), emotion: "neutral" };
   }
 
-  // Si confianza baja pero hay emoción previa → usar la última
-  const effectiveEmotion =
-    confidence < 60 && lastEmotion ? lastEmotion : emotion;
+  const effectiveEmotion = confidence < 60 && lastEmotion ? lastEmotion : emotion;
 
   setContext(sessionId, { lastEmotion: effectiveEmotion, pendingIntent: null });
 
-  // 7️⃣ RESPUESTA EMPÁTICA BASE (RF7)
+  // 7️⃣ RESPUESTA EMPÁTICA BASE
   let reply = getResponse(effectiveEmotion);
 
-  // 8️⃣ OFRECER TÉCNICA (solo a veces)
+  // 8️⃣ OFRECER TÉCNICA
   if (["ansiedad", "estrés", "tristeza"].includes(effectiveEmotion)) {
     if (Math.random() < 0.5) {
-      reply +=
-        " 💜 Si quieres, puedo compartirte una técnica breve para calmarte.";
+      reply += " 💜 Si quieres, puedo compartirte una técnica breve para calmarte.";
       setContext(sessionId, {
         lastEmotion: effectiveEmotion,
         pendingIntent: "offer_technique",
@@ -304,20 +315,16 @@ async function processMessage(
     }
   }
 
-  // 9️⃣ GUARDAR CONVERSACIÓN EN BD (RF11 + RNF4 + RNF5)
+  // 9️⃣ GUARDAR CONVERSACIÓN EN BD
   const chatModel = type === "anonimo" ? ChatSession : Conversation;
+
   const chat = new chatModel({
     sessionId,
     anonymous: type === "anonimo",
     userId: type === "registrado" ? userId : null,
     type: type,
     messages: [
-      {
-        sender: "user",
-        text: message,
-        emotion: effectiveEmotion,
-        confidence,
-      },
+      { sender: "user", text: message, emotion: effectiveEmotion, confidence },
       { sender: "bot", text: reply, emotion: effectiveEmotion },
     ],
   });
@@ -325,30 +332,28 @@ async function processMessage(
   await chat.save();
   updateEmotionalMemory().catch(() => {});
 
-  // 🔟 Aplicar tono
   return {
-    reply: applyTone(reply),
+    reply: toneTransform[tone](reply),
     emotion: effectiveEmotion,
   };
 }
 
-// ENDPOINTS
+// ===========================================================
+//                      ENDPOINTS
+// ===========================================================
 export async function handleAnonChat(req, res) {
   try {
     const { message, tone } = req.body;
 
-    if (!message?.trim())
-      return res
-        .status(400)
-        .json({ reply: "Por favor, escribe un mensaje." });
+    if (!message?.trim()) {
+      return res.status(400).json({ reply: "Por favor, escribe un mensaje." });
+    }
 
-    const response = await processMessage(message, "anonimo", null, tone);
+    const response = await processMessage(message, "anonimo", null, tone || "informal");
     res.json(response);
   } catch (err) {
     console.error("❌ Error en handleAnonChat:", err);
-    res
-      .status(500)
-      .json({ reply: "Ocurrió un error procesando tu mensaje. 😔" });
+    res.status(500).json({ reply: "Ocurrió un error procesando tu mensaje. 😔" });
   }
 }
 
@@ -356,22 +361,14 @@ export async function handleAuthChat(req, res) {
   try {
     const { message, userId, tone } = req.body;
 
-    if (!message?.trim())
-      return res
-        .status(400)
-        .json({ reply: "Por favor, escribe un mensaje." });
+    if (!message?.trim()) {
+      return res.status(400).json({ reply: "Por favor, escribe un mensaje." });
+    }
 
-    const response = await processMessage(
-      message,
-      "registrado",
-      userId,
-      tone
-    );
+    const response = await processMessage(message, "registrado", userId, tone || "informal");
     res.json(response);
   } catch (err) {
     console.error("❌ Error en handleAuthChat:", err);
-    res
-      .status(500)
-      .json({ reply: "No se pudo procesar tu mensaje. 😔" });
+    res.status(500).json({ reply: "No se pudo procesar tu mensaje. 😔" });
   }
 }

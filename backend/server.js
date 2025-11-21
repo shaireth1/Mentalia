@@ -8,6 +8,8 @@ import morgan from "morgan";
 import chatbotRoutes from "./routes/chatbot.js";
 import authRoutes from "./routes/auth.js";
 import sessionRoutes from "./routes/session.js";
+import adminRoutes from "./routes/admin.js"; // ⭐ NUEVO
+
 import { cleanInactiveSessions } from "./utils/sessionCleaner.js";
 
 dotenv.config();
@@ -30,6 +32,7 @@ mongoose
 app.use("/api/chatbot", chatbotRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/sessions", sessionRoutes);
+app.use("/api/admin", adminRoutes); // ⭐ NUEVO ROL ADMIN
 
 // 🕒 LIMPIADOR AUTOMÁTICO DE SESIONES
 setInterval(cleanInactiveSessions, 60 * 1000);
