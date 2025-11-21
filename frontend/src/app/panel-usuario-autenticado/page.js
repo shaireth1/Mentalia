@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+
 import {
   Heart,
   LogOut,
@@ -21,30 +22,42 @@ import ChatbotView from "../vistas-reutilizables/ChatbotView";
 import RecursosView from "../vistas-reutilizables/RecursosView";
 import MiBienestar from "./MiBienestar";
 
-
 export default function Dashboard() {
+  const router = useRouter();
+
   const [selectedMood, setSelectedMood] = useState("");
   const [activeView, setActiveView] = useState("Inicio");
   const [storedUser, setStoredUser] = useState(null);
 
-  const router = useRouter();
-
-  // 🔹 Cargar usuario desde localStorage
+  // 🚫 PROTECCIÓN: SI ES ADMIN → REDIRIGIR AL PANEL DE PSICÓLOGA
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const userData = JSON.parse(localStorage.getItem("user"));
-      setStoredUser(userData);
+    const rawUser = localStorage.getItem("user");
+    if (!rawUser) {
+      router.push("/login");
+      return;
     }
-  }, []);
 
-  // ------------------------------------------------------------
-  // 🔥 RNF2: DETECTAR EXPIRACIÓN AUTOMÁTICA DE SESIÓN
-  // ------------------------------------------------------------
+    try {
+      const user = JSON.parse(rawUser);
+
+      if (user.rol === "admin") {
+        router.replace("/panel-psicologa"); // Ruta correcta
+        return;
+      }
+
+      setStoredUser(user);
+
+    } catch (e) {
+      console.error("Error leyendo usuario:", e);
+      router.push("/login");
+    }
+  }, [router]);
+
+  // 🔥 DETECCIÓN DE SESIÓN EXPIRADA (cada 3 min)
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    // 🔁 Ping pasivo cada 20 segundos
     const interval = setInterval(async () => {
       try {
         const res = await fetch("http://localhost:4000/api/sessions/ping", {
@@ -52,7 +65,6 @@ export default function Dashboard() {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        // Código 440 = Sesión expirada por inactividad
         if (res.status === 440 || res.status === 401) {
           alert("Tu sesión expiró por inactividad.");
           localStorage.removeItem("token");
@@ -62,12 +74,10 @@ export default function Dashboard() {
       } catch (err) {
         console.log("Error verificando sesión:", err);
       }
-    }, 180000); // 20 segundos
+    }, 180000);
 
     return () => clearInterval(interval);
   }, [router]);
-
-  // ------------------------------------------------------------
 
   const moods = [
     { name: "Feliz", color: "bg-green-100 border-green-400 text-green-700" },
@@ -91,17 +101,19 @@ export default function Dashboard() {
     "Ajustes",
   ];
 
+  // No mostrar nada hasta que el usuario cargue
+  if (!storedUser) return null;
+
   return (
     <div className="flex h-screen bg-[#f6f4fb] text-gray-800 flex-col">
-      {/* 🔹 HEADER */}
+
+      {/* HEADER */}
       <header className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white flex justify-between items-center px-8 py-4 shadow-md">
         <div className="flex items-center space-x-3">
           <Heart className="w-6 h-6 text-white" />
           <div>
             <h1 className="font-semibold text-base tracking-wide">MENTALIA</h1>
-            <p className="text-xs opacity-80">
-              Plataforma de Apoyo Emocional - SENA
-            </p>
+            <p className="text-xs opacity-80">Plataforma de Apoyo Emocional - SENA</p>
           </div>
         </div>
 
@@ -126,7 +138,8 @@ export default function Dashboard() {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* 🔹 SIDEBAR */}
+
+        {/* SIDEBAR */}
         <aside className="w-60 bg-white shadow-md flex flex-col p-4">
           <nav className="space-y-3">
             {sidebarItems.map((item) => (
@@ -145,25 +158,26 @@ export default function Dashboard() {
           </nav>
         </aside>
 
-        {/* 🔹 CONTENIDO PRINCIPAL */}
+        {/* CONTENIDO PRINCIPAL */}
         <main className="flex-1 p-6 overflow-y-auto">
+
+          {/* VISTAS */}
           {activeView === "Ajustes" && <SettingsView />}
           {activeView === "Diario Emocional" && <DiarioEmocional />}
           {activeView === "Recursos" && <RecursosView />}
           {activeView === "Chatbot" && <ChatbotView mode="autenticado" />}
           {activeView === "Mi Bienestar" && <MiBienestar />}
 
-          {/* 🔹 VISTA DE INICIO */}
+          {/* INICIO */}
           {activeView === "Inicio" && (
             <>
+              {/* Bienvenida */}
               <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-2xl flex justify-between items-center mb-6">
                 <div>
                   <h1 className="text-2xl font-bold mb-2">
-                    ¡Hola, {storedUser?.nombre?.split(" ")[0] || "Usuario"}! 👋
+                    ¡Hola, {storedUser?.nombre?.split(" ")[0]}! 👋
                   </h1>
-                  <p>
-                    ¿Cómo te sientes hoy? Tu bienestar emocional es importante para nosotros.
-                  </p>
+                  <p>¿Cómo te sientes hoy? Tu bienestar emocional es importante para nosotros.</p>
                 </div>
                 <Image
                   src="/foto-inicio.jpg"
@@ -215,26 +229,19 @@ export default function Dashboard() {
                   </h3>
 
                   <ul className="space-y-2">
-                    {[
-                      { day: "Lun", val: 4 },
-                      { day: "Mar", val: 3 },
-                      { day: "Mié", val: 5 },
-                      { day: "Jue", val: 2 },
-                      { day: "Vie", val: 4 },
-                      { day: "Sáb", val: 5 },
-                      { day: "Dom", val: 3 },
-                    ].map(({ day, val }) => (
-                      <li key={day} className="flex items-center justify-between text-sm">
-                        <span>{day}</span>
-                        <div className="flex-1 mx-2 bg-purple-100 h-2 rounded-full">
-                          <div
-                            className="bg-purple-500 h-2 rounded-full"
-                            style={{ width: `${(val / 5) * 100}%` }}
-                          ></div>
-                        </div>
-                        <span className="text-gray-600">{val}/5</span>
-                      </li>
-                    ))}
+                    {[{day:"Lun",val:4},{day:"Mar",val:3},{day:"Mié",val:5},{day:"Jue",val:2},{day:"Vie",val:4},{day:"Sáb",val:5},{day:"Dom",val:3}]
+                      .map(({ day, val }) => (
+                        <li key={day} className="flex items-center justify-between text-sm">
+                          <span>{day}</span>
+                          <div className="flex-1 mx-2 bg-purple-100 h-2 rounded-full">
+                            <div
+                              className="bg-purple-500 h-2 rounded-full"
+                              style={{ width: `${(val / 5) * 100}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-gray-600">{val}/5</span>
+                        </li>
+                      ))}
                   </ul>
                 </div>
 
@@ -310,6 +317,7 @@ export default function Dashboard() {
               </div>
             </>
           )}
+
         </main>
       </div>
     </div>

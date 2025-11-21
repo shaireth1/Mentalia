@@ -141,9 +141,9 @@ export async function loginUser(req, res) {
       return res.status(400).json({ msg: "Credenciales incorrectas." });
     }
 
-    // Crear token JWT
+    // Crear token JWT (🔥 aquí añadimos rol)
     const token = jwt.sign(
-      { id: user._id, email: user.email },
+      { id: user._id, email: user.email, rol: user.rol },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
@@ -163,6 +163,7 @@ export async function loginUser(req, res) {
         nombre: user.nombre,
         email: user.email,
         programa: user.programa,
+        rol: user.rol, // 🔥 añadido para redirecciones
       },
     });
   } catch (error) {

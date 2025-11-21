@@ -3,8 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Eye, ArrowLeft, Heart } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
@@ -34,14 +36,20 @@ export default function LoginPage() {
         return;
       }
 
-      // ✔ token real
+      // Guardar token
       localStorage.setItem("token", data.token);
 
-      // ✔ user real, con ID real de MongoDB
+      // Guardar usuario con rol
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      // ✔ Redirección real
-      window.location.href = "/panel-usuario-autenticado";
+      // 🔥 SI ES ADMIN → PANEL PSICÓLOGA
+      if (data.user.rol === "admin") {
+        router.push("/panel-psicologa");
+        return;
+      }
+
+      // Usuario normal → panel usuario autenticado
+      router.push("/panel-usuario-autenticado");
 
     } catch (err) {
       console.error(err);
@@ -51,7 +59,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-start bg-[#f2e1ff] p-8">
-
       {/* HEADER */}
       <div className="w-full max-w-7xl mb-8 flex items-center justify-between">
         <Link
@@ -75,8 +82,6 @@ export default function LoginPage() {
 
       {/* LOGIN FORM */}
       <div className="bg-white/90 rounded-2xl shadow-2xl grid md:grid-cols-2 w-full max-w-7xl overflow-hidden">
-
-        {/* Imagen izquierda */}
         <div className="min-h-[540px] flex flex-col justify-between bg-white">
           <img
             src="/icono-registrarse.jpg"
@@ -84,9 +89,7 @@ export default function LoginPage() {
           />
         </div>
 
-        {/* Formulario */}
         <div className="p-12 flex flex-col justify-center bg-white min-h-[540px]">
-
           <h2 className="text-2xl font-medium text-center text-purple-800 mb-6">
             Iniciar Sesión
           </h2>
@@ -96,8 +99,6 @@ export default function LoginPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-
-            {/* Email */}
             <div>
               <label className="block text-sm font-medium text-purple-800">
                 Correo Electrónico *
@@ -111,7 +112,6 @@ export default function LoginPage() {
               />
             </div>
 
-            {/* Contraseña */}
             <div className="relative">
               <label className="block text-sm font-medium text-purple-800">
                 Contraseña *
@@ -132,7 +132,6 @@ export default function LoginPage() {
               </button>
             </div>
 
-            {/* Recuperar contraseña */}
             <div className="text-right text-sm">
               <Link
                 href="/forgot-password"
@@ -142,7 +141,6 @@ export default function LoginPage() {
               </Link>
             </div>
 
-            {/* Botón */}
             <button
               type="submit"
               className="w-full bg-purple-700 text-white py-3 rounded-lg font-semibold hover:bg-purple-800"
@@ -159,7 +157,6 @@ export default function LoginPage() {
               </Link>
             </p>
           </div>
-
         </div>
       </div>
     </div>
