@@ -90,11 +90,11 @@ export default function Register() {
         <span className="text-xs text-purple-500 -mt-1">SENA</span>
       </div>
 
-      <div className="flex flex-col md:flex-row max-w-6xl w-full gap-8 items-stretch">
+      <div className="flex flex-col md:flex-row max-w-5xl mx-auto w-full gap-10 items-center justify-center">
         
         {/* Panel izquierdo */}
-        <div className="bg-white rounded-2xl shadow-md overflow-hidden w-full md:w-1/2 flex flex-col">
-          <div className="h-[360px] w-full overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-md overflow-hidden w-full md:w-[60%] flex flex-col mx-auto">
+          <div className="h-[280px] w-full overflow-hidden">
             <Image
               src="/icono-registrarse.jpg"
               alt="Bienestar"
@@ -115,7 +115,7 @@ export default function Register() {
         </div>
 
         {/* Panel derecho */}
-        <div className="bg-white rounded-2xl shadow-md p-10 w-full md:w-1/2">
+        <div className="bg-white rounded-2xl shadow-md p-6 w-full md:w-[60%]">
           <h2 className="text-2xl font-semibold text-center text-purple-700 mb-1">
             Crear Cuenta
           </h2>
@@ -258,7 +258,6 @@ export default function Register() {
                   />
                 </div>
                 <p className="text-xs text-pink-600 mt-1">
-                  Debe incluir mayúsculas, números y símbolos
                 </p>
               </div>
 

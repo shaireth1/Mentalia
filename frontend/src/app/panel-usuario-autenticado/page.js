@@ -19,6 +19,8 @@ import SettingsView from "./SettingsView";
 import DiarioEmocional from "./DiarioEmocional";
 import ChatbotView from "../vistas-reutilizables/ChatbotView";
 import RecursosView from "../vistas-reutilizables/RecursosView";
+import MiBienestar from "./MiBienestar";
+
 
 export default function Dashboard() {
   const [selectedMood, setSelectedMood] = useState("");
@@ -149,6 +151,7 @@ export default function Dashboard() {
           {activeView === "Diario Emocional" && <DiarioEmocional />}
           {activeView === "Recursos" && <RecursosView />}
           {activeView === "Chatbot" && <ChatbotView mode="autenticado" />}
+          {activeView === "Mi Bienestar" && <MiBienestar />}
 
           {/* 🔹 VISTA DE INICIO */}
           {activeView === "Inicio" && (
