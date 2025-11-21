@@ -27,7 +27,7 @@ export async function authMiddleware(req, res, next) {
     }
 
     // Validar si ya está expirada
-    const THIRTY_MIN = 30 * 60 * 1000;
+    const THIRTY_MIN = 60 * 60 * 1000; // 1 hora
     const lastActivity = session.lastActivity.getTime();
     const now = Date.now();
 

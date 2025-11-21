@@ -4,7 +4,8 @@ import Session from "../models/Session.js";
 
 export async function cleanInactiveSessions() {
   try {
-    const THIRTY_MIN = 30 * 60 * 1000; // 30 minutos en ms
+    const THIRTY_MIN = 60 * 60 * 1000;
+
 
     const now = Date.now();
 
