@@ -155,7 +155,7 @@ export default function Register() {
                 <input
                   name="age"
                   type="number"
-                  placeholder="Tu edad"
+                  placeholder="Ingresa tu edad"
                   className={input}
                   onChange={handleChange}
                   required
@@ -234,7 +234,7 @@ export default function Register() {
                 <input
                   name="email"
                   type="email"
-                  placeholder="tu.email@sena.edu.co"
+                  placeholder="Ingresa tu email"
                   className={input}
                   onChange={handleChange}
                   required
