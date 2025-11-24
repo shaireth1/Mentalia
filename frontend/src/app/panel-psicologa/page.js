@@ -38,7 +38,7 @@ export default function PanelPsicologa() {
 
   if (!storedUser) return null;
 
-  return (
+  return (                                                                                                                                                                                                                                                                                                                                                             
     <LayoutAdmin user={storedUser}>
       {/* Alerta crítica */}
       <div className="p-4">
