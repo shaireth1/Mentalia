@@ -22,6 +22,7 @@ const crisisKeywordsStatic = [
   "suicidarme",
   "matarme",
   "me voy a matar",
+  "me quiero matar",          // 🆕 agregado
   "hacerme daño",
   "estoy pensando en hacerme daño",
   "no aguanto más",
@@ -48,6 +49,7 @@ const crisisKeywordsStatic = [
 const crisisQuickTerms = [
   "me quiero morir",
   "me voy a matar",
+  "me quiero matar",          // 🆕 agregado
   "quiero morir",
   "quitarme la vida",
   "suicid",
@@ -87,6 +89,7 @@ const positiveKeywords = [
   "me ayudo",
   "sirvió",
   "sirvio",
+  "feliz"
 ];
 
 // 🟣 Detectores auxiliares no-crisis
@@ -98,6 +101,21 @@ const detectOffTopic = (t = "") =>
 
 const detectAffirmative = (t = "") =>
   /\b(s[ií]|sí|si|claro|dale|ok|okay|de una|por favor|bueno|vale)\b/i.test(t);
+// 🟣 Detectar solicitud explícita de técnica
+function detectTechniqueRequest(t = "") {
+  return (
+    /\btécnica\b/i.test(t) ||
+    /tecnica/i.test(t) ||
+    /quiero.*técnica/i.test(t) ||
+    /quiero.*tecnica/i.test(t) ||
+    /dame.*técnica/i.test(t) ||
+    /dame.*tecnica/i.test(t) ||
+    /necesito.*técnica/i.test(t) ||
+    /ayuda.*calmarme/i.test(t) ||
+    /enséñame.*técnica/i.test(t)
+  );
+}
+
 
 const detectPositive = (t = "") =>
   positiveKeywords.some((k) => t.toLowerCase().includes(k));
@@ -119,8 +137,35 @@ function setContext(id, ctx) {
   sessionContext.set(id, { ...prev, ...ctx });
 }
 
+// 🟣 Detectar "mal", "me siento mal", etc.
+function detectGenericBad(lower = "") {
+  if (
+    /\bmal\b/.test(lower) ||
+    /me siento mal/.test(lower) ||
+    /estoy mal/.test(lower) ||
+    /ando mal/.test(lower) ||
+    /no estoy bien/.test(lower) ||
+    /no me siento bien/.test(lower) ||
+    /fatal/.test(lower) ||
+    /horrible/.test(lower)
+  ) {
+    return "tristeza"; // emocionalmente válido
+  }
+  return null;
+}
+
 // 🧩 Fallback de emoción cuando la confianza es baja (RF8)
 function inferEmotionFromWords(lower = "") {
+  // Expresiones generales de malestar
+  if (/mal\b|me siento mal|estoy mal|ando mal|no estoy bien|no me siento bien/i.test(lower)) {
+    return "tristeza";
+  }
+
+  if (/mal|fatal|terrible|horrible|muy mal/i.test(lower)) {
+    return "tristeza";
+  }
+
+  // Emociones básicas "limpias"
   if (/triste|tristeza|deprimid[oa]|sin ganas|lloro|llorando/i.test(lower)) {
     return "tristeza";
   }
@@ -136,6 +181,24 @@ function inferEmotionFromWords(lower = "") {
   if (/enojo|enojad[oa]|rabia|ira|furios[oa]|odio|odiar/i.test(lower)) {
     return "enojo";
   }
+
+  // Variantes y errores comunes
+  if (/trizte|triztesa|triztea/i.test(lower)) {
+    return "tristeza";
+  }
+  if (/ansieda|ansiado|ansiada/i.test(lower)) {
+    return "ansiedad";
+  }
+  if (/estresad[oa]h?|estrez|estresao/i.test(lower)) {
+    return "estrés";
+  }
+  if (/miedoh|miedito|temeros[oa]/i.test(lower)) {
+    return "miedo";
+  }
+  if (/enojad[oa]h?|molest[oa]|furios[oa]/i.test(lower)) {
+    return "enojo";
+  }
+
   return null;
 }
 
@@ -241,6 +304,7 @@ async function detectCrisisAdvanced(text) {
 
   return null;
 }
+
 // crear mensaje de contención según el tipo detectado (RF10)
 function buildCrisisReply(match) {
   const { target } = match.phrase;
@@ -272,9 +336,6 @@ function buildCrisisReply(match) {
 }
 
 // ===========================================================
-// 🧩 Helper guardar turno en BD (RF11 + RNF4–5)
-// ===========================================================
-// ===========================================================
 // 🧩 Helper guardar turno en BD (RF11 + RNF4–5) — FIX DUPLICATE KEY
 // ===========================================================
 async function saveTurn({
@@ -286,43 +347,45 @@ async function saveTurn({
   emotion,
   confidence = null,
 }) {
-  const chatModel = type === "anonimo" ? ChatSession : Conversation;
+  try {
+    const chatModel = type === "anonimo" ? ChatSession : Conversation;
 
-  const userMsg = {
-    sender: "user",
-    text: userText,
-    emotion,
-    confidence,
-  };
+    const userMsg = {
+      sender: "user",
+      text: userText,
+      emotion,
+      confidence,
+      timestamp: new Date(),
+    };
 
-  const botMsg = {
-    sender: "bot",
-    text: replyText,
-    emotion,
-  };
+    const botMsg = {
+      sender: "bot",
+      text: replyText,
+      emotion,
+      timestamp: new Date(),
+    };
 
-  // 🔥 En vez de crear siempre un doc nuevo, usamos upsert + push
-  await chatModel.findOneAndUpdate(
-    { sessionId, type },
-    {
-      $setOnInsert: {
-        sessionId,
-        anonymous: type === "anonimo",
-        userId: type === "registrado" ? userId : null,
-        type,
-        startedAt: new Date(),
+    await chatModel.findOneAndUpdate(
+      { sessionId },
+      {
+        $setOnInsert: {
+          sessionId,
+          type,
+          anonymous: type === "anonimo",
+          userId: type === "registrado" ? userId : null,
+          startedAt: new Date(),
+        },
+        $push: {
+          messages: { $each: [userMsg, botMsg] },
+        },
+        $set: { endedAt: null },
       },
-      $push: {
-        messages: { $each: [userMsg, botMsg] },
-      },
-      $set: {
-        endedAt: null,
-      },
-    },
-    { upsert: true, new: true }
-  );
+      { upsert: true, new: true }
+    );
+  } catch (err) {
+    console.error("❌ Error almacenando turno RF11:", err);
+  }
 
-  // Mantienes tu actualización de memoria emocional
   updateEmotionalMemory().catch(() => {});
 }
 
@@ -370,28 +433,58 @@ async function processMessage(
     return { reply: finalReply, emotion: "crisis" };
   }
 
-  // 2️⃣ Técnica pendiente
-  if (ctx.pendingIntent === "offer_technique" && detectAffirmative(lower)) {
-    const emotion = ctx.lastEmotion || "ansiedad";
-    const list = techniques[emotion] || techniques.ansiedad;
-    const tip = list[Math.floor(Math.random() * list.length)];
+  // 2️⃣ Técnica pendiente (RF7 + técnicas)
+ // 2️⃣ Técnica pendiente (sí / afirmación / pedir técnica)
+// 2️⃣ MANEJO DE TÉCNICAS — SIEMPRE DEBE EJECUTAR ANTES QUE RF8
+if (
+  ctx.pendingIntent === "offer_technique" &&
+  (
+    detectAffirmative(lower) ||
+    detectTechniqueRequest(lower) ||
+    lower.includes("si") ||
+    lower.includes("sí")
+  )
+) {
+  const emotion = ctx.lastEmotion || "ansiedad";
+  const list = techniques[emotion] || techniques.ansiedad;
+  const tip = list[Math.floor(Math.random() * list.length)];
 
-    setContext(sessionId, { lastEmotion: emotion, pendingIntent: null });
+  setContext(sessionId, { pendingIntent: null });
 
-    const finalReply = toneTransform[tone](tip);
+  const finalReply = toneTransform[tone](tip);
 
-    await saveTurn({
-      sessionId,
-      type,
-      userId,
-      userText: text,
-      replyText: tip,
-      emotion,
-      confidence: null,
-    });
+  await saveTurn({
+    sessionId,
+    type,
+    userId,
+    userText: text,
+    replyText: tip,
+    emotion,
+  });
 
-    return { reply: finalReply, emotion };
-  }
+  return { reply: finalReply, emotion };
+}
+
+// 2.1 Detectar si el usuario pide técnica directamente SIN que la hayas ofrecido
+if (detectTechniqueRequest(lower)) {
+  
+  const emotion = ctx.lastEmotion || "ansiedad";
+  const list = techniques[emotion] || techniques.ansiedad;
+  const tip = list[Math.floor(Math.random() * list.length)];
+
+  const finalReply = toneTransform[tone](tip);
+
+  await saveTurn({
+    sessionId,
+    type,
+    userId,
+    userText: text,
+    replyText: tip,
+    emotion,
+  });
+
+  return { reply: finalReply, emotion };
+}
 
   // 3️⃣ Respuesta positiva
   if (detectPositive(lower)) {
@@ -456,7 +549,26 @@ async function processMessage(
     return { reply: finalReply, emotion: "neutral" };
   }
 
-    // 6️⃣ ANÁLISIS EMOCIONAL (RF8 PRO — emociones compuestas)
+  // 6️⃣ RF8 — detectar "mal" inmediatamente
+  const genericBad = detectGenericBad(lower);
+  if (genericBad) {
+    const baseReply = getResponse(genericBad);
+    const finalReply = toneTransform[tone](baseReply);
+
+    await saveTurn({
+      sessionId,
+      type,
+      userId,
+      userText: text,
+      replyText: baseReply,
+      emotion: genericBad,
+      confidence: 80,
+    });
+
+    return { reply: finalReply, emotion: genericBad };
+  }
+
+  // 7️⃣ ANÁLISIS EMOCIONAL (RF8 PRO — emociones compuestas)
   const { primary, secondary, confidence } = analyzeEmotion(text);
   const lastEmotion = ctx.lastEmotion;
 
@@ -496,10 +608,8 @@ async function processMessage(
 
   setContext(sessionId, { lastEmotion: effectiveEmotion });
 
-  
-
-  // ⚠ Confirmación emocional (confidence < 60)
-  if (finalConfidence < 60 && !explicitEmotionMatch) {
+  // ⚠ Confirmación emocional extra si aún hay baja confianza
+  if (finalConfidence < 60) {
     const inferred = inferEmotionFromWords(lower);
 
     if (inferred) {
@@ -528,10 +638,10 @@ async function processMessage(
 
   setContext(sessionId, { lastEmotion: effectiveEmotion, pendingIntent: null });
 
-  // 7️⃣ RF7 — Respuesta empática base
+  // 8️⃣ RF7 — Respuesta empática base
   let baseReply = getResponse(effectiveEmotion);
 
-  // 8️⃣ Ofrecer técnica
+  // 9️⃣ Ofrecer técnica
   if (["ansiedad", "estrés", "tristeza"].includes(effectiveEmotion)) {
     if (Math.random() < 0.5) {
       baseReply +=
@@ -545,7 +655,7 @@ async function processMessage(
 
   const finalReply = toneTransform[tone](baseReply);
 
-  // 9️⃣ Guardar en BD (RF11 + RNF4–5)
+  // 🔟 Guardar en BD (RF11 + RNF4–5)
   await saveTurn({
     sessionId,
     type,
@@ -561,6 +671,7 @@ async function processMessage(
     emotion: effectiveEmotion,
   };
 }
+
 // ===========================================================
 //                      ENDPOINTS
 // ===========================================================

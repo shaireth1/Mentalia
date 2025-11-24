@@ -22,13 +22,17 @@ export default function ChatPage() {
             <p className="text-xs opacity-80">anonimo@mentalia.com</p>
             <p className="text-xs">Sesión Temporal</p>
           </div>
+<button
+  onClick={() => {
+    sessionStorage.removeItem("chatHistory");
+    sessionStorage.removeItem("anonSessionId");
+    window.location.href = "/";
+  }}
+  className="flex items-center text-sm text-white hover:text-gray-200 bg-[#9f67ff] hover:bg-[#8b5cf6] px-3 py-2 rounded-md transition"
+>
+  <LogOut size={16} className="mr-1" />
+</button>
 
-          <Link
-            href="/"
-            className="flex items-center text-sm text-white hover:text-gray-200 bg-[#9f67ff] hover:bg-[#8b5cf6] px-3 py-2 rounded-md transition"
-          >
-            <LogOut size={16} className="mr-1" />
-          </Link>
         </div>
       </header>
 

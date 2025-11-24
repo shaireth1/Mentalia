@@ -9,6 +9,7 @@ export default function ChatbotView({ mode = "anonimo" }) {
   const [anonSessionId, setAnonSessionId] = useState(null); // ← FIX
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [tone, setTone] = useState("informal");
   const [isBotTyping, setIsBotTyping] = useState(false);
   const chatEndRef = useRef(null);
@@ -49,16 +50,21 @@ export default function ChatbotView({ mode = "anonimo" }) {
 
   // 🧹 RF6 — limpiar sesión anónima al cerrar pestaña
   useEffect(() => {
-    if (mode !== "anonimo") return;
+  if (mode !== "anonimo") return;
 
-    const clearAnon = () => {
-      sessionStorage.removeItem("chatHistory");
-      sessionStorage.removeItem("anonSessionId");
-    };
+  const clearAnon = async () => {
+    const sid = sessionStorage.getItem("anonSessionId");
+    if (sid) {
+      fetch(`${baseUrl}/api/sessions/end/${sid}`, { method: "POST" });
+    }
+    sessionStorage.removeItem("chatHistory");
+    sessionStorage.removeItem("anonSessionId");
+  };
 
-    window.addEventListener("beforeunload", clearAnon);
-    return () => window.removeEventListener("beforeunload", clearAnon);
-  }, [mode]);
+  window.addEventListener("beforeunload", clearAnon);
+  return () => window.removeEventListener("beforeunload", clearAnon);
+}, [mode]);
+
 
   // 📦 Cargar historial del chat
   useEffect(() => {
@@ -115,13 +121,16 @@ export default function ChatbotView({ mode = "anonimo" }) {
 
   // 🧠 Enviar mensaje
   const sendMessage = async () => {
-    if (!input.trim()) return;
+  if (!input.trim()) return;
 
-    // ⚠️ FIX MÁS IMPORTANTE
-    if (mode === "anonimo" && !anonSessionId) {
-      console.warn("Esperando sessionId anónimo…");
-      return;
-    }
+  // 🚫 Evita requests duplicados
+  if (isBotTyping) return;
+
+  // ⚠️ FIX sesión anónima
+  if (mode === "anonimo" && !anonSessionId) {
+    console.warn("Esperando sessionId anónimo…");
+    return;
+  }
 
     const textToSend = input.trim();
 
@@ -325,12 +334,41 @@ export default function ChatbotView({ mode = "anonimo" }) {
             onKeyDown={handleKeyDown}
           />
           <button
-            onClick={sendMessage}
-            title="Enviar"
-            className="w-12 h-10 rounded-full bg-purple-600 hover:bg-purple-700 flex items-center justify-center text-white shadow"
-          >
-            <SendHorizonal />
-          </button>
+  onClick={sendMessage}
+  disabled={isLoading || !input.trim()}
+  title="Enviar"
+  className={`w-12 h-10 rounded-full flex items-center justify-center transition ${
+    isLoading || !input.trim()
+      ? "bg-gray-400 cursor-not-allowed"
+      : "bg-purple-600 hover:bg-purple-700"
+  }`}
+>
+  {isLoading ? (
+    <svg
+      className="animate-spin h-5 w-5 text-white"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      ></circle>
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+      ></path>
+    </svg>
+  ) : (
+    <SendHorizonal />
+  )}
+</button>
+
         </div>
 
         <div className="mt-2 text-xs text-gray-400">

@@ -10,6 +10,10 @@ import authRoutes from "./routes/auth.js";
 import sessionRoutes from "./routes/session.js";
 import adminRoutes from "./routes/admin.js"; // ⭐ NUEVO
 import userRoutes from "./routes/user.js";   // ⭐ NECESARIO PARA RF12
+import chatSessionRoutes from "./routes/chatSession.js";
+
+
+
 
 import { cleanInactiveSessions } from "./utils/sessionCleaner.js";
 
@@ -35,6 +39,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/sessions", sessionRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/users", userRoutes); // ⭐ RUTA QUE PERMITE CAMBIAR EL TONO RF12
+app.use("/api/chat-sessions", chatSessionRoutes);
 
 // 🕒 LIMPIADOR AUTOMÁTICO DE SESIONES
 setInterval(cleanInactiveSessions, 60 * 1000);
