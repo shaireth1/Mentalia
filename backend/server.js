@@ -33,13 +33,16 @@ mongoose
 app.use("/api/chatbot", chatbotRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/sessions", sessionRoutes);
-app.use("/api/admin", adminRoutes); 
-app.use("/api/users", userRoutes);  // ⭐ RUTA QUE PERMITE CAMBIAR EL TONO RF12
+app.use("/api/admin", adminRoutes);
+app.use("/api/users", userRoutes); // ⭐ RUTA QUE PERMITE CAMBIAR EL TONO RF12
 
 // 🕒 LIMPIADOR AUTOMÁTICO DE SESIONES
 setInterval(cleanInactiveSessions, 60 * 1000);
 
+// 🔥 IMPORTANTE — PERMITIR CONEXIONES DE RED (SOLUCIÓN "Failed to fetch")
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
+const HOST = "0.0.0.0"; // ⭐ escucha en todas las IPs para evitar errores
+
+app.listen(PORT, HOST, () => {
+  console.log(`🚀 Servidor corriendo en http://${HOST}:${PORT}`);
 });

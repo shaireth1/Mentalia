@@ -1,277 +1,137 @@
 // backend/utils/emotionAnalyzer.js
-// 🔥 Analizador emocional PRO para MENTALIA
-// - Muchos sinónimos y expresiones coloquiales
-// - Frases completas y palabras sueltas
-// - Devuelve { emotion, confidence } con valores 0–100
+// 🔥 Analizador emocional PRO con emociones compuestas
+// Devuelve { primary, secondary, confidence, scores }
 
 const emotionLexicon = {
   tristeza: {
     phrases: [
-      "estoy triste",
-      "me siento triste",
-      "ando triste",
-      "siento mucha tristeza",
-      "me siento vacío",
-      "me siento vacio",
-      "me siento sola",
-      "me siento solo",
-      "me siento muy sola",
-      "me siento muy solo",
-      "no tengo ganas de nada",
-      "no tengo ganas de hacer nada",
-      "no quiero hacer nada",
-      "no encuentro sentido",
-      "no le encuentro sentido a nada",
-      "estoy bajoneada",
-      "estoy bajoneado",
-      "ando bajoneada",
-      "ando bajoneado",
-      "me siento mal emocionalmente",
-      "me siento muy mal",
-      "estoy muy mal",
-      "ando mal",
-      "ando maluca",
-      "me siento vacío por dentro",
-      "me siento vacio por dentro",
-      "tengo el ánimo por el piso",
-      "tengo el animo por el piso"
+      "estoy triste","me siento triste","ando triste","siento mucha tristeza",
+      "no tengo ganas de nada","no quiero hacer nada","no encuentro sentido",
+      "estoy bajoneada","estoy bajoneado","me siento muy mal","ando mal",
+      "tengo el ánimo por el piso"
     ],
     words: [
-      "triste",
-      "tristeza",
-      "depre",
-      "deprimido",
-      "deprimida",
-      "llorar",
-      "llorando",
-      "llanto",
-      "nostalgia",
-      "melancolía",
-      "melancolia",
-      "vacío",
-      "vacio",
-      "solo",
-      "sola",
-      "desanimado",
-      "desanimada",
-      "apagado",
-      "apagada",
-      "bajon",
-      "bajón",
-      "derrotado",
-      "derrotada",
-      "cansado de todo",
-      "cansada de todo"
+      "triste","tristeza","depre","deprimido","deprimida","llorar","llorando",
+      "nostalgia","melancolia","solo","sola","apagado","apagada"
     ]
   },
 
   ansiedad: {
     phrases: [
-      "tengo ansiedad",
-      "me dio ansiedad",
-      "me siento ansioso",
-      "me siento ansiosa",
-      "no puedo parar de pensar",
-      "no dejo de pensar",
-      "tengo muchos pensamientos",
-      "no logro calmarme",
-      "me cuesta respirar",
-      "siento que me ahogo",
-      "siento que me falta el aire",
-      "todo me pone nervios@",
-      "estoy muy nervioso",
-      "estoy muy nerviosa",
-      "me siento inquieto",
-      "me siento inquieta",
-      "siento que algo malo va a pasar",
-      "tengo miedo a que algo pase",
-      "tengo un nudo en el estómago",
-      "tengo un nudo en el estomago",
-      "siento el pecho apretado",
-      "no puedo dormir de la ansiedad"
+      "tengo ansiedad","me dio ansiedad","me siento ansioso","no puedo parar de pensar",
+      "me cuesta respirar","siento que me ahogo","siento que me falta el aire",
+      "estoy muy nervioso","estoy muy nerviosa","me siento inquieto",
+      "siento que algo malo va a pasar"
     ],
     words: [
-      "ansiedad",
-      "ansioso",
-      "ansiosa",
-      "nervioso",
-      "nerviosa",
-      "inquieto",
-      "inquieta",
-      "preocupado",
-      "preocupada",
-      "taquicardia",
-      "acelerado",
-      "acelerada",
-      "angustia",
-      "angustiado",
-      "angustiada",
-      "estresado",
-      "estresada",
-      "tenso",
-      "tensa",
-      "saturado",
-      "saturada"
+      "ansiedad","ansioso","ansiosa","nervioso","nerviosa","taquicardia",
+      "angustia","inquieto","inquieta"
     ]
   },
 
-  "estrés": {
+  estrés: {
     phrases: [
-      "estoy muy estresado",
-      "estoy muy estresada",
-      "ando estresado",
-      "ando estresada",
-      "tengo demasiado trabajo",
-      "tengo muchas cosas encima",
-      "siento mucha presión",
-      "me siento agobiado",
-      "me siento agobiada",
-      "estoy saturado",
-      "estoy saturada",
-      "siento que no llego a todo",
-      "me siento colapsado",
-      "me siento colapsada",
-      "estoy colapsando",
-      "tengo la cabeza llena",
-      "no doy más",
-      "no doy mas"
+      "estoy muy estresado","estoy muy estresada","ando estresado",
+      "tengo demasiado trabajo","siento mucha presión","estoy saturado",
+      "no doy más","me siento colapsado"
     ],
     words: [
-      "estrés",
-      "estres",
-      "estresado",
-      "estresada",
-      "presión",
-      "presion",
-      "presionado",
-      "presionada",
-      "agobiado",
-      "agobiada",
-      "agotado",
-      "agotada",
-      "quemado",
-      "burnout",
-      "colapsado",
-      "colapsada"
+      "estrés","estres","estresado","estresada","presión","agobiado",
+      "agobiada","agotado","agotada","quemado","colapsado"
     ]
   },
 
   miedo: {
     phrases: [
-      "tengo miedo",
-      "tengo mucho miedo",
-      "me da miedo",
-      "me da mucho miedo",
-      "me aterra",
-      "me asusta",
-      "me siento inseguro",
-      "me siento insegura",
-      "siento que algo malo va a pasar",
-      "me preocupa demasiado",
-      "me preocupa mucho",
-      "tengo pánico",
-      "siento pánico",
-      "me da terror",
-      "tengo terror"
+      "tengo miedo","tengo mucho miedo","me da miedo","me aterra","me asusta",
+      "me siento inseguro","me siento insegura","me preocupa demasiado"
     ],
     words: [
-      "miedo",
-      "temor",
-      "temores",
-      "asustado",
-      "asustada",
-      "pánico",
-      "panico",
-      "terror",
-      "angustia",
-      "inseguro",
-      "insegura",
-      "preocupación",
-      "preocupacion",
-      "nervios",
-      "nerviosismo"
+      "miedo","temor","asustado","asustada","pánico","panico",
+      "inseguro","insegura","terror"
     ]
   },
 
   enojo: {
     phrases: [
-      "estoy muy enojado",
-      "estoy muy enojada",
-      "estoy lleno de rabia",
-      "estoy llena de rabia",
-      "estoy que exploto",
-      "estoy que reviento",
-      "me da mucha rabia",
-      "me tiene harto",
-      "me tiene harta",
-      "no soporto esto",
-      "no aguanto más esto",
-      "estoy muy molesto",
-      "estoy muy molesta",
-      "me siento frustrado",
-      "me siento frustrada"
+      "estoy muy enojado","estoy muy enojada","estoy lleno de rabia",
+      "estoy que exploto","me da mucha rabia","me tiene harto",
+      "no soporto esto","estoy muy molesto"
     ],
     words: [
-      "enojo",
-      "enojado",
-      "enojada",
-      "rabia",
-      "ira",
-      "furia",
-      "frustración",
-      "frustracion",
-      "frustrado",
-      "frustrada",
-      "molesto",
-      "molesta",
-      "fastidio",
-      "me irrita",
-      "me molesta"
+      "enojo","enojado","enojada","rabia","ira","furia","frustración",
+      "frustrado","frustrada","molesto","molesta"
     ]
   }
 };
 
-// 🔢 Convierte coincidencias en nivel de confianza
+
+// 🔢 Ponderador mejorado
 function computeConfidence(score) {
-  if (score >= 6) return 96 + Math.random() * 4;      // 96–100
-  if (score >= 4) return 88 + Math.random() * 7;      // 88–95
-  if (score >= 2) return 78 + Math.random() * 7;      // 78–85
-  if (score === 1) return 65 + Math.random() * 10;    // 65–75
-  return 40 + Math.random() * 15;                     // 40–55 (muy baja)
+  if (score >= 10) return 98;
+  if (score >= 7) return 93;
+  if (score >= 5) return 85;
+  if (score >= 3) return 72;
+  if (score >= 1) return 60;
+  return 45; // baja confianza
 }
 
+
 /**
- * Analiza el texto y devuelve la emoción principal + confianza.
- * @param {string} text
- * @returns {{emotion: string, confidence: number}}
+ * Nuevo analizador con emociones compuestas (RF8 PRO)
+ * Retorna:
+ * {
+ *   primary: "ansiedad",
+ *   secondary: "tristeza",
+ *   confidence: 92,
+ *   scores: { ansiedad: 7, tristeza: 4, estrés: 1, miedo: 0, enojo: 0 }
+ * }
  */
 export function analyzeEmotion(text = "") {
   const lower = text.toLowerCase();
-  let bestEmotion = "neutral";
-  let bestScore = 0;
+  const scores = {
+    tristeza: 0,
+    ansiedad: 0,
+    estrés: 0,
+    miedo: 0,
+    enojo: 0,
+  };
 
+  // 🔍 Calcular score por emoción
   for (const [emotion, data] of Object.entries(emotionLexicon)) {
-    let score = 0;
-
-    // Coincidencias por frases (más peso)
+    // Frases largas → peso 3
     for (const phrase of data.phrases) {
-      if (lower.includes(phrase)) score += 2;
+      if (lower.includes(phrase)) scores[emotion] += 3;
     }
 
-    // Coincidencias por palabras sueltas
+    // Palabras → peso 1
     for (const word of data.words) {
-      if (lower.includes(word)) score += 1;
-    }
-
-    if (score > bestScore) {
-      bestScore = score;
-      bestEmotion = emotion;
+      if (lower.includes(word)) scores[emotion] += 1;
     }
   }
 
-  const confidence = computeConfidence(bestScore);
+  // Ordenar emociones por puntuación
+  const ordered = Object.entries(scores)
+    .sort((a, b) => b[1] - a[1])
+    .map((e) => ({ emotion: e[0], score: e[1] }));
+
+  const primary = ordered[0];
+  const secondary = ordered[1];
+
+  // Si ninguna emoción tiene score → neutral
+  if (primary.score === 0) {
+    return {
+      primary: "neutral",
+      secondary: null,
+      confidence: 40,
+      scores
+    };
+  }
+
   return {
-    emotion: bestEmotion,
-    confidence: Math.round(confidence)
+    primary: primary.emotion,
+    secondary: secondary.score >= 2 ? secondary.emotion : null,
+    confidence: computeConfidence(primary.score),
+    scores
   };
 }

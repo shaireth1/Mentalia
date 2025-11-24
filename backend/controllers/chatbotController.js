@@ -44,7 +44,7 @@ const crisisKeywordsStatic = [
   "hacer daño a alguien",
 ];
 
-// ⚡ Términos rápidos para decidir si vale la pena buscar crisis
+// ⚡ Términos rápidos para decidir evaluación rápida
 const crisisQuickTerms = [
   "me quiero morir",
   "me voy a matar",
@@ -94,9 +94,7 @@ const detectGreeting = (t = "") =>
   /\b(hola|buenas|hey|ey|hi|hello)\b/i.test(t);
 
 const detectOffTopic = (t = "") =>
-  /\b(celular|precio|dinero|plata|tel[eé]fono|computador|juego|juegos|m[úu]sica|musica|video|videos)\b/i.test(
-    t
-  );
+  /\b(celular|precio|dinero|plata|tel[eé]fono|computador|juego|juegos|m[úu]sica|musica|video|videos)\b/i.test(t);
 
 const detectAffirmative = (t = "") =>
   /\b(s[ií]|sí|si|claro|dale|ok|okay|de una|por favor|bueno|vale)\b/i.test(t);
@@ -104,7 +102,7 @@ const detectAffirmative = (t = "") =>
 const detectPositive = (t = "") =>
   positiveKeywords.some((k) => t.toLowerCase().includes(k));
 
-// 🟣 Contexto por sesión
+// 🟣 Manejo de contexto por sesión
 function getContext(id) {
   return (
     sessionContext.get(id) || {
@@ -121,18 +119,12 @@ function setContext(id, ctx) {
   sessionContext.set(id, { ...prev, ...ctx });
 }
 
-// 🧩 Fallback de emoción cuando el modelo tiene poca confianza (RF8)
+// 🧩 Fallback de emoción cuando la confianza es baja (RF8)
 function inferEmotionFromWords(lower = "") {
-  if (
-    /triste|tristeza|deprimid[oa]|sin ganas|lloro|llorando/i.test(lower)
-  ) {
+  if (/triste|tristeza|deprimid[oa]|sin ganas|lloro|llorando/i.test(lower)) {
     return "tristeza";
   }
-  if (
-    /ansios[oa]|ansiedad|nervios[oa]|nervioso|preocupad[oa]|angustiad[oa]|agobiad[oa]/i.test(
-      lower
-    )
-  ) {
+  if (/ansios[oa]|ansiedad|nervios[oa]|nervioso|preocupad[oa]|angustiad[oa]|agobiad[oa]/i.test(lower)) {
     return "ansiedad";
   }
   if (/estr[eé]s|estresad[oa]|saturad[oa]|reventad[oa]/i.test(lower)) {
@@ -147,7 +139,7 @@ function inferEmotionFromWords(lower = "") {
   return null;
 }
 
-// 🟣 Técnicas por emoción
+// 🟣 Técnicas emocionales
 const techniques = {
   ansiedad: [
     "🌬️ **Técnica 4-2-6:** inhala 4 segundos, mantén 2 y exhala 6. Hazlo 3 veces.",
@@ -176,10 +168,9 @@ const positiveReplies = [
 ];
 
 // ===========================================================
-//    🔥 RF9 PRO — DETECCIÓN DE FRASES DE RIESGO DINÁMICA
+// 🔥 CARGA DE FRASES DE RIESGO (RF9)
 // ===========================================================
 
-// caché simple en memoria para no ir a la BD en cada mensaje
 let crisisCache = {
   lastLoad: 0,
   phrases: [],
@@ -187,29 +178,24 @@ let crisisCache = {
 
 async function loadCrisisPhrases() {
   const now = Date.now();
-  // recargar cada 60 segundos
   if (now - crisisCache.lastLoad < 60 * 1000 && crisisCache.phrases.length > 0) {
     return crisisCache.phrases;
   }
 
   try {
     const list = await CrisisPhrase.find();
-    crisisCache = {
-      lastLoad: now,
-      phrases: list,
-    };
+    crisisCache = { lastLoad: now, phrases: list };
     return list;
   } catch (err) {
-    console.error("❌ Error cargando CrisisPhrase desde BD:", err);
+    console.error("❌ Error cargando CrisisPhrase:", err);
     return crisisCache.phrases || [];
   }
 }
 
-// detectar crisis desde BD + fallback estático
+// Detección avanzada de crisis
 async function detectCrisisAdvanced(text) {
   const lower = text.toLowerCase();
 
-  // 1️⃣ filtro rápido — si no hay términos de riesgo, hacemos una revisión mínima
   if (!crisisQuickTerms.some((t) => lower.includes(t))) {
     const phrases = await loadCrisisPhrases();
     for (const p of phrases) {
@@ -220,7 +206,6 @@ async function detectCrisisAdvanced(text) {
     return null;
   }
 
-  // 2️⃣ revisar en BD configurada por la psicóloga
   const phrases = await loadCrisisPhrases();
   for (const p of phrases) {
     if (lower.includes(p.text.toLowerCase())) {
@@ -228,20 +213,17 @@ async function detectCrisisAdvanced(text) {
     }
   }
 
-  // 3️⃣ fallback estático (por si la BD aún está vacía)
   const staticHit = crisisKeywordsStatic.find((k) => lower.includes(k));
   if (staticHit) {
-    // intento simple de clasificar hacia quién va el riesgo
     let target = "self";
 
     if (
       lower.includes("matar a ") ||
-      lower.includes("voy a matar ") ||
+      lower.includes("voy a matar") ||
       lower.includes("lo voy a matar") ||
       lower.includes("matar a mi") ||
       lower.includes("matar a alguien") ||
-      lower.includes("matar a mi amigo") ||
-      lower.includes("voy a matar a")
+      lower.includes("matar a mi amigo")
     ) {
       target = "others";
     }
@@ -259,12 +241,10 @@ async function detectCrisisAdvanced(text) {
 
   return null;
 }
-
 // crear mensaje de contención según el tipo detectado (RF10)
 function buildCrisisReply(match) {
   const { target } = match.phrase;
 
-  // riesgo hacia sí mismo (suicidio / autolesión / ideación de muerte)
   if (target === "self") {
     return (
       "💛 Lo que estás sintiendo es muy importante y no estás sol@ en esto. " +
@@ -275,7 +255,6 @@ function buildCrisisReply(match) {
     );
   }
 
-  // riesgo hacia otros (ira / violencia / daño a terceros)
   if (target === "others") {
     return (
       "⚠️ Lo que mencionas refleja mucha intensidad emocional. " +
@@ -285,7 +264,6 @@ function buildCrisisReply(match) {
     );
   }
 
-  // caso genérico / no especificado
   return (
     "💛 Percibo que estás pasando por un momento muy difícil. " +
     "No tienes que atravesarlo en soledad. Hablar con alguien de confianza o con un profesional puede marcar la diferencia. " +
@@ -294,7 +272,10 @@ function buildCrisisReply(match) {
 }
 
 // ===========================================================
-//     🧩 Helper para guardar turno en BD (RF11 + RNF4–5)
+// 🧩 Helper guardar turno en BD (RF11 + RNF4–5)
+// ===========================================================
+// ===========================================================
+// 🧩 Helper guardar turno en BD (RF11 + RNF4–5) — FIX DUPLICATE KEY
 // ===========================================================
 async function saveTurn({
   sessionId,
@@ -307,54 +288,70 @@ async function saveTurn({
 }) {
   const chatModel = type === "anonimo" ? ChatSession : Conversation;
 
-  const chat = new chatModel({
-    sessionId,
-    anonymous: type === "anonimo",
-    userId: type === "registrado" ? userId : null,
-    type,
-    messages: [
-      {
-        sender: "user",
-        text: userText,
-        emotion,
-        confidence,
-      },
-      {
-        sender: "bot",
-        text: replyText,
-        emotion,
-      },
-    ],
-  });
+  const userMsg = {
+    sender: "user",
+    text: userText,
+    emotion,
+    confidence,
+  };
 
-  await chat.save();
+  const botMsg = {
+    sender: "bot",
+    text: replyText,
+    emotion,
+  };
+
+  // 🔥 En vez de crear siempre un doc nuevo, usamos upsert + push
+  await chatModel.findOneAndUpdate(
+    { sessionId, type },
+    {
+      $setOnInsert: {
+        sessionId,
+        anonymous: type === "anonimo",
+        userId: type === "registrado" ? userId : null,
+        type,
+        startedAt: new Date(),
+      },
+      $push: {
+        messages: { $each: [userMsg, botMsg] },
+      },
+      $set: {
+        endedAt: null,
+      },
+    },
+    { upsert: true, new: true }
+  );
+
+  // Mantienes tu actualización de memoria emocional
   updateEmotionalMemory().catch(() => {});
 }
 
 // ===========================================================
-//     🧩 PROCESAMIENTO PRINCIPAL DEL MENSAJE
+// 🔥 PROCESAMIENTO PRINCIPAL (RF6 + RF8 mejorado)
 // ===========================================================
 async function processMessage(
   message,
   type = "anonimo",
   userId = null,
-  tone = "informal"
+  tone = "informal",
+  forcedSessionId = null   // ⚡ NUEVO → viene desde frontend
 ) {
   const original = message || "";
 
-  // 🟣 RNF5 — Anonimización ANTES de procesar o almacenar (solo anónimo)
+  // RNF5 — anonimización previa
   const text = type === "anonimo" ? anonymizeText(original) : original;
   const lower = text.toLowerCase();
 
+  // RF6 — Sesión anónima estable EN VEZ DE generar una nueva cada mensaje
   const sessionId =
     type === "anonimo"
-      ? "anon-" + Math.random().toString(36).substring(2, 9)
+      ? forcedSessionId || "anon-" + Math.random().toString(36).substring(2, 9)
       : userId;
 
   const ctx = getContext(sessionId);
   setContext(sessionId, { tone });
 
-  // 1️⃣ RF9 — DETECCIÓN DE CRISIS (PRIORIDAD MÁXIMA)
+  // 1️⃣ RF9 — Crisis (máxima prioridad)
   const crisisMatch = await detectCrisisAdvanced(lower);
   if (crisisMatch) {
     const baseReply = buildCrisisReply(crisisMatch);
@@ -373,7 +370,7 @@ async function processMessage(
     return { reply: finalReply, emotion: "crisis" };
   }
 
-  // 2️⃣ Técnica pendiente (offer_technique) → usuario responde que sí
+  // 2️⃣ Técnica pendiente
   if (ctx.pendingIntent === "offer_technique" && detectAffirmative(lower)) {
     const emotion = ctx.lastEmotion || "ansiedad";
     const list = techniques[emotion] || techniques.ansiedad;
@@ -393,13 +390,10 @@ async function processMessage(
       confidence: null,
     });
 
-    return {
-      reply: finalReply,
-      emotion,
-    };
+    return { reply: finalReply, emotion };
   }
 
-  // 3️⃣ RESPUESTA POSITIVA (gracias, mejor…)
+  // 3️⃣ Respuesta positiva
   if (detectPositive(lower)) {
     const baseReply =
       positiveReplies[Math.floor(Math.random() * positiveReplies.length)];
@@ -417,13 +411,10 @@ async function processMessage(
       confidence: null,
     });
 
-    return {
-      reply: finalReply,
-      emotion,
-    };
+    return { reply: finalReply, emotion };
   }
 
-  // 4️⃣ SALUDOS
+  // 4️⃣ Saludos
   if (detectGreeting(lower)) {
     const options = [
       "💬 ¡Hola! Qué gusto tenerte aquí. ¿Cómo te sientes hoy?",
@@ -446,7 +437,7 @@ async function processMessage(
     return { reply: finalReply, emotion: "neutral" };
   }
 
-  // 5️⃣ OFF-TOPIC
+  // 5️⃣ Off-topic
   if (detectOffTopic(lower)) {
     const baseReply =
       "Ese tema se sale un poco de lo emocional 💭. Pero si te parece, cuéntame cómo te has sentido hoy y vemos algo práctico juntos.";
@@ -465,22 +456,56 @@ async function processMessage(
     return { reply: finalReply, emotion: "neutral" };
   }
 
-  // 6️⃣ ANÁLISIS EMOCIONAL (RF8)
-  const { emotion: rawEmotion, confidence } = analyzeEmotion(text);
+    // 6️⃣ ANÁLISIS EMOCIONAL (RF8 PRO — emociones compuestas)
+  const { primary, secondary, confidence } = analyzeEmotion(text);
   const lastEmotion = ctx.lastEmotion;
 
-  let effectiveEmotion = rawEmotion;
+  let effectiveEmotion = primary;
   let finalConfidence = confidence;
 
-  // Fallback inteligente cuando la confianza es baja
+  // Si la confianza es baja → fallback clínico
   if (confidence < 60) {
+    if (lastEmotion) {
+      effectiveEmotion = lastEmotion;
+    } else {
+      const baseReply =
+        secondary
+          ? `🤔 Percibo señales de **${primary}** y también algo de **${secondary}**. ¿Dirías que va más hacia una de esas?`
+          : `🤔 No estoy completamente segur@ de cómo te sientes. ¿Dirías que es tristeza, ansiedad, estrés, miedo o enojo?`;
+
+      const finalReply = toneTransform[tone](baseReply);
+
+      await saveTurn({
+        sessionId,
+        type,
+        userId,
+        userText: text,
+        replyText: baseReply,
+        emotion: "neutral",
+        confidence,
+      });
+
+      return { reply: finalReply, emotion: "neutral" };
+    }
+  }
+
+  // Si hay secundaria → la guardamos en contexto
+  if (secondary) {
+    setContext(sessionId, { secondaryEmotion: secondary });
+  }
+
+  setContext(sessionId, { lastEmotion: effectiveEmotion });
+
+  
+
+  // ⚠ Confirmación emocional (confidence < 60)
+  if (finalConfidence < 60 && !explicitEmotionMatch) {
     const inferred = inferEmotionFromWords(lower);
 
     if (inferred) {
       effectiveEmotion = inferred;
       finalConfidence = 75;
     } else if (lastEmotion) {
-      // usar la última emoción conocida
       effectiveEmotion = lastEmotion;
     } else {
       const baseReply =
@@ -501,13 +526,12 @@ async function processMessage(
     }
   }
 
-  // si llegamos aquí, tenemos una emoción efectiva
   setContext(sessionId, { lastEmotion: effectiveEmotion, pendingIntent: null });
 
-  // 7️⃣ RESPUESTA EMPÁTICA BASE (RF7)
+  // 7️⃣ RF7 — Respuesta empática base
   let baseReply = getResponse(effectiveEmotion);
 
-  // 8️⃣ OFRECER TÉCNICA (solo algunas emociones)
+  // 8️⃣ Ofrecer técnica
   if (["ansiedad", "estrés", "tristeza"].includes(effectiveEmotion)) {
     if (Math.random() < 0.5) {
       baseReply +=
@@ -521,7 +545,7 @@ async function processMessage(
 
   const finalReply = toneTransform[tone](baseReply);
 
-  // 9️⃣ GUARDAR CONVERSACIÓN EN BD (RF11 + RNF4–5)
+  // 9️⃣ Guardar en BD (RF11 + RNF4–5)
   await saveTurn({
     sessionId,
     type,
@@ -537,24 +561,27 @@ async function processMessage(
     emotion: effectiveEmotion,
   };
 }
-
 // ===========================================================
 //                      ENDPOINTS
 // ===========================================================
+
 export async function handleAnonChat(req, res) {
   try {
-    const { message, tone } = req.body;
+    const { message, tone, sessionId } = req.body;
 
     if (!message?.trim()) {
       return res.status(400).json({ reply: "Por favor, escribe un mensaje." });
     }
 
+    // ⚡ RF6 — Pasamos el sessionId anónimo generado en frontend
     const response = await processMessage(
       message,
       "anonimo",
       null,
-      tone || "informal"
+      tone || "informal",
+      sessionId || null
     );
+
     res.json(response);
   } catch (err) {
     console.error("❌ Error en handleAnonChat:", err);
@@ -572,12 +599,15 @@ export async function handleAuthChat(req, res) {
       return res.status(400).json({ reply: "Por favor, escribe un mensaje." });
     }
 
+    // ⚡ Usuarios autenticados NO usan forcedSessionId
     const response = await processMessage(
       message,
       "registrado",
       userId,
-      tone || "informal"
+      tone || "informal",
+      null
     );
+
     res.json(response);
   } catch (err) {
     console.error("❌ Error en handleAuthChat:", err);
