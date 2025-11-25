@@ -1,9 +1,9 @@
 "use client";
 
-import { LogOut, Heart, Settings } from "lucide-react";
+import { LogOut, Heart, Settings, BarChart3 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-export default function LayoutAdmin({ user, children, onShowSettings }) {
+export default function LayoutAdmin({ user, children, onChangeView, activeView }) {
   const router = useRouter();
 
   const logout = () => {
@@ -19,7 +19,9 @@ export default function LayoutAdmin({ user, children, onShowSettings }) {
           <Heart className="w-6 h-6" />
           <div>
             <h1 className="font-semibold text-sm tracking-wide">MENTALIA</h1>
-            <p className="text-xs opacity-80">Plataforma de Apoyo Emocional – SENA</p>
+            <p className="text-xs opacity-80">
+              Plataforma de Apoyo Emocional – SENA
+            </p>
           </div>
         </div>
 
@@ -40,13 +42,34 @@ export default function LayoutAdmin({ user, children, onShowSettings }) {
         {/* SIDEBAR */}
         <aside className="w-60 bg-white shadow-md border-r p-6">
           <nav className="space-y-4">
-            <p className="font-semibold text-gray-700">Panel Administrativo</p>
+            <button
+              onClick={() => onChangeView("Dashboard")}
+              className={`
+                flex items-center gap-2 py-3 px-4 rounded-lg cursor-pointer w-full justify-center
+                ${
+                  activeView === "Dashboard"
+                    ? "bg-purple-100 text-purple-600"
+                    : "text-gray-600 hover:text-purple-600 hover:bg-gray-100"
+                }
+              `}
+              style={{ minWidth: "8rem" }}
+            >
+              <BarChart3
+                size={20}
+                strokeWidth={2}
+                className={activeView === "Dashboard" ? "text-purple-600" : "text-gray-600"}
+              />
+              <span className="text-sm font-medium text-center leading-relaxed">
+                Panel Administrativo
+              </span>
+            </button>
 
             <button
-              onClick={onShowSettings}
+              onClick={() => onChangeView("Ajustes")}
               className="flex items-center gap-2 w-full text-gray-600 hover:text-purple-600"
             >
-              <Settings className="w-4 h-4" /> Configuración
+              <Settings className="w-4 h-4" />
+              Configuración
             </button>
           </nav>
         </aside>
@@ -57,6 +80,4 @@ export default function LayoutAdmin({ user, children, onShowSettings }) {
     </div>
   );
 }
-
-
 

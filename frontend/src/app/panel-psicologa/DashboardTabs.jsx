@@ -1,5 +1,8 @@
-export default function DashboardTabs({ activeTab, setActiveTab }) {
+"use client";
+
+export default function DashboardTabs({ activeTab, setActiveTab, includeSettings }) {
   const tabs = ["Dashboard", "Alertas", "Frases de Riesgo", "Contenido", "Exportaciones"];
+
 
   return (
     <div className="flex gap-8 border-b border-gray-200 pb-2 text-sm font-medium">
