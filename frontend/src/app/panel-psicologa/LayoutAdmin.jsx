@@ -19,9 +19,7 @@ export default function LayoutAdmin({ user, children, onChangeView, activeView }
           <Heart className="w-6 h-6" />
           <div>
             <h1 className="font-semibold text-sm tracking-wide">MENTALIA</h1>
-            <p className="text-xs opacity-80">
-              Plataforma de Apoyo Emocional – SENA
-            </p>
+            <p className="text-xs opacity-80">Plataforma de Apoyo Emocional – SENA</p>
           </div>
         </div>
 
@@ -41,36 +39,44 @@ export default function LayoutAdmin({ user, children, onChangeView, activeView }
       <div className="flex flex-1 overflow-hidden">
         {/* SIDEBAR */}
         <aside className="w-60 bg-white shadow-md border-r p-6">
-          <nav className="space-y-4">
+          <nav className="space-y-3">
+
+            {/* BOTÓN: Panel Administrativo */}
             <button
               onClick={() => onChangeView("Dashboard")}
               className={`
-                flex items-center gap-2 py-3 px-4 rounded-lg cursor-pointer w-full justify-center
+                flex items-center gap-3 px-4 py-2 w-full rounded-lg transition 
                 ${
                   activeView === "Dashboard"
-                    ? "bg-purple-100 text-purple-600"
-                    : "text-gray-600 hover:text-purple-600 hover:bg-gray-100"
+                    ? "bg-purple-100 text-purple-600 font-medium shadow-sm"
+                    : "text-gray-600 hover:bg-gray-100 hover:text-purple-600"
                 }
               `}
-              style={{ minWidth: "8rem" }}
             >
               <BarChart3
                 size={20}
                 strokeWidth={2}
-                className={activeView === "Dashboard" ? "text-purple-600" : "text-gray-600"}
+                className={activeView === "Dashboard" ? "text-purple-600" : "text-gray-500"}
               />
-              <span className="text-sm font-medium text-center leading-relaxed">
-                Panel Administrativo
-              </span>
+              <span className="text-sm">Panel Administrativo</span>
             </button>
 
+            {/* BOTÓN: Configuración */}
             <button
               onClick={() => onChangeView("Ajustes")}
-              className="flex items-center gap-2 w-full text-gray-600 hover:text-purple-600"
+              className={`
+                flex items-center gap-3 px-4 py-2 w-full rounded-lg transition
+                ${
+                  activeView === "Ajustes"
+                    ? "bg-purple-100 text-purple-600 font-medium shadow-sm"
+                    : "text-gray-600 hover:bg-gray-100 hover:text-purple-600"
+                }
+              `}
             >
-              <Settings className="w-4 h-4" />
-              Configuración
+              <Settings size={18} className={activeView === "Ajustes" ? "text-purple-600" : "text-gray-500"} />
+              <span className="text-sm">Configuración</span>
             </button>
+
           </nav>
         </aside>
 
@@ -80,4 +86,5 @@ export default function LayoutAdmin({ user, children, onChangeView, activeView }
     </div>
   );
 }
+
 

@@ -1,0 +1,111 @@
+"use client";
+
+import { FileDown, FileSpreadsheet, ShieldAlert } from "lucide-react";
+
+export default function ExportacionesView() {
+  return (
+    <div className="w-full px-2 md:px-6 pb-10 mt-2">
+
+      {/* ---------------------- SECCIÓN PRINCIPAL ---------------------- */}
+      <h2 className="text-xl font-semibold text-gray-800 mb-4">
+        Exportación de Datos
+      </h2>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        {/* ---------------------- CARD PDF ---------------------- */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center gap-2 mb-3">
+            <FileDown className="w-5 h-5 text-gray-700" />
+            <span className="font-semibold text-gray-800">Reporte PDF</span>
+          </div>
+
+          <p className="text-gray-600 text-sm mb-4">
+            Genera un reporte completo en PDF con estadísticas agregadas sin información personal.
+          </p>
+
+          <button
+            className="
+              w-full lg:w-auto px-6 py-2 bg-red-600 text-white rounded-lg
+              hover:bg-red-700 transition flex items-center justify-center gap-2
+            "
+          >
+            <FileDown className="w-4 h-4" />
+            Descargar PDF
+          </button>
+        </div>
+
+        {/* ---------------------- CARD EXCEL ---------------------- */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center gap-2 mb-3">
+            <FileSpreadsheet className="w-5 h-5 text-gray-700" />
+            <span className="font-semibold text-gray-800">Datos Excel</span>
+          </div>
+
+          <p className="text-gray-600 text-sm mb-4">
+            Exporta datos estadísticos en formato Excel para análisis detallado.
+          </p>
+
+          <button
+            className="
+              w-full lg:w-auto px-6 py-2 bg-green-600 text-white rounded-lg
+              hover:bg-green-700 transition flex items-center justify-center gap-2
+            "
+          >
+            <FileSpreadsheet className="w-4 h-4" />
+            Descargar Excel
+          </button>
+        </div>
+      </div>
+
+      {/* ---------------------- SECCIÓN DATOS INCLUIDOS ---------------------- */}
+      <h3 className="text-lg font-semibold text-gray-800 mt-10 mb-4">
+        Datos Incluidos en las Exportaciones
+      </h3>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        {/* --- Métricas Generales --- */}
+        <div>
+          <h4 className="font-semibold text-gray-700 text-md mb-2">
+            Métricas Generales:
+          </h4>
+          <ul className="text-gray-600 text-sm space-y-1">
+            <li>• Número total de usuarios atendidos</li>
+            <li>• Frecuencia de uso del chatbot</li>
+            <li>• Tiempo promedio de sesiones</li>
+            <li>• Usuarios registrados vs. anónimos</li>
+          </ul>
+        </div>
+
+        {/* --- Análisis Emocional --- */}
+        <div>
+          <h4 className="font-semibold text-gray-700 text-md mb-2">
+            Análisis Emocional:
+          </h4>
+          <ul className="text-gray-600 text-sm space-y-1">
+            <li>• Tipos de emociones detectadas</li>
+            <li>• Frecuencia de emociones por categoría</li>
+            <li>• Número de alertas de riesgo generadas</li>
+            <li>• Tendencias temporales</li>
+          </ul>
+        </div>
+      </div>
+
+      {/* ---------------------- PRIVACIDAD ---------------------- */}
+      <div
+        className="
+          bg-blue-50 border border-blue-200 rounded-xl p-4 mt-6
+          flex items-start gap-3
+        "
+      >
+        <ShieldAlert className="w-5 h-5 text-blue-700 mt-1" />
+
+        <p className="text-sm text-blue-900 leading-tight">
+          <span className="font-semibold">Privacidad garantizada:</span>  
+          Las exportaciones no contienen datos personales sensibles ni información que permita identificar a los usuarios.
+        </p>
+      </div>
+    </div>
+  );
+}
