@@ -20,8 +20,6 @@ export default function RecursosView() {
       tiempo: "10 min",
       rating: 4.8,
       gratis: true,
-      imagen:
-        "https://images.unsplash.com/photo-1558981359-93b27fb6f27b?auto=format&fit=crop&w=1200&q=60",
       descripcion:
         "Aprende ejercicios que reducen la ansiedad y mejoran el bienestar.",
     },
@@ -32,8 +30,6 @@ export default function RecursosView() {
       tiempo: "8 min lectura",
       rating: 4.6,
       gratis: true,
-      imagen:
-        "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=60",
       descripcion:
         "Estrategias para estudiantes del SENA para gestionar presión académica.",
     },
@@ -44,8 +40,6 @@ export default function RecursosView() {
       tiempo: "25 min",
       rating: 4.9,
       gratis: true,
-      imagen:
-        "https://images.unsplash.com/photo-1526716497820-5dc1a1307e8b?auto=format&fit=crop&w=1200&q=60",
       descripcion:
         "Una introducción completa a la práctica guiada del mindfulness.",
     },
@@ -59,8 +53,6 @@ export default function RecursosView() {
       tiempo: "45 min",
       rating: 4.7,
       gratis: true,
-      imagen:
-        "https://images.unsplash.com/photo-1517242027094-b5b13cf2fdd0?auto=format&fit=crop&w=1200&q=60",
       descripcion:
         "Conversaciones con psicólogos especializados en bienestar estudiantil.",
     },
@@ -146,6 +138,3 @@ export default function RecursosView() {
     </div>
   );
 }
-
-
-                                                                                                                                                                                                                                                                                                                                                            
