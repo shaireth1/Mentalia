@@ -1,61 +1,139 @@
 "use client";
 
-import React, { useState } from "react";
-import {
-  Plus,
-  BookOpen,
-  Calendar,
-  Clock,
-  Pencil,
-  Trash2,
-} from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
+import { Plus, BookOpen, Calendar, Clock, Pencil, Trash2 } from "lucide-react";
 
 import NuevaEntradaModal from "./NuevaEntradaModal";
 import BuscadorEntradas from "./BuscadorEntradas";
 import FiltroEstado from "./FiltroEstado";
 
+const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
+const emotionColors = {
+  Feliz: "bg-green-100 text-green-600",
+  Normal: "bg-yellow-100 text-yellow-600",
+  Triste: "bg-blue-100 text-blue-600",
+  Ansioso: "bg-purple-100 text-purple-600",
+  Enojado: "bg-red-100 text-red-600",
+};
+
 export default function DiarioEmocional() {
   const [mostrarModal, setMostrarModal] = useState(false);
+  const [entries, setEntries] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const [entradas] = useState([
-    {
-      id: 1,
-      titulo: "Un día de reflexión",
-      fecha: "14 de enero de 2024",
-      hora: "19:00",
-      estado: "Normal",
-      color: "bg-yellow-100 text-yellow-600",
-      descripcion:
-        "Hoy me sentí un poco abrumado con las tareas del SENA, pero logré organizarme mejor. Me di cuenta de que cuando divido las tareas en partes más pequeñas, todo se vuelve más manejable.",
-      tags: ["SENA", "organización", "estrés"],
-    },
-    {
-      id: 2,
-      titulo: "Momento de gratitud",
-      fecha: "13 de enero de 2024",
-      hora: "19:00",
-      estado: "Feliz",
-      color: "bg-green-100 text-green-600",
-      descripcion:
-        "Tuve una excelente sesión de estudio con mis compañeros. Me siento muy agradecido por el apoyo que recibo de mi grupo. Realmente marca la diferencia tener personas que te entienden.",
-      tags: ["gratitud", "compañeros", "estudio"],
-    },
-    {
-      id: 3,
-      titulo: "Preocupaciones nocturnas",
-      fecha: "12 de enero de 2024",
-      hora: "19:00",
-      estado: "Ansioso",
-      color: "bg-purple-100 text-purple-600",
-      descripcion:
-        "Últimamente he tenido pensamientos que me dificultan dormir. Estoy intentando escribir mis preocupaciones para entenderlas mejor.",
-      tags: ["ansiedad", "descanso", "pensamientos"],
-    },
-  ]);
+  const [search, setSearch] = useState("");
+  const [filterEstado, setFilterEstado] = useState("Todos");
+
+  const [editingEntry, setEditingEntry] = useState(null);
+
+  // 🔄 Cargar entradas
+  useEffect(() => {
+    async function cargarEntradas() {
+      try {
+        setLoading(true);
+        setError("");
+
+        const res = await fetch(`${baseUrl}/api/journal`, {
+          method: "GET",
+          credentials: "include",
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const data = await res.json();
+        setEntries(data);
+      } catch (err) {
+        console.error("Error cargando entradas:", err);
+        setError("No se pudieron cargar tus entradas.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    cargarEntradas();
+  }, []);
+
+  const formatFecha = (iso) => {
+    const d = new Date(iso);
+    return d.toLocaleDateString("es-ES", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+  };
+
+  const formatHora = (iso) => {
+    const d = new Date(iso);
+    return d.toLocaleTimeString("es-ES", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  // 🔍 FILTRADO + BÚSQUEDA (CORREGIDO)
+  const filteredEntries = useMemo(() => {
+    return entries.filter((e) => {
+      const matchEstado =
+        filterEstado === "Todos" ? true : e.emotion === filterEstado;
+
+      // 🔥 Protección de strings (corrección real)
+      const safeTitle = e.title ?? "";
+      const safeNote = e.note ?? "";
+      const safeTags = Array.isArray(e.tags) ? e.tags.join(" ") : "";
+
+      const texto = `${safeTitle} ${safeNote} ${safeTags}`.toLowerCase();
+
+      const matchSearch = search.trim()
+        ? texto.includes(search.trim().toLowerCase())
+        : true;
+
+      return matchEstado && matchSearch;
+    });
+  }, [entries, filterEstado, search]);
+
+  // ❌ Eliminar
+  const handleDelete = async (id) => {
+    const confirmar = window.confirm("¿Seguro que quieres eliminar esta entrada?");
+    if (!confirmar) return;
+
+    try {
+      const res = await fetch(`${baseUrl}/api/journal/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      setEntries((prev) => prev.filter((e) => e._id !== id));
+    } catch (err) {
+      console.error("Error eliminando entrada:", err);
+      alert("No se pudo eliminar la entrada.");
+    }
+  };
+
+  // ✏️ Editar
+  const handleEdit = (entry) => {
+    setEditingEntry(entry);
+    setMostrarModal(true);
+  };
+
+  // 🔁 Guardado
+  const handleSaved = (saved) => {
+    setEntries((prev) => {
+      const exists = prev.find((e) => e._id === saved._id);
+      if (exists) {
+        return prev.map((e) => (e._id === saved._id ? saved : e));
+      }
+      return [saved, ...prev];
+    });
+    setEditingEntry(null);
+  };
 
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
-      {/* ENCABEZADO */}
+
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-semibold text-gray-800 flex items-center gap-2">
@@ -68,7 +146,10 @@ export default function DiarioEmocional() {
         </div>
 
         <button
-          onClick={() => setMostrarModal(true)}
+          onClick={() => {
+            setEditingEntry(null);
+            setMostrarModal(true);
+          }}
           className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-all shadow"
         >
           <Plus size={18} />
@@ -76,65 +157,71 @@ export default function DiarioEmocional() {
         </button>
       </div>
 
-      {/* FILTROS */}
       <div className="flex gap-4 mb-6">
-        <BuscadorEntradas />
-        <FiltroEstado />
+        <BuscadorEntradas value={search} onChange={setSearch} />
+        <FiltroEstado value={filterEstado} onChange={setFilterEstado} />
       </div>
 
-      {/* LISTA DE ENTRADAS */}
+      {loading && <p className="text-gray-500">Cargando tus entradas...</p>}
+      {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+      {!loading && !error && filteredEntries.length === 0 && (
+        <p className="text-gray-500 text-sm">
+          Aún no tienes entradas que coincidan con la búsqueda/filtros.
+        </p>
+      )}
+
       <div className="space-y-4">
-        {entradas.map((entrada) => (
+        {filteredEntries.map((entrada) => (
           <div
-            key={entrada.id}
+            key={entrada._id}
             className="bg-white p-6 rounded-xl shadow-sm border border-gray-200"
           >
-            {/* TÍTULO + ICONOS */}
             <div className="flex justify-between items-start">
               <div className="flex flex-col gap-1">
                 <h2 className="text-xl font-semibold text-gray-800">
-                  {entrada.titulo}
+                  {entrada.title}
                 </h2>
 
-                {/* FECHA + HORA + ESTADO */}
                 <div className="flex items-center gap-4 text-gray-500 text-sm mt-1">
                   <span className="flex items-center gap-1">
                     <Calendar size={16} />
-                    {entrada.fecha}
+                    {formatFecha(entrada.date)}
                   </span>
 
                   <span className="flex items-center gap-1">
                     <Clock size={16} />
-                    {entrada.hora}
+                    {formatHora(entrada.date)}
                   </span>
 
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-semibold ${entrada.color}`}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      emotionColors[entrada.emotion] ||
+                      "bg-gray-100 text-gray-600"
+                    }`}
                   >
-                    {entrada.estado}
+                    {entrada.emotion}
                   </span>
                 </div>
               </div>
 
-              {/* ACCIONES */}
               <div className="flex gap-3">
                 <Pencil
                   size={20}
                   className="text-gray-600 hover:text-purple-600 cursor-pointer"
+                  onClick={() => handleEdit(entrada)}
                 />
                 <Trash2
                   size={20}
                   className="text-red-500 hover:text-red-700 cursor-pointer"
+                  onClick={() => handleDelete(entrada._id)}
                 />
               </div>
             </div>
 
-            {/* DESCRIPCIÓN */}
-            <p className="text-gray-700 mt-4">{entrada.descripcion}</p>
+            <p className="text-gray-700 mt-4">{entrada.note}</p>
 
-            {/* TAGS */}
             <div className="flex gap-2 mt-4 flex-wrap">
-              {entrada.tags.map((tag, index) => (
+              {(entrada.tags || []).map((tag, index) => (
                 <span
                   key={index}
                   className="px-3 py-1 text-xs rounded-full bg-purple-100 text-purple-600"
@@ -147,9 +234,15 @@ export default function DiarioEmocional() {
         ))}
       </div>
 
-      {/* MODAL */}
       {mostrarModal && (
-        <NuevaEntradaModal onClose={() => setMostrarModal(false)} />
+        <NuevaEntradaModal
+          onClose={() => {
+            setMostrarModal(false);
+            setEditingEntry(null);
+          }}
+          onSaved={handleSaved}
+          initialData={editingEntry}
+        />
       )}
     </div>
   );

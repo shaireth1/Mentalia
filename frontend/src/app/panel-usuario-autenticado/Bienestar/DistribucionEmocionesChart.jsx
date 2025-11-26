@@ -10,12 +10,12 @@ import {
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-export default function DistribucionEmocionesChart() {
+export default function DistribucionEmocionesChart({ labels, values }) {
   const data = {
-    labels: ["Feliz 35%", "Triste 15%", "Enojado 5%", "Normal 20%", "Ansioso 25%"],
+    labels,
     datasets: [
       {
-        data: [35, 15, 5, 20, 25],
+        data: values,
         backgroundColor: ["#10b981", "#3b82f6", "#ef4444", "#f59e0b", "#8b5cf6"],
         borderWidth: 1,
       },
@@ -24,7 +24,7 @@ export default function DistribucionEmocionesChart() {
 
   const options = {
     responsive: true,
-    maintainAspectRatio: false, 
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         position: "right",
@@ -42,7 +42,7 @@ export default function DistribucionEmocionesChart() {
   };
 
   return (
-    <div className="h-52"> 
+    <div className="h-52">
       <Pie data={data} options={options} />
     </div>
   );

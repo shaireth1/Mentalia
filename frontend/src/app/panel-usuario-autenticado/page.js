@@ -22,6 +22,9 @@ import ChatbotView from "../vistas-reutilizables/ChatbotView";
 import RecursosView from "../vistas-reutilizables/RecursosView";
 import MiBienestar from "./Bienestar/MiBienestar";
 
+// 🔗 API base URL
+const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
 export default function Dashboard() {
   const router = useRouter();
 
@@ -29,7 +32,49 @@ export default function Dashboard() {
   const [activeView, setActiveView] = useState("Inicio");
   const [storedUser, setStoredUser] = useState(null);
 
-  // 🚫 PROTECCIÓN: SI ES ADMIN → REDIRIGIR AL PANEL DE PSICÓLOGA
+  // 📊 Semana emocional (últimos 7 días)
+  const [weeklyData, setWeeklyData] = useState([]);
+
+  // ❤️ Guardar emoción rápida en /api/journal
+  async function guardarMoodRapido(emotion) {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await fetch(`${baseUrl}/api/journal`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: "Estado del día",
+          note: "Registro automático desde Inicio",
+          emotion,
+          intensity:
+            emotion === "Feliz"
+              ? 5
+              : emotion === "Normal"
+              ? 3
+              : emotion === "Triste"
+              ? 2
+              : emotion === "Ansioso"
+              ? 2
+              : 1,
+        }),
+      });
+
+      if (!res.ok) {
+        console.error("No se pudo registrar emoción rápida");
+        return;
+      }
+
+      console.log("Estado registrado automáticamente:", emotion);
+    } catch (err) {
+      console.error("Error guardando mood rápido:", err);
+    }
+  }
+
+  // 🚫 SI ES ADMIN → REDIRIGIR AL PANEL PSICÓLOGA
   useEffect(() => {
     const rawUser = localStorage.getItem("user");
     if (!rawUser) {
@@ -41,19 +86,18 @@ export default function Dashboard() {
       const user = JSON.parse(rawUser);
 
       if (user.rol === "admin") {
-        router.replace("/panel-psicologa"); // Ruta correcta
+        router.replace("/panel-psicologa");
         return;
       }
 
       setStoredUser(user);
-
     } catch (e) {
       console.error("Error leyendo usuario:", e);
       router.push("/login");
     }
   }, [router]);
 
-  // 🔥 DETECCIÓN DE SESIÓN EXPIRADA (cada 3 min)
+  // 🔥 DETECCIÓN DE SESIÓN EXPIRADA
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -79,6 +123,105 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, [router]);
 
+  // 📊 Cargar semana emocional desde backend
+  useEffect(() => {
+    async function cargarSemana() {
+      try {
+        const res = await fetch(`${baseUrl}/api/journal`, {
+          method: "GET",
+          credentials: "include",
+        });
+
+        if (!res.ok) return;
+
+        const entries = await res.json();
+
+        const now = new Date();
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(now.getDate() - 6);
+
+        const byDate = {};
+
+        entries.forEach((e) => {
+          const d = new Date(e.date);
+          if (d < sevenDaysAgo || d > now) return;
+
+          const key = d.toISOString().substring(0, 10);
+
+          const intensity =
+            e.intensity ??
+            (e.emotion === "Feliz"
+              ? 5
+              : e.emotion === "Normal"
+              ? 3
+              : e.emotion === "Triste"
+              ? 2
+              : e.emotion === "Ansioso"
+              ? 2
+              : 1);
+
+          if (!byDate[key]) byDate[key] = { sum: 0, count: 0 };
+          byDate[key].sum += intensity;
+          byDate[key].count += 1;
+        });
+
+        const dayNames = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+        const temp = new Date(sevenDaysAgo);
+        const result = [];
+
+        for (let i = 0; i < 7; i++) {
+          const key = temp.toISOString().substring(0, 10);
+          const label = dayNames[temp.getDay()];
+
+          let val = 0;
+          if (byDate[key]) {
+            val = byDate[key].sum / byDate[key].count;
+          }
+
+          result.push({ day: label, val: Number(val.toFixed(1)) });
+          temp.setDate(temp.getDate() + 1);
+        }
+
+        setWeeklyData(result);
+      } catch (err) {
+        console.log("Error cargando semana emocional:", err);
+      }
+    }
+
+    cargarSemana();
+  }, []);
+
+  // 🟣 Cargar último mood guardado al iniciar sesión
+  useEffect(() => {
+    async function cargarUltimoEstado() {
+      try {
+        const res = await fetch(`${baseUrl}/api/journal`, {
+          method: "GET",
+          credentials: "include",
+        });
+
+        if (!res.ok) return;
+
+        const entries = await res.json();
+        if (!entries || entries.length === 0) return;
+
+        const sorted = entries.sort(
+          (a, b) => new Date(b.date) - new Date(a.date)
+        );
+
+        const ultimo = sorted[0];
+
+        if (ultimo?.emotion) {
+          setSelectedMood(ultimo.emotion);
+        }
+      } catch (err) {
+        console.log("Error cargando último estado emocional:", err);
+      }
+    }
+
+    cargarUltimoEstado();
+  }, []);
+
   const moods = [
     { name: "Feliz", color: "bg-green-100 border-green-400 text-green-700" },
     { name: "Normal", color: "bg-yellow-100 border-yellow-400 text-yellow-700" },
@@ -101,12 +244,10 @@ export default function Dashboard() {
     "Ajustes",
   ];
 
-  // No mostrar nada hasta que el usuario cargue
   if (!storedUser) return null;
 
   return (
     <div className="flex h-screen bg-[#f6f4fb] text-gray-800 flex-col">
-
       {/* HEADER */}
       <header className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white flex justify-between items-center px-8 py-4 shadow-md">
         <div className="flex items-center space-x-3">
@@ -138,7 +279,6 @@ export default function Dashboard() {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-
         {/* SIDEBAR */}
         <aside className="w-60 bg-white shadow-md flex flex-col p-4">
           <nav className="space-y-3">
@@ -158,10 +298,8 @@ export default function Dashboard() {
           </nav>
         </aside>
 
-        {/* CONTENIDO PRINCIPAL */}
+        {/* CONTENIDO */}
         <main className="flex-1 p-6 overflow-y-auto">
-
-          {/* VISTAS */}
           {activeView === "Ajustes" && <SettingsView />}
           {activeView === "Diario Emocional" && <DiarioEmocional />}
           {activeView === "Recursos" && <RecursosView />}
@@ -199,7 +337,10 @@ export default function Dashboard() {
                   {moods.map((mood) => (
                     <button
                       key={mood.name}
-                      onClick={() => setSelectedMood(mood.name)}
+                      onClick={() => {
+                        setSelectedMood(mood.name);
+                        guardarMoodRapido(mood.name);
+                      }}
                       className={`border rounded-xl py-3 text-center font-medium transition-all ${
                         selectedMood === mood.name
                           ? `${mood.color} border-2`
@@ -219,7 +360,7 @@ export default function Dashboard() {
                 )}
               </div>
 
-              {/* Semana emocional + recordatorios */}
+              {/* Semana emocional + Recordatorios */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 {/* Semana emocional */}
                 <div className="bg-white rounded-2xl p-6 shadow-sm">
@@ -228,21 +369,33 @@ export default function Dashboard() {
                     Tu semana emocional
                   </h3>
 
-                  <ul className="space-y-2">
-                    {[{day:"Lun",val:4},{day:"Mar",val:3},{day:"Mié",val:5},{day:"Jue",val:2},{day:"Vie",val:4},{day:"Sáb",val:5},{day:"Dom",val:3}]
-                      .map(({ day, val }) => (
-                        <li key={day} className="flex items-center justify-between text-sm">
+                  {weeklyData.length === 0 ? (
+                    <p className="text-sm text-gray-500">
+                      Aún no hay suficientes registros para mostrar tu semana emocional.
+                    </p>
+                  ) : (
+                    <ul className="space-y-2">
+                      {weeklyData.map(({ day, val }) => (
+                        <li
+                          key={day}
+                          className="flex items-center justify-between text-sm"
+                        >
                           <span>{day}</span>
+
                           <div className="flex-1 mx-2 bg-purple-100 h-2 rounded-full">
                             <div
                               className="bg-purple-500 h-2 rounded-full"
                               style={{ width: `${(val / 5) * 100}%` }}
                             ></div>
                           </div>
-                          <span className="text-gray-600">{val}/5</span>
+
+                          <span className="text-gray-600">
+                            {val > 0 ? `${val.toFixed(1)}/5` : "-"}
+                          </span>
                         </li>
                       ))}
-                  </ul>
+                    </ul>
+                  )}
                 </div>
 
                 {/* Recordatorios */}
@@ -305,7 +458,6 @@ export default function Dashboard() {
                     </p>
                   </button>
 
-
                   <button
                     onClick={() => setActiveView("Diario Emocional")}
                     className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-500 hover:bg-blue-50 transition text-left"
@@ -321,7 +473,6 @@ export default function Dashboard() {
               </div>
             </>
           )}
-
         </main>
       </div>
     </div>

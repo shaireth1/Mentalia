@@ -20,13 +20,13 @@ ChartJS.register(
   Legend
 );
 
-export default function EvolucionEmocionalChart() {
+export default function EvolucionEmocionalChart({ labels, values }) {
   const data = {
-    labels: ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"],
+    labels,
     datasets: [
       {
         label: "Bienestar",
-        data: [3, 4, 5, 2, 4, 5, 3],
+        data: values,
         borderColor: "#a855f7",
         backgroundColor: "#a855f7",
         tension: 0.4,
@@ -40,7 +40,7 @@ export default function EvolucionEmocionalChart() {
 
   const options = {
     responsive: true,
-    maintainAspectRatio: false, 
+    maintainAspectRatio: false,
     plugins: {
       legend: { display: false },
       tooltip: {
@@ -68,9 +68,8 @@ export default function EvolucionEmocionalChart() {
   };
 
   return (
-    <div className="h-52"> 
+    <div className="h-52">
       <Line data={data} options={options} />
     </div>
   );
 }
-

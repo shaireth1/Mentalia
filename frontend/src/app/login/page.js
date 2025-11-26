@@ -26,6 +26,10 @@ export default function LoginPage() {
       const res = await fetch(`${baseUrl}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+
+        // ⭐ NECESARIO para que el navegador ACEPTE la cookie "token"
+        credentials: "include",
+
         body: JSON.stringify(formData),
       });
 
@@ -36,8 +40,10 @@ export default function LoginPage() {
         return;
       }
 
-      // Guardar token
-      localStorage.setItem("token", data.token);
+      // Guardar token (lo usa /api/sessions/ping con Authorization)
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+      }
 
       // Guardar usuario con rol
       localStorage.setItem("user", JSON.stringify(data.user));

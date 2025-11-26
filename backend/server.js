@@ -13,6 +13,9 @@ import adminRoutes from "./routes/admin.js";
 import userRoutes from "./routes/user.js";
 import chatSessionRoutes from "./routes/chatSession.js";
 import alertRoutes from "./routes/alerts.js";
+import journalRoutes from "./routes/journal.js";
+
+
 
 import { cleanInactiveSessions } from "./utils/sessionCleaner.js";
 
@@ -45,6 +48,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/chat-sessions", chatSessionRoutes);
 app.use("/api/alerts", alertRoutes);
+app.use("/api/journal", journalRoutes);
 
 // Cleaner
 setInterval(cleanInactiveSessions, 60 * 1000);
