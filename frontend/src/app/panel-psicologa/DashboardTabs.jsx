@@ -1,6 +1,6 @@
 "use client";
 
-export default function DashboardTabs({ activeTab, setActiveTab, includeSettings }) {
+export default function DashboardTabs({ activeTab, setActiveTab}) {
   const tabs = ["Dashboard", "Alertas", "Frases de Riesgo", "Contenido", "Exportaciones"];
 
 

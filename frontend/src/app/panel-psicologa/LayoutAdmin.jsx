@@ -45,21 +45,22 @@ export default function LayoutAdmin({ user, children, onChangeView, activeView }
             <button
               onClick={() => onChangeView("Dashboard")}
               className={`
-                flex items-center gap-3 px-4 py-2 w-full rounded-lg transition 
+                flex items-center gap-3 px-2 py-2 w-full rounded-md transition
                 ${
                   activeView === "Dashboard"
-                    ? "bg-purple-100 text-purple-600 font-medium shadow-sm"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-purple-600"
+                    ? "text-purple-600 font-medium"
+                    : "text-gray-700 hover:text-purple-600"
                 }
               `}
             >
               <BarChart3
-                size={20}
-                strokeWidth={2}
+                size={18}
                 className={activeView === "Dashboard" ? "text-purple-600" : "text-gray-500"}
               />
+
               <span className="text-sm">Panel Administrativo</span>
             </button>
+
 
             {/* BOTÓN: Configuración */}
             <button
