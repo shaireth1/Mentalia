@@ -1,199 +1,151 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Search,
-  Filter,
-  BookOpen,
-  PlayCircle,
-  Headphones,
-  FileText,
-} from "lucide-react";
-
-import ListadoRecursos from "./componentes/ListadoRecursos";
+import { BookOpen } from "lucide-react";
+import BuscadorRecursos from "./componentes/BuscadorRecursos";
+import FiltroTipos from "./componentes/FiltroTipos";
+import FiltroCategorias from "./componentes/FiltroCategorias";
+import TarjetaRecurso from "./componentes/TarjetaRecurso";
 
 export default function RecursosView() {
-  // -------------------------
-  // DATOS DE PRUEBA (usa los tuyos o reemplaza por fetch)
-  // -------------------------
-  const recursosBase = [
-    {
-      id: 1,
-      titulo: "Guía para manejar la ansiedad",
-      categoria: "Ansiedad",
-      tipo: "PDF",
-      duracion: "15 min",
-      estado: "Nuevo",
-      descripcion: "Aprende técnicas para manejar la ansiedad.",
-    },
-    {
-      id: 2,
-      titulo: "Meditación guiada de relajación",
-      categoria: "Mindfulness",
-      tipo: "Podcast",
-      duracion: "12 min",
-      estado: "Popular",
-      descripcion: "Meditación guiada para estudiantes.",
-    },
-    {
-      id: 3,
-      titulo: "Cómo estudiar sin estrés",
-      categoria: "Estrés",
-      tipo: "Video",
-      duracion: "8 min",
-      estado: "Recomendado",
-      descripcion: "Estrategias efectivas para manejar el estrés académico.",
-    },
-    {
-      id: 4,
-      titulo: "Hábitos que mejoran tu bienestar",
-      categoria: "Bienestar General",
-      tipo: "Artículo",
-      duracion: "5 min lectura",
-      estado: "Nuevo",
-      descripcion: "Pequeñas acciones que mejoran tu salud mental.",
-    },
-  ];
-
-  const tipos = ["Todos", "PDF", "Video", "Podcast", "Artículo"];
-  const categorias = [
-    "Todas",
-    "Ansiedad",
-    "Mindfulness",
-    "Estrés",
-    "Bienestar General",
-  ];
-
-  // --------------------------------
-  // ESTADOS
-  // --------------------------------
   const [busqueda, setBusqueda] = useState("");
-  const [tipoFiltro, setTipoFiltro] = useState("Todos");
-  const [categoriaFiltro, setCategoriaFiltro] = useState("Todas");
-  const [openTipo, setOpenTipo] = useState(false);
-  const [openCategoria, setOpenCategoria] = useState(false);
+  const [tipoFiltro, setTipoFiltro] = useState("todos");
+  const [categoriaFiltro, setCategoriaFiltro] = useState("todas");
 
-  // --------------------------------
-  // FILTRADO PRINCIPAL
-  // --------------------------------
-  const recursosFiltrados = recursosBase.filter((r) => {
-    const coincideBusqueda = r.titulo
-      .toLowerCase()
-      .includes(busqueda.toLowerCase());
+  const destacados = [
+    {
+      titulo: "Técnicas de Respiración para la Ansiedad",
+      tipo: "Técnica",
+      categoria: "Ansiedad",
+      tiempo: "10 min",
+      rating: 4.8,
+      gratis: true,
+      imagen:
+        "https://images.unsplash.com/photo-1558981359-93b27fb6f27b?auto=format&fit=crop&w=1200&q=60",
+      descripcion:
+        "Aprende ejercicios que reducen la ansiedad y mejoran el bienestar.",
+    },
+    {
+      titulo: "Cómo Manejar el Estrés Académico",
+      tipo: "Artículo",
+      categoria: "Estrés",
+      tiempo: "8 min lectura",
+      rating: 4.6,
+      gratis: true,
+      imagen:
+        "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=60",
+      descripcion:
+        "Estrategias para estudiantes del SENA para gestionar presión académica.",
+    },
+    {
+      titulo: "Mindfulness para Principiantes",
+      tipo: "Video",
+      categoria: "Mindfulness",
+      tiempo: "25 min",
+      rating: 4.9,
+      gratis: true,
+      imagen:
+        "https://images.unsplash.com/photo-1526716497820-5dc1a1307e8b?auto=format&fit=crop&w=1200&q=60",
+      descripcion:
+        "Una introducción completa a la práctica guiada del mindfulness.",
+    },
+  ];
 
-    const coincideTipo =
-      tipoFiltro === "Todos" ? true : r.tipo === tipoFiltro;
+  const todosLosRecursos = [
+    {
+      titulo: "Podcast: Salud Mental en Estudiantes",
+      tipo: "Podcast",
+      categoria: "Estudio",
+      tiempo: "45 min",
+      rating: 4.7,
+      gratis: true,
+      imagen:
+        "https://images.unsplash.com/photo-1517242027094-b5b13cf2fdd0?auto=format&fit=crop&w=1200&q=60",
+      descripcion:
+        "Conversaciones con psicólogos especializados en bienestar estudiantil.",
+    },
+  ];
 
-    const coincideCategoria =
-      categoriaFiltro === "Todas" ? true : r.categoria === categoriaFiltro;
+  function filtrar(lista) {
+    return lista.filter((r) => {
+      const text = busqueda.toLowerCase();
+      const coincideTexto =
+        r.titulo.toLowerCase().includes(text) ||
+        r.descripcion.toLowerCase().includes(text);
 
-    return coincideBusqueda && coincideTipo && coincideCategoria;
-  });
+      const coincideTipo =
+        tipoFiltro === "todos" ||
+        r.tipo.toLowerCase() === tipoFiltro.toLowerCase();
 
-  // --------------------------------
-  // ICONOS PARA LOS FILTROS
-  // --------------------------------
-  const iconoTipo = {
-    PDF: FileText,
-    Video: PlayCircle,
-    Podcast: Headphones,
-    Artículo: BookOpen,
-  };
+      const coincideCategoria =
+        categoriaFiltro === "todas" ||
+        r.categoria.toLowerCase() === categoriaFiltro.toLowerCase();
+
+      return coincideTexto && coincideTipo && coincideCategoria;
+    });
+  }
+
+  const destacadosFiltrados = filtrar(destacados);
+  const recursosFiltrados = filtrar(todosLosRecursos);
 
   return (
-    <div className="min-h-screen bg-[#f9f5ff] p-8 text-gray-900">
-      {/* TITULO PRINCIPAL */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-[#3b1e72]">
-          💜 Recursos de Bienestar
+    <div className="px-6 py-6">
+
+      {/* ----------------------- */}
+      {/*       ENCABEZADO       */}
+      {/* ----------------------- */}
+      <div className="mb-4">
+        <h1 className="text-3xl font-semibold text-gray-800 flex items-center gap-2">
+          <BookOpen className="text-purple-600" size={30} />
+          Recursos de Bienestar
         </h1>
-        <p className="text-gray-500 text-sm">
-          Explora contenido creado para mejorar tu bienestar emocional
+
+        <p className="text-gray-500 text-sm leading-tight">
+          Herramientas y contenido para tu crecimiento emocional
         </p>
       </div>
 
-      {/* ------------------------- */}
-      {/* BUSCADOR Y FILTROS */}
-      {/* ------------------------- */}
-      <div className="flex flex-wrap items-center gap-3 bg-white p-4 rounded-2xl shadow-sm mb-10">
-        {/* Buscador */}
-        <div className="flex items-center gap-2 flex-1 border border-gray-200 rounded-xl px-3 py-2">
-          <Search className="text-gray-400" size={18} />
-          <input
-            type="text"
-            placeholder="Buscar recursos..."
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            className="flex-1 outline-none bg-transparent text-gray-700 text-sm"
-          />
+      {/* Buscador + filtros */}
+      <div className="flex flex-col md:flex-row gap-3 mt-4 items-center">
+        <div className="flex-1">
+          <BuscadorRecursos value={busqueda} onChange={setBusqueda} />
         </div>
 
-        {/* FILTRO TIPO */}
-        <div className="relative">
-          <button
-            onClick={() => setOpenTipo(!openTipo)}
-            className="border border-gray-200 bg-white rounded-xl px-4 py-2 text-sm flex items-center gap-2 hover:border-purple-400 transition"
-          >
-            <Filter size={16} />
-            {tipoFiltro}
-          </button>
-
-          {openTipo && (
-            <div className="absolute top-12 right-0 bg-white border border-gray-200 shadow-lg rounded-xl w-48 z-20">
-              {tipos.map((tipo) => {
-                const Icono = iconoTipo[tipo];
-
-                return (
-                  <button
-                    key={tipo}
-                    onClick={() => {
-                      setTipoFiltro(tipo);
-                      setOpenTipo(false);
-                    }}
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 w-full text-left"
-                  >
-                    {Icono && <Icono size={16} />}
-                    {tipo}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* FILTRO CATEGORÍA */}
-        <div className="relative">
-          <button
-            onClick={() => setOpenCategoria(!openCategoria)}
-            className="border border-gray-200 bg-white rounded-xl px-4 py-2 text-sm flex items-center gap-2 hover:border-purple-400 transition"
-          >
-            Categoría: {categoriaFiltro}
-          </button>
-
-          {openCategoria && (
-            <div className="absolute top-12 right-0 bg-white border border-gray-200 shadow-lg rounded-xl w-52 z-20">
-              {categorias.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => {
-                    setCategoriaFiltro(cat);
-                    setOpenCategoria(false);
-                  }}
-                  className="px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 w-full text-left"
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        <FiltroTipos value={tipoFiltro} onChange={setTipoFiltro} />
+        <FiltroCategorias
+          value={categoriaFiltro}
+          onChange={setCategoriaFiltro}
+        />
       </div>
 
-      {/* LISTADO FINAL */}
-      <ListadoRecursos recursos={recursosFiltrados} />
+      {/* ----------------------- */}
+      {/*   DESTACADOS DE LA SEMANA */}
+      {/* ----------------------- */}
+      <h2 className="mt-8 text-xl font-semibold text-gray-800">
+        Destacados esta semana
+      </h2>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+        {destacadosFiltrados.map((r, i) => (
+          <TarjetaRecurso key={i} {...r} />
+        ))}
+      </div>
+
+      {/* ----------------------- */}
+      {/*     TODOS LOS RECURSOS */}
+      {/* ----------------------- */}
+      <h2 className="mt-10 text-xl font-semibold text-gray-800">
+        Todos los recursos
+      </h2>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+        {recursosFiltrados.map((r, i) => (
+          <TarjetaRecurso key={i} {...r} />
+        ))}
+      </div>
     </div>
   );
 }
 
 
-
+                                                                                                                                                                                                                                                                                                                                                            

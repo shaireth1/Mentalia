@@ -1,67 +1,61 @@
 "use client";
 
-import { useState } from "react";
-import {
-  Folder,
-  Heart,
-  Users,
-  Sparkles,
-  GraduationCap,
-  ChevronDown,
-  Check,
-} from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { ChevronDown, CheckCircle2 } from "lucide-react";
 
 export default function FiltroCategorias({ value, onChange }) {
   const [open, setOpen] = useState(false);
+  const ref = useRef();
+
+  // Cerrar al hacer clic fuera
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (ref.current && !ref.current.contains(e.target)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const categorias = [
-    { label: "Todas las categorías", value: "todas", icon: Check },
-    { label: "Bienestar emocional", value: "bienestar", icon: Heart },
-    { label: "Relaciones", value: "relaciones", icon: Users },
-    { label: "Productividad", value: "productividad", icon: Folder },
-    { label: "Autoestima", value: "autoestima", icon: Sparkles },
-    { label: "Aprendizaje", value: "aprendizaje", icon: GraduationCap },
+    "todas",
+    "Ansiedad",
+    "Depresión",
+    "Estrés",
+    "Mindfulness",
+    "Relaciones",
+    "Estudio",
   ];
 
-  const seleccionada =
-    categorias.find((c) => c.value === value) || categorias[0];
-
   return (
-    <div className="relative select-none">
-      {/* BOTÓN PRINCIPAL */}
+    <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center justify-between px-4 py-2 bg-[#f3ecff] border border-[#d7c9ff] text-[#7b61ff] rounded-xl w-56"
+        className="border rounded-lg px-4 py-2 flex items-center gap-2 text-gray-700 bg-white hover:bg-gray-50 transition"
       >
-        {seleccionada.label}
-        <ChevronDown className="w-4 h-4 ml-2" />
+        {value === "todas" ? "Todas las categorías" : value}
+        <ChevronDown size={18} className="text-gray-500" />
       </button>
 
-      {/* DROPDOWN */}
       {open && (
-        <div className="absolute mt-2 w-60 bg-white shadow-xl rounded-xl border border-[#e5d9ff] py-2 z-20">
-          {categorias.map((cat) => {
-            const Icon = cat.icon;
-            return (
-              <div
-                key={cat.value}
-                onClick={() => {
-                  onChange(cat.value);
-                  setOpen(false);
-                }}
-                className="flex items-center gap-2 px-4 py-2 cursor-pointer hover:bg-[#f3ecff] text-gray-700"
-              >
-                <Icon className="w-5 h-5 text-[#7b61ff]" />
-                <span>{cat.label}</span>
-              </div>
-            );
-          })}
+        <div className="absolute right-0 mt-2 w-52 bg-white shadow-md rounded-lg border py-2 z-20">
+          {categorias.map((c) => (
+            <button
+              key={c}
+              onClick={() => {
+                onChange(c);
+                setOpen(false);
+              }}
+              className="w-full px-4 py-2 text-sm text-gray-700 flex items-center gap-2 hover:bg-gray-100"
+            >
+              {value === c && <CheckCircle2 size={16} className="text-purple-600" />}
+              {c === "todas" ? "Todas las categorías" : c}
+            </button>
+          ))}
         </div>
       )}
     </div>
   );
 }
-
-
-
 

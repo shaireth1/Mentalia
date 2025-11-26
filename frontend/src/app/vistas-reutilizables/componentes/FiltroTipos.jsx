@@ -1,66 +1,55 @@
 "use client";
 
-import { useState } from "react";
-import {
-  FileText,
-  Play,
-  Podcast,
-  Brain,
-  BookOpen,
-  ChevronDown,
-  Check,
-} from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { ChevronDown, CheckCircle2 } from "lucide-react";
 
 export default function FiltroTipos({ value, onChange }) {
   const [open, setOpen] = useState(false);
+  const ref = useRef();
 
-  const opciones = [
-    { label: "Todos los tipos", value: "todos", icon: Check },
-    { label: "Artículo", value: "articulo", icon: FileText },
-    { label: "Video", value: "video", icon: Play },
-    { label: "Podcast", value: "podcast", icon: Podcast },
-    { label: "Técnica", value: "tecnica", icon: Brain },
-    { label: "Libro", value: "libro", icon: BookOpen },
-  ];
+  // Cerrar al hacer clic fuera
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (ref.current && !ref.current.contains(e.target)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
-  const seleccionada = opciones.find((o) => o.value === value) || opciones[0];
+  const tipos = ["todos", "Artículo", "Video", "Podcast", "Técnica"];
 
   return (
-    <div className="relative select-none">
-      {/* BOTÓN PRINCIPAL */}
+    <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center justify-between px-4 py-2 bg-[#f3ecff] border border-[#d7c9ff] text-[#7b61ff] rounded-xl w-48"
+        className="border rounded-lg px-4 py-2 flex items-center gap-2 text-gray-700 bg-white hover:bg-gray-50 transition"
       >
-        {seleccionada.label}
-        <ChevronDown className="w-4 h-4 ml-2" />
+        {value === "todos" ? "Todos los tipos" : value}
+        <ChevronDown size={18} className="text-gray-500" />
       </button>
 
-      {/* DROPDOWN */}
       {open && (
-        <div className="absolute mt-2 w-52 bg-white shadow-xl rounded-xl border border-[#e5d9ff] py-2 z-20">
-          {opciones.map((op) => {
-            const Icon = op.icon;
-            return (
-              <div
-                key={op.value}
-                onClick={() => {
-                  onChange(op.value);
-                  setOpen(false);
-                }}
-                className="flex items-center gap-2 px-4 py-2 cursor-pointer hover:bg-[#f3ecff] text-gray-700"
-              >
-                <Icon className="w-5 h-5 text-[#7b61ff]" />
-                <span>{op.label}</span>
-              </div>
-            );
-          })}
+        <div className="absolute right-0 mt-2 w-44 bg-white shadow-md rounded-lg border py-2 z-20">
+          {tipos.map((t) => (
+            <button
+              key={t}
+              onClick={() => {
+                onChange(t);
+                setOpen(false);
+              }}
+              className="w-full px-4 py-2 text-sm text-gray-700 flex items-center gap-2 hover:bg-gray-100"
+            >
+              {value === t && <CheckCircle2 size={16} className="text-purple-600" />}
+              {t === "todos" ? "Todos los tipos" : t}
+            </button>
+          ))}
         </div>
       )}
     </div>
   );
 }
-
 
 
 
