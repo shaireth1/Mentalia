@@ -20,7 +20,7 @@ import SettingsView from "../vistas-reutilizables/SettingsView";
 import DiarioEmocional from "./DiarioEmocional";
 import ChatbotView from "../vistas-reutilizables/ChatbotView";
 import RecursosView from "../vistas-reutilizables/RecursosView";
-import MiBienestar from "./MiBienestar";
+import MiBienestar from "./Bienestar/MiBienestar";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -293,14 +293,18 @@ export default function Dashboard() {
                     </p>
                   </button>
 
-                  <div className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-green-500 hover:bg-green-50 transition">
+                  <button
+                    onClick={() => setActiveView("Mi Bienestar")}
+                    className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-green-500 hover:bg-green-50 transition text-left"
+                  >
                     <p className="font-medium text-green-700 flex items-center gap-2">
                       <TrendingUp className="h-4 w-4 text-green-600" /> Ver mi progreso
                     </p>
                     <p className="text-sm text-gray-600 mt-1">
                       Revisa tu evolución emocional de esta semana.
                     </p>
-                  </div>
+                  </button>
+
 
                   <button
                     onClick={() => setActiveView("Diario Emocional")}

@@ -46,6 +46,7 @@ export default function NuevaEntradaModal({ onClose }) {
               <option>Normal</option>
               <option>Triste</option>
               <option>Ansioso</option>
+              <option>Enojado</option>
             </select>
           </div>
 

@@ -11,6 +11,7 @@ export default function FiltroEstado() {
         <option>Normal</option>
         <option>Triste</option>
         <option>Ansioso</option>
+        <option>Enojado</option>
       </select>
     </div>
   );
