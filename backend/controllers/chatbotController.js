@@ -7,6 +7,10 @@ import { updateEmotionalMemory } from "../utils/emotionalMemory.js";
 import { toneTransform } from "../utils/tones.js";
 import CrisisPhrase from "../models/CrisisPhrase.js";
 import { anonymizeText } from "../utils/anonymize.js";
+import { createAlert } from "./alertController.js";
+
+
+
 
 // 🧠 Memoria contextual por sesión (no se guarda en BD)
 const sessionContext = new Map();
@@ -417,6 +421,19 @@ async function processMessage(
   // 1️⃣ RF9 — Crisis (máxima prioridad)
   const crisisMatch = await detectCrisisAdvanced(lower);
   if (crisisMatch) {
+  
+    await createAlert({
+  phrase: crisisMatch.phrase.text,
+  category: crisisMatch.phrase.category,
+  severity: crisisMatch.phrase.severity,
+  target: crisisMatch.phrase.target,
+  sessionId,
+  userType: type,
+  userId: type === "registrado" ? userId : null,
+  message: text,
+});
+
+
     const baseReply = buildCrisisReply(crisisMatch);
     const finalReply = toneTransform[tone](baseReply);
 
@@ -436,34 +453,46 @@ async function processMessage(
   // 2️⃣ Técnica pendiente (RF7 + técnicas)
  // 2️⃣ Técnica pendiente (sí / afirmación / pedir técnica)
 // 2️⃣ MANEJO DE TÉCNICAS — SIEMPRE DEBE EJECUTAR ANTES QUE RF8
-if (
-  ctx.pendingIntent === "offer_technique" &&
-  (
+// 2️⃣ SI HAY UNA TÉCNICA PENDIENTE → SE ENTREGA SIEMPRE (ANTES DE RF8)
+if (ctx.pendingIntent === "offer_technique") {
+
+  // reforzar detección de afirmación
+  const isYes =
     detectAffirmative(lower) ||
     detectTechniqueRequest(lower) ||
-    lower.includes("si") ||
-    lower.includes("sí")
-  )
-) {
-  const emotion = ctx.lastEmotion || "ansiedad";
-  const list = techniques[emotion] || techniques.ansiedad;
-  const tip = list[Math.floor(Math.random() * list.length)];
+    lower.trim() === "si" ||
+    lower.trim() === "sí" ||
+    lower.trim() === "claro" ||
+    lower.trim() === "dale" ||
+    lower.trim() === "ok" ||
+    lower.trim() === "okay" ||
+    lower.trim() === "vale";
 
-  setContext(sessionId, { pendingIntent: null });
+  if (isYes) {
+    const emotion = ctx.lastEmotion || "ansiedad";
+    const list = techniques[emotion] || techniques.ansiedad;
+    const tip = list[Math.floor(Math.random() * list.length)];
 
-  const finalReply = toneTransform[tone](tip);
+    setContext(sessionId, { pendingIntent: null });
 
-  await saveTurn({
-    sessionId,
-    type,
-    userId,
-    userText: text,
-    replyText: tip,
-    emotion,
-  });
+    const finalReply = toneTransform[tone](tip);
 
-  return { reply: finalReply, emotion };
+    await saveTurn({
+      sessionId,
+      type,
+      userId,
+      userText: text,
+      replyText: tip,
+      emotion,
+    });
+
+    return { reply: finalReply, emotion };
+  }
+
+  // Si usuario dijo algo que NO es afirmación → NO evaluar emoción ahora
+  // Mantener técnica pendiente sin romper
 }
+
 
 // 2.1 Detectar si el usuario pide técnica directamente SIN que la hayas ofrecido
 if (detectTechniqueRequest(lower)) {

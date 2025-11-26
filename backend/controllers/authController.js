@@ -8,8 +8,6 @@ import sendEmail from "../utils/sendEmail.js";
 // 🟢 Registro de usuario (RF1, RF4, RF5, RNF1)
 export async function registerUser(req, res) {
   try {
-    console.log("🔍 BODY REGISTRO:", req.body);
-
     const {
       nombre,
       identificacion,
@@ -39,9 +37,9 @@ export async function registerUser(req, res) {
     }
 
     if (password.length < 8) {
-      return res
-        .status(400)
-        .json({ msg: "La contraseña debe tener al menos 8 caracteres." });
+      return res.status(400).json({
+        msg: "La contraseña debe tener al menos 8 caracteres.",
+      });
     }
 
     const userExists = await User.findOne({ email });
@@ -61,51 +59,9 @@ export async function registerUser(req, res) {
       telefono,
       email,
       password: hashedPassword,
-      // 🔹 no hace falta setear tone: usa el default "informal"
     });
 
     await newUser.save();
-
-    // HTML Anti-SPAM + profesional
-    const html = `
-      <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
-        <h2 style="color: #6a1b9a;">Bienvenido/a a MENTALIA, ${nombre}</h2>
-
-        <p>
-          ¡Gracias por registrarte en nuestra plataforma de apoyo emocional!
-          Tu cuenta ha sido creada exitosamente y ya puedes acceder a herramientas,
-          recursos y acompañamiento cuando lo necesites.
-        </p>
-
-        <p>
-          Puedes iniciar sesión desde el siguiente enlace:<br>
-          <a href="https://mentalialogin.com" 
-             style="color:#6a1b9a; font-weight:bold;">
-             Acceder a MENTALIA
-          </a>
-        </p>
-
-        <p>
-          MENTALIA es un proyecto académico diseñado para ayudarte a gestionar tus emociones,
-          registrar tu estado de ánimo y recibir orientación confiable.
-        </p>
-
-        <hr style="margin: 30px 0;">
-
-        <p style="font-size: 12px; color: #777;">
-          Estás recibiendo este mensaje porque te registraste con el correo 
-          <strong>${email}</strong>.<br>
-          Si no realizaste esta acción, puedes ignorar este mensaje.
-          Este correo fue generado automáticamente por MENTALIA — Plataforma de Apoyo Emocional.
-        </p>
-      </div>
-    `;
-
-    await sendEmail({
-      to: email,
-      subject: "Bienvenido a MENTALIA — Registro exitoso",
-      html,
-    });
 
     return res.status(201).json({ msg: "Usuario registrado correctamente." });
   } catch (error) {
@@ -120,14 +76,12 @@ export async function registerUser(req, res) {
 // 🔐 Login de usuario (RF6)
 export async function loginUser(req, res) {
   try {
-    console.log("🔍 BODY LOGIN:", req.body);
-
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res
-        .status(400)
-        .json({ msg: "Correo y contraseña son obligatorios." });
+      return res.status(400).json({
+        msg: "Correo y contraseña son obligatorios.",
+      });
     }
 
     const user = await User.findOne({ email });
@@ -142,7 +96,7 @@ export async function loginUser(req, res) {
       return res.status(400).json({ msg: "Credenciales incorrectas." });
     }
 
-    // Crear token JWT (rol incluido)
+    // Crear token JWT
     const token = jwt.sign(
       { id: user._id, email: user.email, rol: user.rol },
       process.env.JWT_SECRET,
@@ -152,22 +106,33 @@ export async function loginUser(req, res) {
     // Guardar sesión
     const newSession = new Session({
       userId: user._id,
+      token,
       createdAt: new Date(),
     });
     await newSession.save();
 
+    // Crear cookie HttpOnly
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: false,     // Cambiar a true en producción con HTTPS
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
+    // 🔥🔥🔥 *** ARREGLO: AGREGAR token EN LA RESPUESTA ***
     return res.status(200).json({
       msg: "Inicio de sesión exitoso.",
-      token,
+      token,   //  ⬅⬅⬅ AGREGADO AQUÍ
       user: {
         id: user._id,
         nombre: user.nombre,
         email: user.email,
         programa: user.programa,
         rol: user.rol,
-        tone: user.tone, // 🔹 👈 AQUÍ MANDAMOS EL TONO
+        tone: user.tone,
       },
     });
+
   } catch (error) {
     console.error("Error en loginUser:", error);
     return res.status(500).json({
@@ -175,4 +140,10 @@ export async function loginUser(req, res) {
       error: error.message,
     });
   }
+}
+
+// 🔐 Logout seguro
+export function logoutUser(req, res) {
+  res.clearCookie("token");
+  return res.json({ msg: "Sesión cerrada correctamente." });
 }

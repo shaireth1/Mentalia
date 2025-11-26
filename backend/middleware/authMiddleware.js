@@ -1,17 +1,27 @@
-// backend/middleware/authMiddleware.js
 import jwt from "jsonwebtoken";
 import Session from "../models/Session.js";
 
 export async function authMiddleware(req, res, next) {
   try {
-    const authHeader = req.headers.authorization;
+    let token = null;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ msg: "No se proporcionó token." });
+    // 1️⃣ Intentar leer desde Authorization: Bearer xxxx
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      token = authHeader.split(" ")[1];
     }
 
-    const token = authHeader.split(" ")[1];
+    // 2️⃣ Si no hubo token en headers, intentar desde cookie
+    if (!token && req.cookies?.token) {
+      token = req.cookies.token;
+    }
 
+    // 3️⃣ Si sigue sin token → 401
+    if (!token) {
+      return res.status(401).json({ msg: "No autenticado. No hay token." });
+    }
+
+    // 4️⃣ Verificar JWT
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -19,34 +29,37 @@ export async function authMiddleware(req, res, next) {
       return res.status(401).json({ msg: "Token inválido o expirado." });
     }
 
-    // Buscar sesión activa por token (más seguro)
-    const session = await Session.findOne({ token });
+    // 5️⃣ Validar sesión activa usando tu modelo Session
+    const session = await Session.findOne({
+      userId: decoded.id,
+      isActive: true,
+    });
 
     if (!session) {
-      return res.status(401).json({ msg: "Sesión no encontrada." });
+      return res.status(401).json({ msg: "Sesión no encontrada o cerrada." });
     }
 
-    // Validar si ya está expirada
-    const THIRTY_MIN = 60 * 60 * 1000; // 1 hora
-    const lastActivity = session.lastActivity.getTime();
-    const now = Date.now();
-
-    if (now - lastActivity > THIRTY_MIN) {
+    // 6️⃣ Verificar expiración por inactividad (1h)
+    const ONE_HOUR = 60 * 60 * 1000;
+    if (Date.now() - session.lastActivity > ONE_HOUR) {
       session.isActive = false;
       await session.save();
       return res.status(440).json({ msg: "Sesión expirada por inactividad." });
     }
 
-    // Sesión válida → actualizar actividad
     session.lastActivity = new Date();
     await session.save();
 
-    req.user = { id: decoded.id, email: decoded.email };
-    req.token = token;
+    // 7️⃣ Guardar usuario autenticado
+    req.user = {
+      id: decoded.id,
+      email: decoded.email,
+      rol: decoded.rol,
+    };
 
     next();
   } catch (err) {
     console.error("authMiddleware error:", err);
-    return res.status(401).json({ msg: "Error de autenticación." });
+    res.status(401).json({ msg: "Error de autenticación." });
   }
 }

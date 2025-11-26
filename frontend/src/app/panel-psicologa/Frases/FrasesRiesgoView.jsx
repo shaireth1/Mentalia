@@ -1,32 +1,96 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ModalAgregarFrase from "./ModalAgregarFrase";
 import { Pencil, Trash2, Plus } from "lucide-react";
 
 export default function FrasesRiesgoView() {
   const [openModal, setOpenModal] = useState(false);
+  const [frases, setFrases] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-  const frases = [
-    {
-      id: 1,
-      tipo: "CRÍTICA",
-      frase: "me quiero morir",
-      autor: "Dra. María González",
-      fecha: "31/12/2023",
-    },
-    {
-      id: 2,
-      tipo: "ALTA",
-      frase: "no aguanto más",
-      autor: "Dra. María González",
-      fecha: "31/12/2023",
-    },
-  ];
+  // ============================
+  // 🔥 Cargar frases desde backend
+  // ============================
+  const cargarFrases = async () => {
+    setLoading(true);
+    try {
+      const token =
+        typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+      const res = await fetch(`${API_URL}/api/admin/crisis-phrases`, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.error(
+          "Error cargando frases:",
+          res.status,
+          res.statusText,
+          text
+        );
+        return; // <- evitamos intentar hacer res.json() con HTML
+      }
+
+      const data = await res.json();
+      setFrases(data);
+    } catch (err) {
+      console.error("Error cargando frases:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    cargarFrases();
+  }, []);
+
+  // ============================
+  // 🔥 Eliminar frase
+  // ============================
+  const eliminarFrase = async (id) => {
+    if (!confirm("¿Eliminar esta frase?")) return;
+
+    try {
+      const token =
+        typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+      const res = await fetch(
+        `${API_URL}/api/admin/crisis-phrases/${id}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        }
+      );
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.error(
+          "Error eliminando frase:",
+          res.status,
+          res.statusText,
+          text
+        );
+        return;
+      }
+
+      setFrases((prev) => prev.filter((f) => f._id !== id));
+    } catch (err) {
+      console.error("Error eliminando frase:", err);
+    }
+  };
 
   return (
     <div className="w-full mt-2">
-
       {/* TÍTULO + BOTÓN */}
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold text-gray-800">
@@ -42,65 +106,73 @@ export default function FrasesRiesgoView() {
         </button>
       </div>
 
-      {/* LISTA DE FRASES */}
+      {/* LOADING */}
+      {loading && <p className="text-gray-500">Cargando frases...</p>}
+
+      {/* LISTA */}
+      {!loading && frases.length === 0 && (
+        <p className="text-gray-500 text-sm">
+          No hay frases configuradas todavía.
+        </p>
+      )}
+
       <div className="flex flex-col gap-4">
         {frases.map((frase) => (
           <div
-            key={frase.id}
-            className="
-              bg-white rounded-lg shadow-sm 
-              border border-gray-200 
-              p-4 flex justify-between items-start
-            "
+            key={frase._id}
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex justify-between items-start"
           >
-            {/* IZQUIERDA */}
             <div>
               <div className="flex items-center gap-3 mb-1">
+                {/* Badge */}
                 <span
                   className={`
-                    px-3 py-1 text-xs font-semibold rounded-full 
+                    px-3 py-1 text-xs font-semibold rounded-full
                     ${
-                      frase.tipo === "CRÍTICA"
+                      frase.severity === "alto"
                         ? "bg-red-100 text-red-600"
                         : "bg-yellow-100 text-yellow-700"
                     }
                   `}
                 >
-                  {frase.tipo}
+                  {frase.severity.toUpperCase()}
                 </span>
 
                 <span className="text-xs text-gray-500">
-                  Creada por {frase.autor} el {frase.fecha}
+                  Categoría: {frase.category}
                 </span>
               </div>
 
               <p className="text-gray-900 font-medium text-sm">
-                "{frase.frase}"
+                "{frase.text}"
               </p>
             </div>
 
-            {/* BOTONES ICÓNICOS */}
             <div className="flex gap-3">
-
-              {/* Editar */}
+              {/* Editar (si luego quieres, lo conectamos) */}
               <button className="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition text-gray-700">
                 <Pencil size={18} />
               </button>
 
               {/* Eliminar */}
-              <button className="p-2 bg-red-100 hover:bg-red-200 rounded-lg transition text-red-600">
+              <button
+                onClick={() => eliminarFrase(frase._id)}
+                className="p-2 bg-red-100 hover:bg-red-200 rounded-lg transition text-red-600"
+              >
                 <Trash2 size={18} />
               </button>
-
             </div>
           </div>
         ))}
       </div>
 
       {/* MODAL */}
-      {openModal && <ModalAgregarFrase close={() => setOpenModal(false)} />}
+      {openModal && (
+        <ModalAgregarFrase
+          close={() => setOpenModal(false)}
+          onAdd={cargarFrases}
+        />
+      )}
     </div>
   );
 }
-
-
