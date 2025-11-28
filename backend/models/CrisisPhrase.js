@@ -28,6 +28,22 @@ const crisisPhraseSchema = new mongoose.Schema({
     enum: ["self", "others", "unspecified"],
     default: "self",
   },
+
+  // ===============================
+  // 🆕 CAMPOS PARA MÓDULO PSICÓLOGA
+  // ===============================
+
+  // RF23 – poder activar/desactivar frase sin eliminarla
+  active: {
+    type: Boolean,
+    default: true
+  },
+
+  // RF23 – fecha de última modificación
+  lastModifiedAt: {
+    type: Date,
+    default: Date.now
+  }
 });
 
 export default mongoose.model("CrisisPhrase", crisisPhraseSchema);

@@ -36,9 +36,12 @@ export default function LayoutAdmin({ user, children, onChangeView, activeView }
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
+      {/* ⭐ FIX IMPORTANTE → min-h-0 */}
+      <div className="flex flex-1 overflow-hidden min-h-0">
+
         {/* SIDEBAR */}
-        <aside className="w-60 bg-white shadow-md border-r p-6">
+        <aside className="min-w-[240px] max-w-[240px] bg-white shadow-md border-r p-6 shrink-0">
+
           <nav className="space-y-3">
 
             {/* BOTÓN: Panel Administrativo */}
@@ -60,7 +63,6 @@ export default function LayoutAdmin({ user, children, onChangeView, activeView }
 
               <span className="text-sm">Panel Administrativo</span>
             </button>
-
 
             {/* BOTÓN: Configuración */}
             <button
@@ -87,5 +89,3 @@ export default function LayoutAdmin({ user, children, onChangeView, activeView }
     </div>
   );
 }
-
-

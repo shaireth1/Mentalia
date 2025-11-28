@@ -21,7 +21,7 @@ export default function TarjetaAlerta({ alerta }) {
       className={`
         w-full bg-white rounded-lg shadow-sm
         border border-gray-200
-        ${s.borde}
+        ${s?.borde || ""}
         px-5 py-4
       `}
     >
@@ -30,7 +30,9 @@ export default function TarjetaAlerta({ alerta }) {
         {/* Izquierda */}
         <div className="flex items-center gap-3">
           <span
-            className={`px-3 py-1 text-xs font-semibold rounded-full ${s.badgeBg} ${s.badgeText}`}
+            className={`px-3 py-1 text-xs font-semibold rounded-full ${s?.badgeBg || ""} ${
+              s?.badgeText || ""
+            }`}
           >
             {alerta.tipo}
           </span>
@@ -72,7 +74,3 @@ export default function TarjetaAlerta({ alerta }) {
     </div>
   );
 }
-
-
-
-

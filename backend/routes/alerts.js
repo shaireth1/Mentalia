@@ -11,7 +11,7 @@ import { adminMiddleware } from "../middleware/adminMiddleware.js";
 
 const router = express.Router();
 
-// Todas las rutas de alertas son solo para la psicóloga/admin
+// Todas estas rutas son solo para administradores (Psicóloga)
 router.use(authMiddleware, adminMiddleware);
 
 router.get("/", getAlerts);
