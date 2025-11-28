@@ -5,7 +5,7 @@ import User from "../models/User.js";
 import Session from "../models/Session.js";
 import sendEmail from "../utils/sendEmail.js";
 
-// 🟢 Registro de usuario (RF1, RF4, RF5, RNF1)
+// 🟢 Registro de usuario (RF1, RF4, RF5, RNF1, RNF10)
 export async function registerUser(req, res) {
   try {
     const {
@@ -18,6 +18,9 @@ export async function registerUser(req, res) {
       telefono,
       email,
       password,
+
+      // ⭐ AGREGADO PARA RNF10
+      consentimientoDatos,
     } = req.body;
 
     if (
@@ -33,6 +36,13 @@ export async function registerUser(req, res) {
     ) {
       return res.status(400).json({
         msg: "Todos los campos son obligatorios.",
+      });
+    }
+
+    // ⭐ NUEVO → Validar consentimiento
+    if (!consentimientoDatos) {
+      return res.status(400).json({
+        msg: "Debes aceptar el consentimiento informado.",
       });
     }
 
@@ -59,11 +69,17 @@ export async function registerUser(req, res) {
       telefono,
       email,
       password: hashedPassword,
+
+      // ⭐ AGREGADO PARA RNF10
+      consentimientoDatos: true,
+      consentimientoFecha: new Date(),
+      consentimientoVersion: "1.0",
     });
 
     await newUser.save();
 
     return res.status(201).json({ msg: "Usuario registrado correctamente." });
+
   } catch (error) {
     console.error("Error en registerUser:", error);
     return res.status(500).json({
@@ -72,6 +88,7 @@ export async function registerUser(req, res) {
     });
   }
 }
+
 
 // 🔐 Login de usuario (RF6)
 export async function loginUser(req, res) {
@@ -114,15 +131,14 @@ export async function loginUser(req, res) {
     // Crear cookie HttpOnly
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false,     // Cambiar a true en producción con HTTPS
+      secure: false,    
       sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
-    // 🔥🔥🔥 *** ARREGLO: AGREGAR token EN LA RESPUESTA ***
     return res.status(200).json({
       msg: "Inicio de sesión exitoso.",
-      token,   //  ⬅⬅⬅ AGREGADO AQUÍ
+      token,
       user: {
         id: user._id,
         nombre: user.nombre,
@@ -130,6 +146,7 @@ export async function loginUser(req, res) {
         programa: user.programa,
         rol: user.rol,
         tone: user.tone,
+        consentimientoDatos: user.consentimientoDatos, // ⭐ IMPORTANTE
       },
     });
 
@@ -141,6 +158,7 @@ export async function loginUser(req, res) {
     });
   }
 }
+
 
 // 🔐 Logout seguro
 export function logoutUser(req, res) {

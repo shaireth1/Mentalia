@@ -3,6 +3,7 @@ import Alert from "../models/Alert.js";
 import JournalEntry from "../models/JournalEntry.js";
 import PDFDocument from "pdfkit";
 import ExcelJS from "exceljs";
+import AdminLog from "../models/AdminLog.js";
 
 function aggregateStats(usersCount, chatbotUsage, emotions, alerts) {
   return { usersCount, chatbotUsage, emotions, alerts };
@@ -18,6 +19,14 @@ export async function getStats(req, res) {
       { $match: { deleted: false } },
       { $group: { _id: "$emotion", total: { $sum: 1 } } }
     ]);
+
+    // RNF9
+    await AdminLog.create({
+      adminId: req.user.id,
+      action: "CONSULTAR ESTADÍSTICAS",
+      endpoint: "/stats",
+      ip: req.ip
+    });
 
     res.json(aggregateStats(usersCount, chatbotUsage, emotions, alerts));
   } catch (err) {
@@ -55,6 +64,15 @@ export async function exportPDF(req, res) {
     });
 
     doc.end();
+
+    // RNF9
+    await AdminLog.create({
+      adminId: req.user.id,
+      action: "EXPORTAR PDF",
+      endpoint: "/stats/pdf",
+      ip: req.ip
+    });
+
   } catch (err) {
     res.status(500).json({ msg: "Error exportando PDF" });
   }
@@ -83,6 +101,15 @@ export async function exportExcel(req, res) {
 
     await workbook.xlsx.write(res);
     res.end();
+
+    // RNF9
+    await AdminLog.create({
+      adminId: req.user.id,
+      action: "EXPORTAR EXCEL",
+      endpoint: "/stats/excel",
+      ip: req.ip
+    });
+
   } catch (err) {
     res.status(500).json({ msg: "Error exportando Excel" });
   }

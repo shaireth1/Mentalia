@@ -1,12 +1,13 @@
 import express from "express";
 import { authMiddleware } from "../middleware/authMiddleware.js";
+import { logAdminAction } from "../middleware/logAdminAction.js";
 
 import { 
   getCriticalAlerts,
   resolveAlert,
   getConversationByAlert,
   searchConversations,
-  getPendingCriticalCount // ⭐ agregado
+  getPendingCriticalCount
 } from "../controllers/psychologistController.js";
 
 import {
@@ -24,15 +25,15 @@ import {
 
 const router = express.Router();
 
-// 🔐 Middleware global
-router.use(authMiddleware);
+// 🔐 RNF9 — registrar acciones de psicóloga
+router.use(authMiddleware, logAdminAction);
 
 // RF16
 router.get("/alerts", getCriticalAlerts);
 router.put("/alerts/:id/resolve", resolveAlert);
 router.get("/alerts/:alertId/conversation", getConversationByAlert);
 
-// ⭐⭐⭐ NUEVO: cantidad de alertas pendientes
+// ⭐⭐⭐ NUEVO
 router.get("/alerts/pending/count", getPendingCriticalCount);
 
 // RF21

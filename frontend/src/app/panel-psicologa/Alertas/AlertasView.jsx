@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import TarjetaAlerta from "./TarjetaAlerta";
 import FiltroAlertas from "./FiltroAlertas";
+import ModalConversacion from "./ModalConversacion";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -10,6 +11,10 @@ export default function AlertasView() {
   const [alertas, setAlertas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filtro, setFiltro] = useState("Todas las alertas");
+
+  // ⭐ CONVERSACIÓN (Modal)
+  const [selectedConversation, setSelectedConversation] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const cargarAlertas = async () => {
     setLoading(true);
@@ -32,7 +37,6 @@ export default function AlertasView() {
 
       const data = await res.json();
 
-      // 🔁 Adaptamos el objeto del backend al formato que tu tarjeta espera
       const adaptadas = data.map((a) => ({
         id: a._id,
         tipo: a.isCritical ? "CRÍTICA" : "ALTA PRIORIDAD",
@@ -63,9 +67,36 @@ export default function AlertasView() {
     return true;
   });
 
+  // ⭐ FUNCIÓN PARA VER CONVERSACIÓN
+  const verConversacion = async (alertId) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await fetch(
+        `${API_URL}/api/psychologist/alerts/${alertId}/conversation`,
+        {
+          headers: {
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        }
+      );
+
+      if (!res.ok) {
+        console.error("Error obteniendo conversación");
+        return;
+      }
+
+      const data = await res.json();
+      setSelectedConversation(data);
+      setIsModalOpen(true);
+    } catch (err) {
+      console.error("Error cargando conversación:", err);
+    }
+  };
+
   return (
     <div className="w-full mt-2">
-      {/* Título + Filtro alineados */}
+      {/* Título + Filtro */}
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold text-gray-800">
           Alertas Críticas
@@ -78,11 +109,15 @@ export default function AlertasView() {
         <p className="text-gray-500 text-sm">Cargando alertas...</p>
       )}
 
-      {/* Lista de alertas */}
+      {/* Lista */}
       <div className="flex flex-col gap-6">
         {!loading &&
           alertasFiltradas.map((alerta) => (
-            <TarjetaAlerta key={alerta.id} alerta={alerta} />
+            <TarjetaAlerta
+              key={alerta.id}
+              alerta={alerta}
+              onAtender={() => verConversacion(alerta.id)}
+            />
           ))}
       </div>
 
@@ -91,6 +126,13 @@ export default function AlertasView() {
           No hay alertas que coincidan con el filtro seleccionado.
         </p>
       )}
+
+      {/* ⭐ MODAL DE CONVERSACIÓN */}
+      <ModalConversacion
+        open={isModalOpen}
+        conversation={selectedConversation}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 }

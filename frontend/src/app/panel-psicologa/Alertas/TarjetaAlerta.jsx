@@ -1,6 +1,6 @@
 "use client";
 
-export default function TarjetaAlerta({ alerta }) {
+export default function TarjetaAlerta({ alerta, onAtender }) {
   const estilos = {
     CRÍTICA: {
       borde: "border-l-4 border-[#FF4D4D]",
@@ -14,24 +14,23 @@ export default function TarjetaAlerta({ alerta }) {
     },
   };
 
-  const s = estilos[alerta.tipo];
+  const s = estilos[alerta.tipo] || {};
 
   return (
     <div
       className={`
         w-full bg-white rounded-lg shadow-sm
         border border-gray-200
-        ${s?.borde || ""}
+        ${s.borde || ""}
         px-5 py-4
       `}
     >
-      {/* ENCABEZADO — etiqueta + fecha + ATENDIDA + botones */}
+      {/* ENCABEZADO */}
       <div className="flex justify-between items-center">
-        {/* Izquierda */}
         <div className="flex items-center gap-3">
           <span
-            className={`px-3 py-1 text-xs font-semibold rounded-full ${s?.badgeBg || ""} ${
-              s?.badgeText || ""
+            className={`px-3 py-1 text-xs font-semibold rounded-full ${s.badgeBg || ""} ${
+              s.badgeText || ""
             }`}
           >
             {alerta.tipo}
@@ -48,10 +47,12 @@ export default function TarjetaAlerta({ alerta }) {
           )}
         </div>
 
-        {/* Derecha: botones SOLO SI NO ESTÁ ATENDIDA */}
         {alerta.estado !== "atendida" && (
           <div className="flex gap-3">
-            <button className="px-4 py-1.5 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 transition">
+            <button
+              onClick={onAtender}
+              className="px-4 py-1.5 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 transition"
+            >
               Atender
             </button>
 
@@ -62,12 +63,10 @@ export default function TarjetaAlerta({ alerta }) {
         )}
       </div>
 
-      {/* Descripción */}
       <p className="mt-2 text-gray-800 text-sm font-medium">
         {alerta.descripcion}
       </p>
 
-      {/* ID sesión */}
       <p className="text-gray-400 text-xs mt-1">
         ID de sesión: {alerta.sesion}
       </p>

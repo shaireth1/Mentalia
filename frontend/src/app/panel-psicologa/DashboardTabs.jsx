@@ -1,8 +1,14 @@
 "use client";
 
-export default function DashboardTabs({ activeTab, setActiveTab}) {
-  const tabs = ["Dashboard", "Alertas", "Frases de Riesgo", "Contenido", "Exportaciones"];
-
+export default function DashboardTabs({ activeTab, setActiveTab }) {
+  const tabs = [
+    "Dashboard",
+    "Alertas",
+    "Frases de Riesgo",
+    "Contenido",
+    "Exportaciones",
+    "Logs" // ⭐ NUEVO — para RNF9
+  ];
 
   return (
     <div className="flex gap-8 border-b border-gray-200 pb-2 text-sm font-medium">

@@ -1,6 +1,7 @@
 import Alert from "../models/Alert.js";
 import Conversation from "../models/Conversation.js";
 import CrisisPhrase from "../models/CrisisPhrase.js";
+import AdminLog from "../models/AdminLog.js";
 
 // 📌 Obtener TODAS las alertas críticas
 export async function getCriticalAlerts(req, res) {
@@ -8,6 +9,14 @@ export async function getCriticalAlerts(req, res) {
     const alerts = await Alert.find({ isCritical: true })
       .populate("userId", "programa ficha")
       .sort({ createdAt: -1 });
+
+    // RNF9 — log
+    await AdminLog.create({
+      adminId: req.user.id,
+      action: "VER ALERTAS CRÍTICAS",
+      endpoint: "/alerts",
+      ip: req.ip
+    });
 
     res.json(alerts);
   } catch (err) {
@@ -24,6 +33,15 @@ export async function resolveAlert(req, res) {
     alert.resolved = true;
     await alert.save();
 
+    // RNF9 — log
+    await AdminLog.create({
+      adminId: req.user.id,
+      action: "ATENDER ALERTA",
+      endpoint: "/alerts/:id/resolve",
+      details: { alertId: req.params.id },
+      ip: req.ip
+    });
+
     res.json({ msg: "Alerta marcada como atendida" });
   } catch (err) {
     res.status(500).json({ msg: "Error actualizando alerta" });
@@ -37,6 +55,16 @@ export async function getConversationByAlert(req, res) {
     if (!alert) return res.status(404).json({ msg: "Alerta no hallada" });
 
     const convo = await Conversation.findById(alert.conversationId);
+
+    // RNF9 — log
+    await AdminLog.create({
+      adminId: req.user.id,
+      action: "VER CONVERSACIÓN DE ALERTA",
+      endpoint: "/alerts/:id/conversation",
+      details: { alertId: req.params.alertId },
+      ip: req.ip
+    });
+
     res.json(convo);
   } catch (err) {
     res.status(500).json({ msg: "Error obteniendo conversación" });
@@ -53,18 +81,35 @@ export async function searchConversations(req, res) {
       "messages.text": { $regex: keyword, $options: "i" }
     });
 
+    // RNF9 — log
+    await AdminLog.create({
+      adminId: req.user.id,
+      action: "BUSCAR CONVERSACIONES",
+      endpoint: "/conversations/search",
+      details: { keyword },
+      ip: req.ip
+    });
+
     res.json(conversations);
   } catch (err) {
     res.status(500).json({ msg: "Error buscando conversaciones" });
   }
 }
 
-// ⭐⭐⭐ NUEVO: Cantidad de alertas críticas pendientes para el dashboard
+// ⭐⭐⭐ Cantidad de alertas críticas pendientes — Dashboard
 export async function getPendingCriticalCount(req, res) {
   try {
     const count = await Alert.countDocuments({
       isCritical: true,
       resolved: false
+    });
+
+    // RNF9 — log
+    await AdminLog.create({
+      adminId: req.user.id,
+      action: "VER CONTADOR DE ALERTAS",
+      endpoint: "/alerts/pending/count",
+      ip: req.ip
     });
 
     res.json({ count });

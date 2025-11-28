@@ -20,6 +20,8 @@ import { checkDailyCriticalAlerts } from "./controllers/alertController.js";
 
 dotenv.config();
 
+
+
 const app = express();
 
 // Middlewares
@@ -58,9 +60,9 @@ app.use("/api/psychologist", psychologistRoutes);
 setInterval(cleanInactiveSessions, 60 * 1000);
 
 // Revisar alertas críticas cada minuto (RF19 + RF24)
-setInterval(() => {
-  checkDailyCriticalAlerts();
-}, 60 * 1000);
+//setInterval(() => {
+  //checkDailyCriticalAlerts();
+//}, 60 * 1000);
 
 // Servidor
 const PORT = process.env.PORT || 4000;

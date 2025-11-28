@@ -26,15 +26,25 @@ export default function Register() {
     email: "",
     phone: "",
     password: "",
+    consentimiento: false,     // ⭐ AGREGADO PARA RNF10
   });
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value, type, checked } = e.target;
+    setFormData({ 
+      ...formData, 
+      [name]: type === "checkbox" ? checked : value 
+    });
   };
 
   // 📌 Registro
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!formData.consentimiento) {
+      alert("⚠️ Debes aceptar el consentimiento informado para continuar.");
+      return;
+    }
 
     const body = {
       nombre: formData.fullName,
@@ -46,6 +56,8 @@ export default function Register() {
       telefono: formData.phone,
       email: formData.email,
       password: formData.password,
+
+      consentimientoDatos: true,  // ⭐ SE ENVÍA AL BACKEND (RNF10)
     };
 
     try {
@@ -257,10 +269,31 @@ export default function Register() {
                     className="absolute right-3 top-3 w-5 h-5 text-gray-500 cursor-pointer"
                   />
                 </div>
-                <p className="text-xs text-pink-600 mt-1">
-                </p>
               </div>
 
+            </div>
+
+            {/* ⭐ AGREGADO PARA RNF10 */}
+            <div className="flex items-start gap-3 text-xs text-gray-600 mt-2">
+              <input
+                type="checkbox"
+                name="consentimiento"
+                checked={formData.consentimiento}
+                onChange={handleChange}
+                className="mt-1 w-4 h-4"
+                required
+              />
+              <p>
+                Acepto el{" "}
+                <Link
+                  href="/politicas/consentimiento"
+                  target="_blank"
+                  className="text-purple-700 underline"
+                >
+                  consentimiento informado para el tratamiento de datos
+                </Link>
+                .
+              </p>
             </div>
 
             <button

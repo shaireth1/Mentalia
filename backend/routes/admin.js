@@ -1,6 +1,8 @@
 import express from "express";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 import { adminMiddleware } from "../middleware/adminMiddleware.js";
+import { logAdminAction } from "../middleware/logAdminAction.js";
+
 import {
   getCrisisList,
   addCrisisPhrase,
@@ -8,21 +10,20 @@ import {
   updateCrisisPhrase
 } from "../controllers/adminController.js";
 
+import { getAdminLogs } from "../controllers/adminLogController.js";
+
 const router = express.Router();
 
-// Todas estas rutas estarán protegidas
-router.use(authMiddleware, adminMiddleware);
+// Protegido + log de admin
+router.use(authMiddleware, adminMiddleware, logAdminAction);
 
-// Obtener lista
+// RNF9 — ruta para ver los logs
+router.get("/logs", getAdminLogs);
+
+// CRUD de frases
 router.get("/crisis-phrases", getCrisisList);
-
-// Agregar frase
 router.post("/crisis-phrases", addCrisisPhrase);
-
-// Editar frase
 router.put("/crisis-phrases/:id", updateCrisisPhrase);
-
-// Eliminar
 router.delete("/crisis-phrases/:id", deleteCrisisPhrase);
 
 export default router;

@@ -75,27 +75,36 @@ export default function Dashboard() {
   }
 
   // 🚫 SI ES ADMIN → REDIRIGIR AL PANEL PSICÓLOGA
-  useEffect(() => {
-    const rawUser = localStorage.getItem("user");
-    if (!rawUser) {
-      router.push("/login");
+// 🚫 SI ES ADMIN → REDIRIGIR AL PANEL PSICÓLOGA
+useEffect(() => {
+  const rawUser = localStorage.getItem("user");
+  if (!rawUser) {
+    router.push("/login");
+    return;
+  }
+
+  try {
+    const user = JSON.parse(rawUser);
+
+    // ⭐ RNF10 — Verificar consentimiento informado
+    if (!user.consentimientoDatos) {
+      alert("Debes aceptar el consentimiento informado para usar la plataforma.");
+      router.push("/politicas/consentimiento");
       return;
     }
 
-    try {
-      const user = JSON.parse(rawUser);
-
-      if (user.rol === "admin") {
-        router.replace("/panel-psicologa");
-        return;
-      }
-
-      setStoredUser(user);
-    } catch (e) {
-      console.error("Error leyendo usuario:", e);
-      router.push("/login");
+    if (user.rol === "admin") {
+      router.replace("/panel-psicologa");
+      return;
     }
-  }, [router]);
+
+    setStoredUser(user);
+  } catch (e) {
+    console.error("Error leyendo usuario:", e);
+    router.push("/login");
+  }
+}, [router]);
+
 
   // 🔥 DETECCIÓN DE SESIÓN EXPIRADA
   useEffect(() => {

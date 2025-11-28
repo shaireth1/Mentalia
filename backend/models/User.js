@@ -15,12 +15,16 @@ const userSchema = new mongoose.Schema({
 
   rol: { type: String, enum: ["usuario", "admin"], default: "usuario" },
 
-  // 🔹 Tono preferido del chatbot (RF12)
   tone: {
     type: String,
     enum: ["informal", "formal"],
     default: "informal",
   },
+
+  // ⭐ CONSENTIMIENTO – requerido por RNF10
+  consentimientoDatos: { type: Boolean, default: false },
+  consentimientoFecha: { type: Date },
+  consentimientoVersion: { type: String, default: "1.0" },
 
   creadoEn: { type: Date, default: Date.now },
 
