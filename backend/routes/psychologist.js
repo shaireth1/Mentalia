@@ -1,17 +1,21 @@
 import express from "express";
-import authMiddleware from "../middleware/authMiddleware.js";
+import { authMiddleware } from "../middleware/authMiddleware.js";
+
 import { 
   getCriticalAlerts,
   resolveAlert,
   getConversationByAlert,
-  searchConversations
+  searchConversations,
+  getPendingCriticalCount // ⭐ agregado
 } from "../controllers/psychologistController.js";
+
 import {
   getPhrases,
   createPhrase,
   updatePhrase,
   deletePhrase
 } from "../controllers/riskPhraseAdminController.js";
+
 import {
   getStats,
   exportPDF,
@@ -20,13 +24,16 @@ import {
 
 const router = express.Router();
 
-// SOLO PSICÓLOGA
-router.use(authMiddleware(["psicologa", "admin"]));
+// 🔐 Middleware global
+router.use(authMiddleware);
 
 // RF16
 router.get("/alerts", getCriticalAlerts);
 router.put("/alerts/:id/resolve", resolveAlert);
 router.get("/alerts/:alertId/conversation", getConversationByAlert);
+
+// ⭐⭐⭐ NUEVO: cantidad de alertas pendientes
+router.get("/alerts/pending/count", getPendingCriticalCount);
 
 // RF21
 router.get("/conversations/search", searchConversations);

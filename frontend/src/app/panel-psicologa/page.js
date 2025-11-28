@@ -13,8 +13,7 @@ import GraficaUsoChatbot from "./GraficaUsoChatbot";
 import GraficaEmociones from "./GraficaEmociones";
 
 import AlertasView from "./Alertas/AlertasView";
-import FrasesRiesgoView from "./Frases/FrasesRiesgoView";
-
+import FrasesRiesgoView from "./frases/FrasesRiesgoView";
 import SettingsView from "../vistas-reutilizables/SettingsView";
 import ContenidoView from "./ContenidoView";
 import GraficaAlertasCriticas from "./GraficaAlertasCriticas";
@@ -23,7 +22,11 @@ export default function PanelPsicologa() {
   const router = useRouter();
   const [storedUser, setStoredUser] = useState(null);
   const [activeTab, setActiveTab] = useState("Dashboard");
+  const [pendingAlerts, setPendingAlerts] = useState(0);
 
+  // ============================
+  //  ⚠️ Cargar usuario autenticado
+  // ============================
   useEffect(() => {
     const rawUser = localStorage.getItem("user");
     if (!rawUser) {
@@ -45,6 +48,35 @@ export default function PanelPsicologa() {
     }
   }, []);
 
+  // ============================
+  //  🔥 Cargar alertas pendientes
+  // ============================
+  useEffect(() => {
+    async function cargarPendientes() {
+      try {
+        const token = localStorage.getItem("token");
+
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/psychologist/alerts/pending/count`,
+          {
+            headers: {
+              Authorization: token ? `Bearer ${token}` : "",
+            },
+          }
+        );
+
+        if (!res.ok) return;
+
+        const data = await res.json();
+        setPendingAlerts(data.count || 0);
+      } catch (e) {
+        console.error("Error cargando alerta crítica:", e);
+      }
+    }
+
+    cargarPendientes();
+  }, []);
+
   if (!storedUser) return null;
 
   return (
@@ -53,24 +85,24 @@ export default function PanelPsicologa() {
       onChangeView={(view) => setActiveTab(view)}
       activeView={activeTab}
     >
-      {/* ------- AJUSTES ------- */}
+      {/* ----- AJUSTES ----- */}
       {activeTab === "Ajustes" ? (
         <div className="px-6 mt-6">
           <SettingsView />
         </div>
       ) : (
         <>
-          {/* ------- ALERTA CRÍTICA (SOLO EN DASHBOARD) ------- */}
-          {activeTab === "Dashboard" && (
+          {/* ----- ALERTA CRÍTICA (solo Dashboard) ----- */}
+          {activeTab === "Dashboard" && pendingAlerts > 0 && (
             <div className="px-6 mt-4">
               <AlertaCritica
-                cantidad={1}
+                cantidad={pendingAlerts}
                 onVerAlertas={() => setActiveTab("Alertas")}
               />
             </div>
           )}
 
-          {/* ------- TÍTULO ------- */}
+          {/* ----- TÍTULO ----- */}
           <div className="px-6 mt-3">
             <h1 className="text-2xl font-semibold text-gray-900">
               Panel de Psicóloga Institucional
@@ -80,7 +112,7 @@ export default function PanelPsicologa() {
             </p>
           </div>
 
-          {/* ------- TABS ------- */}
+          {/* ----- TABS ----- */}
           <div className="mt-6 px-6">
             <DashboardTabs
               activeTab={activeTab}
@@ -89,7 +121,7 @@ export default function PanelPsicologa() {
             />
           </div>
 
-          {/* ------- CONTENIDO ------- arreglar*/}
+          {/* ----- CONTENIDO PRINCIPAL ----- */}
           <main className="px-6 mt-4 pb-10">
             {/* DASHBOARD */}
             {activeTab === "Dashboard" && (
@@ -99,7 +131,7 @@ export default function PanelPsicologa() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                   <GraficaUsoChatbot />
                   <GraficaEmociones />
-                  <GraficaAlertasCriticas/>
+                  <GraficaAlertasCriticas />
                 </div>
               </>
             )}

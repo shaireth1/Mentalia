@@ -2,6 +2,7 @@ import Alert from "../models/Alert.js";
 import Conversation from "../models/Conversation.js";
 import CrisisPhrase from "../models/CrisisPhrase.js";
 
+// 📌 Obtener TODAS las alertas críticas
 export async function getCriticalAlerts(req, res) {
   try {
     const alerts = await Alert.find({ isCritical: true })
@@ -14,6 +15,7 @@ export async function getCriticalAlerts(req, res) {
   }
 }
 
+// 📌 Marcar alerta como atendida
 export async function resolveAlert(req, res) {
   try {
     const alert = await Alert.findById(req.params.id);
@@ -28,6 +30,7 @@ export async function resolveAlert(req, res) {
   }
 }
 
+// 📌 Cargar conversación completa asociada a una alerta
 export async function getConversationByAlert(req, res) {
   try {
     const alert = await Alert.findById(req.params.alertId);
@@ -40,6 +43,7 @@ export async function getConversationByAlert(req, res) {
   }
 }
 
+// 📌 Búsqueda de conversaciones
 export async function searchConversations(req, res) {
   try {
     const { keyword } = req.query;
@@ -52,5 +56,19 @@ export async function searchConversations(req, res) {
     res.json(conversations);
   } catch (err) {
     res.status(500).json({ msg: "Error buscando conversaciones" });
+  }
+}
+
+// ⭐⭐⭐ NUEVO: Cantidad de alertas críticas pendientes para el dashboard
+export async function getPendingCriticalCount(req, res) {
+  try {
+    const count = await Alert.countDocuments({
+      isCritical: true,
+      resolved: false
+    });
+
+    res.json({ count });
+  } catch (err) {
+    res.status(500).json({ msg: "Error obteniendo cantidad de alertas" });
   }
 }

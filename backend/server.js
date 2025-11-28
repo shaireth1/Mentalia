@@ -13,6 +13,7 @@ import userRoutes from "./routes/user.js";
 import chatSessionRoutes from "./routes/chatSession.js";
 import alertRoutes from "./routes/alerts.js";
 import journalRoutes from "./routes/journal.js";
+import psychologistRoutes from "./routes/psychologist.js"; // ⭐ FALTABA
 
 import { cleanInactiveSessions } from "./utils/sessionCleaner.js";
 import { checkDailyCriticalAlerts } from "./controllers/alertController.js";
@@ -49,6 +50,9 @@ app.use("/api/users", userRoutes);
 app.use("/api/chat-sessions", chatSessionRoutes);
 app.use("/api/alerts", alertRoutes);
 app.use("/api/journal", journalRoutes);
+
+// ⭐ RUTA QUE FALTABA — ESTA ES LA QUE EL FRONT NECESITA
+app.use("/api/psychologist", psychologistRoutes);
 
 // Limpieza de sesiones
 setInterval(cleanInactiveSessions, 60 * 1000);

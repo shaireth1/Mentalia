@@ -6,10 +6,16 @@ import { useRouter } from "next/navigation";
 export default function LayoutAdmin({ user, children, onChangeView, activeView }) {
   const router = useRouter();
 
-  const logout = () => {
-    localStorage.clear();
-    router.push("/login");
-  };
+ const logout = () => {
+  // ❌ NO: localStorage.clear();
+
+  // ✅ Solo eliminamos datos de login
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+
+  router.push("/login");
+};
+
 
   return (
     <div className="h-screen flex flex-col bg-[#f6f4fb]">
