@@ -132,7 +132,7 @@ export default function DiarioEmocional() {
   };
 
   return (
-    <div className="p-8 bg-gray-50 min-h-screen">
+    <div className="space-y-8">
 
       <div className="flex justify-between items-center mb-6">
         <div>
