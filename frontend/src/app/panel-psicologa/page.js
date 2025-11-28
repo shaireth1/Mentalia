@@ -16,6 +16,8 @@ import AlertasView from "./Alertas/AlertasView";
 import FrasesRiesgoView from "./Frases/FrasesRiesgoView";
 
 import SettingsView from "../vistas-reutilizables/SettingsView";
+import ContenidoView from "./ContenidoView";
+import GraficaAlertasCriticas from "./GraficaAlertasCriticas";
 
 export default function PanelPsicologa() {
   const router = useRouter();
@@ -97,6 +99,7 @@ export default function PanelPsicologa() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                   <GraficaUsoChatbot />
                   <GraficaEmociones />
+                  <GraficaAlertasCriticas/>
                 </div>
               </>
             )}
@@ -117,7 +120,9 @@ export default function PanelPsicologa() {
 
             {/* CONTENIDO */}
             {activeTab === "Contenido" && (
-              <div className="p-6 text-gray-700">Gestión de contenido…</div>
+              <div className="mt-2">
+                <ContenidoView />
+              </div>
             )}
 
             {/* EXPORTACIONES */}
