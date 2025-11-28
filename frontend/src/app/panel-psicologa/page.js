@@ -15,8 +15,8 @@ import GraficaEmociones from "./GraficaEmociones";
 import AlertasView from "./Alertas/AlertasView";
 import FrasesRiesgoView from "./frases/FrasesRiesgoView";
 import SettingsView from "../vistas-reutilizables/SettingsView";
-import ContenidoView from "./ContenidoView";
 import GraficaAlertasCriticas from "./GraficaAlertasCriticas";
+import ContenidoView from "./Contenido/Contenido";
 
 export default function PanelPsicologa() {
   const router = useRouter();

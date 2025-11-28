@@ -81,24 +81,24 @@ export default function RecursosView() {
   const recursosFiltrados = filtrar(todosLosRecursos);
 
   return (
-    <div className="px-6 py-6">
+    <div className="px-6 space-y-6">
 
       {/* ----------------------- */}
       {/*       ENCABEZADO       */}
       {/* ----------------------- */}
-      <div className="mb-4">
-        <h1 className="text-3xl font-semibold text-gray-800 flex items-center gap-2">
-          <BookOpen className="text-purple-600" size={30} />
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold text-gray-800 flex items-center gap-2">
+          <BookOpen className="text-purple-600" size={28} />
           Recursos de Bienestar
         </h1>
 
-        <p className="text-gray-500 text-sm leading-tight">
+        <p className="text-gray-500 text-sm mt-1">
           Herramientas y contenido para tu crecimiento emocional
         </p>
       </div>
 
       {/* Buscador + filtros */}
-      <div className="flex flex-col md:flex-row gap-3 mt-4 items-center">
+      <div className="flex flex-row gap-3 items-center">
         <div className="flex-1">
           <BuscadorRecursos value={busqueda} onChange={setBusqueda} />
         </div>
@@ -113,11 +113,11 @@ export default function RecursosView() {
       {/* ----------------------- */}
       {/*   DESTACADOS DE LA SEMANA */}
       {/* ----------------------- */}
-      <h2 className="mt-8 text-xl font-semibold text-gray-800">
+      <h2 className="mt-10 mb-2 text-lg font-semibold text-gray-800">
         Destacados esta semana
       </h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-2">
         {destacadosFiltrados.map((r, i) => (
           <TarjetaRecurso key={i} {...r} />
         ))}
@@ -126,11 +126,11 @@ export default function RecursosView() {
       {/* ----------------------- */}
       {/*     TODOS LOS RECURSOS */}
       {/* ----------------------- */}
-      <h2 className="mt-10 text-xl font-semibold text-gray-800">
+      <h2 className="mt-12 mb-2 text-lg font-semibold text-gray-800">
         Todos los recursos
       </h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-2">
         {recursosFiltrados.map((r, i) => (
           <TarjetaRecurso key={i} {...r} />
         ))}
@@ -138,3 +138,4 @@ export default function RecursosView() {
     </div>
   );
 }
+

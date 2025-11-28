@@ -1,56 +1,58 @@
-"use client";
+import { Eye, Pencil, Trash2 } from "lucide-react";
 
-import { Eye, Edit3, Trash2 } from "lucide-react";
-
-export default function ContenidoItem({ item, setItems, setModalEditar }) {
-  const eliminar = () =>
-    setItems((prev) => prev.filter((i) => i.id !== item.id));
-
+export default function ContenidoItem({ data }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-      <div className="flex items-start justify-between">
-        <div>
-          <div className="flex gap-3 mb-2">
-            <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-semibold">
-              {item.tipo.toUpperCase()}
-            </span>
+    <div className="
+      bg-white 
+      rounded-2xl 
+      shadow-md 
+      border 
+      p-7 
+      flex 
+      justify-between 
+      items-center 
+      w-full
+    ">
+      
+      {/* Columna izquierda */}
+      <div className="flex flex-col">
 
-            <span className="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-xs font-semibold">
-              {item.categoria}
-            </span>
-          </div>
+        {/* Chips */}
+        <div className="flex gap-3 mb-3">
+          <span className="bg-blue-100 text-blue-600 px-4 py-1 text-xs font-semibold rounded-lg">
+            {data.tipo}
+          </span>
 
-          <h3 className="text-lg font-semibold text-gray-900">
-            {item.titulo}
-          </h3>
-
-          <p className="text-sm text-gray-600 mt-1">{item.descripcion}</p>
-
-          <p className="text-xs text-gray-500 mt-2">
-            Creado por {item.autor} el {item.fecha}
-          </p>
+          <span className="bg-gray-100 text-gray-600 px-4 py-1 text-xs rounded-lg">
+            {data.categoria}
+          </span>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button className="p-2 hover:bg-gray-100 rounded-lg transition">
-            <Eye className="w-5 h-5 text-gray-700" />
-          </button>
+        <h3 className="text-lg font-semibold mb-1">{data.titulo}</h3>
+        <p className="text-gray-600 text-sm mb-2">{data.descripcion}</p>
 
-          <button
-            onClick={() => setModalEditar(item)}
-            className="p-2 hover:bg-gray-100 rounded-lg transition"
-          >
-            <Edit3 className="w-5 h-5 text-gray-700" />
-          </button>
+        <p className="text-gray-500 text-xs">
+          Creado por {data.creador} el {data.fecha}
+        </p>
+      </div>
 
-          <button
-            onClick={eliminar}
-            className="p-2 hover:bg-gray-100 rounded-lg transition"
-          >
-            <Trash2 className="w-5 h-5 text-red-600" />
-          </button>
-        </div>
+      {/* Acciones */}
+      <div className="flex gap-4">
+
+        <button className="w-10 h-10 flex items-center justify-center rounded-full border hover:bg-gray-100 transition">
+          <Eye className="w-5 h-5" />
+        </button>
+
+        <button className="w-10 h-10 flex items-center justify-center rounded-full border hover:bg-gray-100 transition">
+          <Pencil className="w-5 h-5" />
+        </button>
+
+        <button className="w-10 h-10 flex items-center justify-center rounded-full border hover:bg-red-50 text-red-500 transition">
+          <Trash2 className="w-5 h-5" />
+        </button>
+
       </div>
     </div>
   );
 }
+
