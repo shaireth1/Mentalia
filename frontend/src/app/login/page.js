@@ -26,10 +26,7 @@ export default function LoginPage() {
       const res = await fetch(`${baseUrl}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-
-        // ⭐ NECESARIO para que el navegador ACEPTE la cookie "token"
-        credentials: "include",
-
+        credentials: "include",  // ⭐ CORRECTO PARA RNF8
         body: JSON.stringify(formData),
       });
 
@@ -40,21 +37,17 @@ export default function LoginPage() {
         return;
       }
 
-      // Guardar token (lo usa /api/sessions/ping con Authorization)
       if (data.token) {
         localStorage.setItem("token", data.token);
       }
 
-      // Guardar usuario con rol
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      // 🔥 SI ES ADMIN → PANEL PSICÓLOGA
       if (data.user.rol === "admin") {
         router.push("/panel-psicologa");
         return;
       }
 
-      // Usuario normal → panel usuario autenticado
       router.push("/panel-usuario-autenticado");
 
     } catch (err) {

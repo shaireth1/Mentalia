@@ -75,36 +75,34 @@ export default function Dashboard() {
   }
 
   // 🚫 SI ES ADMIN → REDIRIGIR AL PANEL PSICÓLOGA
-// 🚫 SI ES ADMIN → REDIRIGIR AL PANEL PSICÓLOGA
-useEffect(() => {
-  const rawUser = localStorage.getItem("user");
-  if (!rawUser) {
-    router.push("/login");
-    return;
-  }
-
-  try {
-    const user = JSON.parse(rawUser);
-
-    // ⭐ RNF10 — Verificar consentimiento informado
-    if (!user.consentimientoDatos) {
-      alert("Debes aceptar el consentimiento informado para usar la plataforma.");
-      router.push("/politicas/consentimiento");
+  useEffect(() => {
+    const rawUser = localStorage.getItem("user");
+    if (!rawUser) {
+      router.push("/login");
       return;
     }
 
-    if (user.rol === "admin") {
-      router.replace("/panel-psicologa");
-      return;
+    try {
+      const user = JSON.parse(rawUser);
+
+      // ⭐ RNF10 — Verificar consentimiento informado
+      if (!user.consentimientoDatos) {
+        alert("Debes aceptar el consentimiento informado para usar la plataforma.");
+        router.push("/politicas/consentimiento");
+        return;
+      }
+
+      if (user.rol === "admin") {
+        router.replace("/panel-psicologa");
+        return;
+      }
+
+      setStoredUser(user);
+    } catch (e) {
+      console.error("Error leyendo usuario:", e);
+      router.push("/login");
     }
-
-    setStoredUser(user);
-  } catch (e) {
-    console.error("Error leyendo usuario:", e);
-    router.push("/login");
-  }
-}, [router]);
-
+  }, [router]);
 
   // 🔥 DETECCIÓN DE SESIÓN EXPIRADA
   useEffect(() => {
@@ -136,9 +134,13 @@ useEffect(() => {
   useEffect(() => {
     async function cargarSemana() {
       try {
+        const token = localStorage.getItem("token");
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
         const res = await fetch(`${baseUrl}/api/journal`, {
           method: "GET",
           credentials: "include",
+          headers,
         });
 
         if (!res.ok) return;
@@ -204,9 +206,13 @@ useEffect(() => {
   useEffect(() => {
     async function cargarUltimoEstado() {
       try {
+        const token = localStorage.getItem("token");
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
         const res = await fetch(`${baseUrl}/api/journal`, {
           method: "GET",
           credentials: "include",
+          headers,
         });
 
         if (!res.ok) return;
@@ -279,10 +285,10 @@ useEffect(() => {
 
           <button
             title="Cerrar sesión"
-            className="p-2 rounded hover:bg-white/20 transition-colors"
+            className="p-2 rounded hover:bg:white/20 transition-colors"
             onClick={handleLogout}
           >
-            <LogOut className="w-5 h-5 text-white" />
+            <LogOut className="w-5 h-5 text:white" />
           </button>
         </div>
       </header>

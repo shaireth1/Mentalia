@@ -1,3 +1,4 @@
+// backend/middleware/adminMiddleware.js
 import User from "../models/User.js";
 
 export const adminMiddleware = async (req, res, next) => {
@@ -11,7 +12,9 @@ export const adminMiddleware = async (req, res, next) => {
     const user = await User.findById(userId);
 
     if (!user || user.rol !== "admin") {
-      return res.status(403).json({ msg: "Acceso denegado. Solo administradores." });
+      return res
+        .status(403)
+        .json({ msg: "Acceso denegado. Solo administradores." });
     }
 
     next();

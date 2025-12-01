@@ -1,3 +1,4 @@
+// backend/middleware/authMiddleware.js
 import jwt from "jsonwebtoken";
 import Session from "../models/Session.js";
 
@@ -47,10 +48,11 @@ export async function authMiddleware(req, res, next) {
       return res.status(440).json({ msg: "Sesión expirada por inactividad." });
     }
 
+    // 🔄 7️⃣ Refrescar última actividad
     session.lastActivity = new Date();
     await session.save();
 
-    // 7️⃣ Guardar usuario autenticado
+    // 8️⃣ Guardar usuario autenticado
     req.user = {
       id: decoded.id,
       email: decoded.email,

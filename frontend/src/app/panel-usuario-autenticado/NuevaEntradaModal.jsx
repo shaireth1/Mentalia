@@ -15,7 +15,7 @@ export default function NuevaEntradaModal({ onClose, onSaved, initialData }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  // Si viene una entrada para editar, precargarla
+  // Prefill data if editing
   useEffect(() => {
     if (initialData) {
       setTitulo(initialData.title || "");
@@ -34,6 +34,13 @@ export default function NuevaEntradaModal({ onClose, onSaved, initialData }) {
     setSaving(true);
     setError("");
 
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setError("No tienes una sesión activa. Inicia sesión nuevamente.");
+      return;
+    }
+
     const tagsArray = tags
       .split(",")
       .map((t) => t.trim())
@@ -45,7 +52,6 @@ export default function NuevaEntradaModal({ onClose, onSaved, initialData }) {
       note: reflexion.trim(),
       tags: tagsArray,
       date: initialData?.date || new Date().toISOString(),
-      // Intensidad derivada de la emoción (1-5) para gráficas
       intensity:
         estado === "Feliz"
           ? 5
@@ -67,10 +73,18 @@ export default function NuevaEntradaModal({ onClose, onSaved, initialData }) {
 
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // 🔥 TOKEN AÑADIDO
+        },
         credentials: "include",
         body: JSON.stringify(body),
       });
+
+      if (res.status === 401) {
+        setError("Tu sesión expiró. Inicia sesión nuevamente.");
+        return;
+      }
 
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}`);
@@ -101,11 +115,7 @@ export default function NuevaEntradaModal({ onClose, onSaved, initialData }) {
           {initialData ? "Editar entrada del diario" : "Nueva entrada del diario"}
         </h2>
 
-        {error && (
-          <p className="text-sm text-red-500 mb-2">
-            {error}
-          </p>
-        )}
+        {error && <p className="text-sm text-red-500 mb-2">{error}</p>}
 
         <div className="space-y-4">
           <div>

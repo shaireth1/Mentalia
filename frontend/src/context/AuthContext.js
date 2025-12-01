@@ -46,7 +46,8 @@ export function AuthProvider({ children }) {
       if (token) {
         await fetch("http://localhost:4000/api/auth/logout", {
           method: "POST",
-          headers: { "Authorization": `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` },
+          credentials: "include"   // ⭐ NECESARIO PARA RNF8
         });
       }
     } catch (error) {

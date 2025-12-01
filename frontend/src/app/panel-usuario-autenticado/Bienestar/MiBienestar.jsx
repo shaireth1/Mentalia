@@ -43,9 +43,14 @@ export default function MiBienestar() {
     async function cargar() {
       try {
         setLoading(true);
+
+        const token = localStorage.getItem("token");
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
         const res = await fetch(`${baseUrl}/api/journal`, {
           method: "GET",
           credentials: "include",
+          headers,
         });
 
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -75,15 +80,21 @@ export default function MiBienestar() {
     insight2,
     insight3,
   } = useMemo(() => {
+    // 🔥 Inicializar SIEMPRE para evitar errores
+    let evolucionLabels = [];
+    let evolucionValues = [];
+    let distribLabels = [];
+    let distribValues = [];
+
     if (!entries || entries.length === 0) {
       return {
         promedioSemanal: 0,
         diasRegistrados: 0,
         emocionPrincipal: "-",
-        evolucionLabels: [],
-        evolucionValues: [],
-        distribLabels: [],
-        distribValues: [],
+        evolucionLabels,
+        evolucionValues,
+        distribLabels,
+        distribValues,
         insight1: "Aún no hay suficientes datos.",
         insight2: "Registra tus emociones para ver patrones.",
         insight3: "Tu meta: registrar al menos 4 días a la semana.",
@@ -94,17 +105,14 @@ export default function MiBienestar() {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(now.getDate() - 6);
 
-    // Por día (últimos 7 días)
     const byDate = {};
     const byEmotion = {};
 
     entries.forEach((e) => {
       const d = new Date(e.date);
-      const key = d.toISOString().substring(0, 10); // YYYY-MM-DD
-
+      const key = d.toISOString().substring(0, 10);
       const intensity = e.intensity ?? emotionToIntensity(e.emotion);
 
-      // Registro por fecha para evolución
       if (d >= sevenDaysAgo && d <= now) {
         if (!byDate[key]) {
           byDate[key] = { sum: 0, count: 0 };
@@ -113,59 +121,45 @@ export default function MiBienestar() {
         byDate[key].count += 1;
       }
 
-      // Distribución por emoción
       if (!byEmotion[e.emotion]) byEmotion[e.emotion] = 0;
       byEmotion[e.emotion] += 1;
     });
 
     const diasRegistrados = Object.keys(byDate).length;
 
-    // Labels últimos 7 días
-    const evolutionLabels = [];
-    const evolutionValues = [];
     const temp = new Date(sevenDaysAgo);
-
     const dayNames = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 
     for (let i = 0; i < 7; i++) {
       const key = temp.toISOString().substring(0, 10);
-      const label = dayNames[temp.getDay()];
-
-      evolutionLabels.push(label);
-
-      if (byDate[key]) {
-        evolutionValues.push(
-          Number((byDate[key].sum / byDate[key].count).toFixed(2))
-        );
-      } else {
-        evolutionValues.push(0);
-      }
-
+      evolucionLabels.push(dayNames[temp.getDay()]);
+      evolucionValues.push(
+        byDate[key]
+          ? Number((byDate[key].sum / byDate[key].count).toFixed(2))
+          : 0
+      );
       temp.setDate(temp.getDate() + 1);
     }
 
-    // Promedio semanal = promedio de intensidades de los últimos 7 días
-    const valoresValidos = evolutionValues.filter((v) => v > 0);
+    const valoresValidos = evolucionValues.filter((v) => v > 0);
     const promedioSemanal =
       valoresValidos.length > 0
-        ? (valoresValidos.reduce((a, b) => a + b, 0) / valoresValidos.length)
+        ? valoresValidos.reduce((a, b) => a + b, 0) / valoresValidos.length
         : 0;
 
-    // Emoción principal
-    let topEmotion = "-";
+    let emocionPrincipal = "-";
     let maxCount = 0;
+
     Object.entries(byEmotion).forEach(([emo, count]) => {
       if (count > maxCount) {
         maxCount = count;
-        topEmotion = emo;
+        emocionPrincipal = emo;
       }
     });
 
-    // Distribución
-    const distribLabels = Object.keys(byEmotion);
-    const distribValues = Object.values(byEmotion);
+    distribLabels = Object.keys(byEmotion);
+    distribValues = Object.values(byEmotion);
 
-    // Insights muy sencillos:
     const insight1 =
       promedioSemanal >= 4
         ? "Tu bienestar se mantiene alto esta semana. 🌈"
@@ -189,9 +183,9 @@ export default function MiBienestar() {
     return {
       promedioSemanal,
       diasRegistrados,
-      emocionPrincipal: topEmotion,
-      evolucionLabels: evolutionLabels,
-      evolucionValues: evolutionValues,
+      emocionPrincipal,
+      evolucionLabels,
+      evolucionValues,
       distribLabels,
       distribValues,
       insight1,
@@ -204,12 +198,8 @@ export default function MiBienestar() {
     <div className="space-y-8">
       {/* TÍTULO */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">
-          Mi Bienestar Emocional
-        </h1>
-        <p className="text-gray-600 -mt-1">
-          Seguimiento y análisis de tu estado emocional
-        </p>
+        <h1 className="text-2xl font-bold text-gray-900">Mi Bienestar Emocional</h1>
+        <p className="text-gray-600 -mt-1">Seguimiento y análisis de tu estado emocional</p>
       </div>
 
       {loading && <p className="text-gray-500 text-sm">Cargando datos...</p>}
@@ -217,7 +207,7 @@ export default function MiBienestar() {
 
       {/* TARJETAS SUPERIORES */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Promedio semanal */}
+        {/* tarjeta 1 */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
           <p className="text-gray-500 text-sm">Promedio Semanal</p>
           <div className="flex items-center justify-between mt-2">
@@ -233,7 +223,7 @@ export default function MiBienestar() {
           </p>
         </div>
 
-        {/* Días registrados */}
+        {/* tarjeta 2 */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
           <p className="text-gray-500 text-sm">Días Registrados</p>
           <div className="flex items-center justify-between mt-2">
@@ -244,8 +234,8 @@ export default function MiBienestar() {
           </div>
         </div>
 
-        {/* Emoción principal */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        {/* tarjeta 3 */}
+        <div className="bg:white p-6 rounded-2xl shadow-sm border border-gray-100">
           <p className="text-gray-500 text-sm">Emoción Principal</p>
           <div className="flex items-center justify-between mt-2">
             <p className="text-3xl font-bold text-green-600">
@@ -261,12 +251,12 @@ export default function MiBienestar() {
 
       {/* GRÁFICAS */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Evolución emocional */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
           <p className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-purple-600" />
             Evolución emocional
           </p>
+
           {evolucionLabels.length === 0 ? (
             <p className="text-gray-500 text-sm">
               Aún no hay registros suficientes para mostrar la gráfica.
@@ -279,12 +269,12 @@ export default function MiBienestar() {
           )}
         </div>
 
-        {/* Distribución de emociones */}
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
           <p className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
             <PieChart className="h-5 w-5 text-purple-600" />
             Distribución de emociones
           </p>
+
           {distribLabels.length === 0 ? (
             <p className="text-gray-500 text-sm">
               Registra algunas emociones para ver tu distribución.
@@ -303,7 +293,7 @@ export default function MiBienestar() {
         </div>
       </div>
 
-      {/* INSIGHTS PERSONALIZADOS */}
+      {/* INSIGHTS */}
       <div className="bg-white p-6 rounded-2xl shadow-sm mt-6">
         <div className="flex items-center gap-2 mb-4">
           <Bolt className="h-5 w-5 text-yellow-500" />
@@ -313,7 +303,7 @@ export default function MiBienestar() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Tendencia positiva */}
+          {/* Insight 1 */}
           <div className="flex items-start gap-4 border rounded-xl p-4 bg-white">
             <div className="h-10 w-10 flex items-center justify-center rounded-xl bg-green-100">
               <TrendingUp className="h-5 w-5 text-green-600" />
@@ -324,7 +314,7 @@ export default function MiBienestar() {
             </div>
           </div>
 
-          {/* Mindfulness */}
+          {/* Insight 2 */}
           <div className="flex items-start gap-4 border rounded-xl p-4 bg-white">
             <div className="h-10 w-10 flex items-center justify-center rounded-xl bg-purple-100">
               <Brain className="h-5 w-5 text-purple-600" />
@@ -335,8 +325,8 @@ export default function MiBienestar() {
             </div>
           </div>
 
-          {/* Meta semanal */}
-          <div className="flex items-start gap-4 border rounded-xl p-4 bg-white">
+          {/* Insight 3 */}
+          <div className="flex items-start gap-4 border rounded-xl p-4 bg:white">
             <div className="h-10 w-10 flex items-center justify-center rounded-xl bg-blue-100">
               <Crosshair className="h-5 w-5 text-blue-600" />
             </div>

@@ -35,9 +35,13 @@ export default function DiarioEmocional() {
         setLoading(true);
         setError("");
 
+        const token = localStorage.getItem("token");
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
         const res = await fetch(`${baseUrl}/api/journal`, {
           method: "GET",
           credentials: "include",
+          headers,
         });
 
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -72,13 +76,12 @@ export default function DiarioEmocional() {
     });
   };
 
-  // 🔍 FILTRADO + BÚSQUEDA (CORREGIDO)
+  // 🔍 FILTRADO + BÚSQUEDA
   const filteredEntries = useMemo(() => {
     return entries.filter((e) => {
       const matchEstado =
         filterEstado === "Todos" ? true : e.emotion === filterEstado;
 
-      // 🔥 Protección de strings (corrección real)
       const safeTitle = e.title ?? "";
       const safeNote = e.note ?? "";
       const safeTags = Array.isArray(e.tags) ? e.tags.join(" ") : "";
@@ -99,9 +102,13 @@ export default function DiarioEmocional() {
     if (!confirmar) return;
 
     try {
+      const token = localStorage.getItem("token");
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
       const res = await fetch(`${baseUrl}/api/journal/${id}`, {
         method: "DELETE",
         credentials: "include",
+        headers,
       });
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);

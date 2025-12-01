@@ -78,6 +78,53 @@ export async function registerUser(req, res) {
 
     await newUser.save();
 
+    // 📩 Enviar correo de bienvenida MENTALIA
+    const html = `
+      <div style="font-family: Arial, sans-serif; background: #f6f4fb; padding: 20px; border-radius: 10px;">
+        <div style="text-align: center; padding-bottom: 10px;">
+          <h2 style="color: #7c3aed;">💜 Bienvenido/a a MENTALIA, ${nombre}</h2>
+        </div>
+
+        <p style="font-size: 16px; color: #333;">
+          ¡Gracias por unirte! Tu cuenta en <strong>MENTALIA</strong> ha sido creada exitosamente.
+        </p>
+
+        <p style="font-size: 15px; color: #444; line-height: 1.6;">
+          Esta plataforma ha sido diseñada para brindarte un espacio seguro, 
+          confidencial y disponible 24/7 donde podrás:
+        </p>
+
+        <ul style="font-size: 15px; color: #444; line-height: 1.6;">
+          <li>🧠 Hablar con nuestro chatbot emocional cuando lo necesites.</li>
+          <li>📘 Registrar tu diario emocional y entender tus emociones.</li>
+          <li>⚠️ Recibir apoyo oportuno si atraviesas un momento difícil.</li>
+          <li>📊 Ver tu progreso y bienestar con herramientas claras y fáciles de usar.</li>
+        </ul>
+
+        <p style="font-size: 15px; color: #444;">
+          En MENTALIA nos importa tu bienestar. No estás solo/a — aquí siempre encontrarás un espacio para ser escuchado/a sin juicios.  
+        </p>
+
+        <div style="text-align: center; margin-top: 25px;">
+          <a href="http://localhost:3000/login"
+            style="background: #7c3aed; color: white; padding: 12px 20px; border-radius: 8px; text-decoration: none; font-size: 16px;">
+            Iniciar sesión en MENTALIA
+          </a>
+        </div>
+
+        <p style="margin-top: 25px; font-size: 13px; color: #777; text-align: center;">
+          MENTALIA – Plataforma de apoyo emocional para aprendices SENA  
+          <br/>Confidencial • Segura • Humana
+        </p>
+      </div>
+    `;
+
+    await sendEmail({
+      to: email,
+      subject: "Bienvenido/a a MENTALIA 💜 Tu espacio seguro",
+      html,
+    });
+
     return res.status(201).json({ msg: "Usuario registrado correctamente." });
 
   } catch (error) {
@@ -131,7 +178,7 @@ export async function loginUser(req, res) {
     // Crear cookie HttpOnly
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false,    
+      secure: false,
       sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
