@@ -1,3 +1,4 @@
+// backend/controllers/psychologistController.js
 import Alert from "../models/Alert.js";
 import Conversation from "../models/Conversation.js";
 import CrisisPhrase from "../models/CrisisPhrase.js";
@@ -19,7 +20,6 @@ export async function getCriticalAlerts(req, res) {
       .populate("userId", "programa ficha")
       .sort({ createdAt: -1 });
 
-    // RNF9 — log (no debe romper)
     await safeAdminLog({
       adminId: req.user?.id,
       action: "VER ALERTAS CRÍTICAS",
@@ -43,7 +43,6 @@ export async function resolveAlert(req, res) {
     alert.resolved = true;
     await alert.save();
 
-    // RNF9 — log
     await safeAdminLog({
       adminId: req.user?.id,
       action: "ATENDER ALERTA",
@@ -67,7 +66,6 @@ export async function getConversationByAlert(req, res) {
 
     const convo = await Conversation.findById(alert.conversationId);
 
-    // RNF9 — log
     await safeAdminLog({
       adminId: req.user?.id,
       action: "VER CONVERSACIÓN DE ALERTA",
@@ -83,7 +81,7 @@ export async function getConversationByAlert(req, res) {
   }
 }
 
-// 📌 Búsqueda de conversaciones
+// 📌 Búsqueda de conversaciones (RF21)
 export async function searchConversations(req, res) {
   try {
     const { keyword } = req.query;
@@ -93,7 +91,6 @@ export async function searchConversations(req, res) {
       "messages.text": { $regex: keyword, $options: "i" }
     });
 
-    // RNF9 — log
     await safeAdminLog({
       adminId: req.user?.id,
       action: "BUSCAR CONVERSACIONES",
@@ -117,7 +114,6 @@ export async function getPendingCriticalCount(req, res) {
       resolved: false
     });
 
-    // RNF9 — log
     await safeAdminLog({
       adminId: req.user?.id,
       action: "VER CONTADOR DE ALERTAS",
@@ -129,5 +125,51 @@ export async function getPendingCriticalCount(req, res) {
   } catch (err) {
     console.error("❌ Error obteniendo cantidad de alertas:", err);
     res.status(500).json({ msg: "Error obteniendo cantidad de alertas" });
+  }
+}
+
+// 📌 NUEVO — Alertas críticas generadas HOY (para dashboard)
+export async function getTodayAlerts(req, res) {
+  try {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+
+    const count = await Alert.countDocuments({
+      isCritical: true,
+      createdAt: { $gte: start }
+    });
+
+    await safeAdminLog({
+      adminId: req.user?.id,
+      action: "VER ALERTAS HOY",
+      endpoint: "/alerts/today",
+      ip: req.ip
+    });
+
+    res.json({ count });
+  } catch (err) {
+    console.error("❌ Error obteniendo alertas de hoy:", err);
+    res.status(500).json({ msg: "Error obteniendo alertas de hoy" });
+  }
+}
+
+// 📌 NUEVO — Sesiones activas del chatbot (para dashboard)
+export async function getActiveChatbotSessions(req, res) {
+  try {
+    const count = await Conversation.countDocuments({
+      endedAt: null
+    });
+
+    await safeAdminLog({
+      adminId: req.user?.id,
+      action: "VER SESIONES ACTIVAS",
+      endpoint: "/sessions/active",
+      ip: req.ip
+    });
+
+    res.json({ count });
+  } catch (err) {
+    console.error("❌ Error obteniendo sesiones activas:", err);
+    res.status(500).json({ msg: "Error obteniendo sesiones activas" });
   }
 }

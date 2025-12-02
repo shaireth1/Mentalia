@@ -1,6 +1,6 @@
 "use client";
 
-export default function TarjetaAlerta({ alerta, onAtender }) {
+export default function TarjetaAlerta({ alerta, onAtender, onDescartar }) {
   const estilos = {
     CRÍTICA: {
       borde: "border-l-4 border-[#FF4D4D]",
@@ -29,9 +29,7 @@ export default function TarjetaAlerta({ alerta, onAtender }) {
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-3">
           <span
-            className={`px-3 py-1 text-xs font-semibold rounded-full ${s.badgeBg || ""} ${
-              s.badgeText || ""
-            }`}
+            className={`px-3 py-1 text-xs font-semibold rounded-full ${s.badgeBg} ${s.badgeText}`}
           >
             {alerta.tipo}
           </span>
@@ -56,7 +54,10 @@ export default function TarjetaAlerta({ alerta, onAtender }) {
               Atender
             </button>
 
-            <button className="px-4 py-1.5 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-100 transition">
+            <button
+              onClick={onDescartar}
+              className="px-4 py-1.5 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-100 transition"
+            >
               Descartar
             </button>
           </div>

@@ -5,82 +5,83 @@ import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
-  BarElement,
-  Tooltip,
-  Legend,
-} from "chart.js";
-import { Bar } from "react-chartjs-2";
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
+  PointElement,
+  LineElement,
   Tooltip,
   Legend
-);
+} from "chart.js";
+import { Line } from "react-chartjs-2";
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function GraficaUsoChatbot() {
-  const [uso, setUso] = useState(null);
-
-  const cargarStats = async () => {
-    try {
-      const token = localStorage.getItem("token");
-
-      const res = await fetch(`${API_URL}/api/psychologist/stats`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const data = await res.json();
-      setUso(data.chatbotUsage || 0);
-    } catch (err) {
-      console.error("Error cargando uso del chatbot:", err);
-    }
-  };
+  const [chartData, setChartData] = useState(null);
 
   useEffect(() => {
-    cargarStats();
+    const cargar = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${API_URL}/api/psychologist/stats/dashboard`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (!res.ok) throw new Error("Error cargando stats dashboard");
+
+        const data = await res.json();
+        setChartData({
+          labels: data.months,
+          usage: data.chatbotUsage || []
+        });
+      } catch (err) {
+        console.error("Error cargando uso chatbot:", err);
+      }
+    };
+
+    cargar();
   }, []);
 
-  if (uso === null) {
+  if (!chartData) {
     return (
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 h-80">
-        <p className="text-gray-500">Cargando gráfica…</p>
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 h-72">
+        <p className="text-gray-500 text-sm">Cargando uso del chatbot…</p>
       </div>
     );
   }
 
   const data = {
-    labels: ["Total Conversaciones"],
+    labels: chartData.labels,
     datasets: [
       {
         label: "Conversaciones",
-        data: [uso],
-        backgroundColor: "#14b8a6",
-        borderRadius: 8,
-      },
-    ],
+        data: chartData.usage,
+        borderColor: "#8b5cf6",
+        backgroundColor: "rgba(139,92,246,0.15)",
+        tension: 0.4,
+        pointRadius: 4,
+        fill: true
+      }
+    ]
   };
 
   const options = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
+    plugins: {
+      legend: { display: false }
+    },
     scales: {
       x: { grid: { display: false } },
-      y: { grid: { color: "#e5e7eb", borderDash: [5, 5] } },
-    },
+      y: { grid: { color: "#e5e7eb", borderDash: [5, 5] } }
+    }
   };
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 h-80">
-      <h3 className="text-gray-700 font-semibold mb-4">
-        Uso Total del Chatbot
-      </h3>
-
-      <div className="h-[250px]">
-        <Bar data={data} options={options} />
+    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 h-72">
+      <h3 className="text-gray-700 font-semibold mb-4">Uso Total del Chatbot</h3>
+      <div className="h-52">
+        <Line data={data} options={options} />
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+// backend/routes/psychologist.js
 import express from "express";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 import { adminMiddleware } from "../middleware/adminMiddleware.js";
@@ -9,7 +10,9 @@ import {
   resolveAlert,
   getConversationByAlert,
   searchConversations,
-  getPendingCriticalCount
+  getPendingCriticalCount,
+  getTodayAlerts,            // <-- NUEVO
+  getActiveChatbotSessions  // <-- NUEVO
 } from "../controllers/psychologistController.js";
 
 // FRASES DE RIESGO
@@ -24,7 +27,8 @@ import {
 import {
   getStats,
   exportPDF,
-  exportExcel
+  exportExcel,
+  getDashboardStats    // <-- 🔥 NUEVO IMPORT
 } from "../controllers/statsController.js";
 
 const router = express.Router();
@@ -37,8 +41,14 @@ router.put("/alerts/:id/resolve", resolveAlert);
 router.get("/alerts/:alertId/conversation", getConversationByAlert);
 router.get("/alerts/pending/count", getPendingCriticalCount);
 
+// 🔥 NUEVO — alertas de hoy
+router.get("/alerts/today", getTodayAlerts);
+
 // ------- BUSCAR (RF21) -------
 router.get("/conversations/search", searchConversations);
+
+// 🔥 NUEVO — sesiones activas
+router.get("/sessions/active", getActiveChatbotSessions);
 
 // ------- FRASES DE RIESGO (RF23) -------
 router.get("/phrases", getPhrases);
@@ -50,5 +60,8 @@ router.delete("/phrases/:id", deletePhrase);
 router.get("/stats", getStats);
 router.get("/stats/pdf", exportPDF);
 router.get("/stats/excel", exportExcel);
+
+// 🔥 NUEVA RUTA PARA DASHBOARD (datos reales para gráficas)
+router.get("/stats/dashboard", getDashboardStats);
 
 export default router;

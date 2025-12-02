@@ -12,28 +12,18 @@ export default function AlertasView() {
   const [loading, setLoading] = useState(true);
   const [filtro, setFiltro] = useState("Todas las alertas");
 
-  // ⭐ CONVERSACIÓN (Modal)
+  // ⭐ Modal conversación
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const cargarAlertas = async () => {
     setLoading(true);
     try {
-      const token =
-        typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      const token = localStorage.getItem("token");
 
       const res = await fetch(`${API_URL}/api/psychologist/alerts`, {
-        method: "GET",
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-
-      if (!res.ok) {
-        console.error("Error cargando alertas:", res.status, res.statusText);
-        setAlertas([]);
-        return;
-      }
 
       const data = await res.json();
 
@@ -42,24 +32,64 @@ export default function AlertasView() {
         tipo: a.isCritical ? "CRÍTICA" : "ALTA PRIORIDAD",
         fecha: new Date(a.createdAt).toLocaleString(),
         descripcion: a.message,
-      sesion: a.conversationId || a.sessionId || "N/A",
-        estado:
-          a.resolved || a.status === "atendida" ? "atendida" : "pendiente",
+        sesion: a.sessionId,
+        estado: a.resolved ? "atendida" : "pendiente",
+
+        // ⭐ GUARDAR conversationId REAL
+        conversationId: a.conversationId,
       }));
 
       setAlertas(adaptadas);
-    } catch (err) {
-      console.error("Error cargando alertas:", err);
+    } catch {
       setAlertas([]);
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   useEffect(() => {
     cargarAlertas();
   }, []);
 
+  // ⭐ ATENDER ALERTA
+  const atenderAlerta = async (alerta) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      // 1. Marcar como atendida en backend
+      await fetch(`${API_URL}/api/psychologist/alerts/${alerta.id}/resolve`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // 2. Abrir conversación
+      const res = await fetch(
+        `${API_URL}/api/psychologist/alerts/${alerta.id}/conversation`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const data = await res.json();
+      setSelectedConversation(data);
+      setIsModalOpen(true);
+
+      // 3. Actualizar frontend
+      setAlertas((prev) =>
+        prev.map((a) =>
+          a.id === alerta.id ? { ...a, estado: "atendida" } : a
+        )
+      );
+    } catch (err) {
+      console.error("Error atendiendo alerta:", err);
+    }
+  };
+
+  // ⭐ DESCARTAR ALERTA (solo frontend o backend si quieres)
+  const descartarAlerta = (id) => {
+    setAlertas((prev) => prev.filter((a) => a.id !== id));
+  };
+
+  // ⭐ Filtrado
   const alertasFiltradas = alertas.filter((a) => {
     if (filtro === "Todas las alertas") return true;
     if (filtro === "Críticas") return a.tipo === "CRÍTICA";
@@ -67,56 +97,23 @@ export default function AlertasView() {
     return true;
   });
 
-  // ⭐ FUNCIÓN PARA VER CONVERSACIÓN
-  const verConversacion = async (alertId) => {
-    try {
-      const token = localStorage.getItem("token");
-
-      const res = await fetch(
-        `${API_URL}/api/psychologist/alerts/${alertId}/conversation`,
-        {
-          headers: {
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-        }
-      );
-
-      if (!res.ok) {
-        console.error("Error obteniendo conversación");
-        return;
-      }
-
-      const data = await res.json();
-      setSelectedConversation(data);
-      setIsModalOpen(true);
-    } catch (err) {
-      console.error("Error cargando conversación:", err);
-    }
-  };
-
   return (
     <div className="w-full mt-2">
-      {/* Título + Filtro */}
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold text-gray-800">
-          Alertas Críticas
-        </h2>
-
+        <h2 className="text-lg font-semibold text-gray-800">Alertas Críticas</h2>
         <FiltroAlertas seleccion={filtro} setSeleccion={setFiltro} />
       </div>
 
-      {loading && (
-        <p className="text-gray-500 text-sm">Cargando alertas...</p>
-      )}
+      {loading && <p className="text-gray-500 text-sm">Cargando alertas...</p>}
 
-      {/* Lista */}
       <div className="flex flex-col gap-6">
         {!loading &&
           alertasFiltradas.map((alerta) => (
             <TarjetaAlerta
               key={alerta.id}
               alerta={alerta}
-              onAtender={() => verConversacion(alerta.id)}
+              onAtender={() => atenderAlerta(alerta)}
+              onDescartar={() => descartarAlerta(alerta.id)}
             />
           ))}
       </div>
@@ -127,7 +124,6 @@ export default function AlertasView() {
         </p>
       )}
 
-      {/* ⭐ MODAL DE CONVERSACIÓN */}
       <ModalConversacion
         open={isModalOpen}
         conversation={selectedConversation}

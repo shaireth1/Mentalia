@@ -15,10 +15,13 @@ const AdminLogSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+
+  // 🔥 YA NO ES REQUIRED
   method: {
     type: String,
-    required: true,
+    default: "UNKNOWN",
   },
+
   description: {
     type: String,
   },
