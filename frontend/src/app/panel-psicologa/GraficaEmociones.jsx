@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   Chart as ChartJS,
   ArcElement,
@@ -10,19 +11,59 @@ import { Pie } from "react-chartjs-2";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function GraficaEmociones() {
+  const [emociones, setEmociones] = useState(null);
+
+  const cargarStats = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await fetch(`${API_URL}/api/psychologist/stats`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+      setEmociones(data.emotions || []);
+    } catch (err) {
+      console.error("Error cargando emociones:", err);
+    }
+  };
+
+  useEffect(() => {
+    cargarStats();
+  }, []);
+
+  if (!emociones) {
+    return (
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <p className="text-gray-500">Cargando emociones…</p>
+      </div>
+    );
+  }
+
+  const labels = emociones.map((e) => e._id);
+  const values = emociones.map((e) => e.total);
+
+  const backgroundColors = [
+    "#8A5BFF",
+    "#FF4D4D",
+    "#4D8DFF",
+    "#FFCC66",
+    "#66CC66",
+    "#FF88AA",
+    "#00C2FF",
+  ];
+
   const data = {
-    labels: ["Ansiedad", "Estrés", "Tristeza", "Preocupación", "Enojo"],
+    labels,
     datasets: [
       {
-        data: [35, 28, 20, 12, 5],
-        backgroundColor: [
-          "#8A5BFF",
-          "#FF4D4D",
-          "#4D8DFF",
-          "#FFCC66",
-          "#66CC66",
-        ],
+        data: values,
+        backgroundColor: backgroundColors.slice(0, labels.length),
         borderWidth: 2,
         borderColor: "#ffffff",
       },
@@ -40,45 +81,26 @@ export default function GraficaEmociones() {
         Emociones Más Detectadas
       </h3>
 
-      {/* Contenedor centrado total */}
       <div className="flex justify-center items-center gap-14">
-
-        {/* Gráfica centrada */}
         <div className="w-52 h-52 flex justify-center items-center">
           <Pie data={data} options={options} />
         </div>
 
-        {/* Lista centrada verticalmente */}
         <ul className="space-y-3 text-sm flex flex-col justify-center">
-          <li className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full block" style={{ backgroundColor: "#8A5BFF" }}></span>
-            <span className="font-semibold text-purple-700">Ansiedad:</span> 35%
-          </li>
-
-          <li className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full block" style={{ backgroundColor: "#FF4D4D" }}></span>
-            <span className="font-semibold text-red-600">Estrés:</span> 28%
-          </li>
-
-          <li className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full block" style={{ backgroundColor: "#4D8DFF" }}></span>
-            <span className="font-semibold text-blue-600">Tristeza:</span> 20%
-          </li>
-
-          <li className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full block" style={{ backgroundColor: "#FFCC66" }}></span>
-            <span className="font-semibold text-yellow-600">Preocupación:</span> 12%
-          </li>
-
-          <li className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full block" style={{ backgroundColor: "#66CC66" }}></span>
-            <span className="font-semibold text-green-600">Enojo:</span> 5%
-          </li>
+          {labels.map((label, i) => (
+            <li key={i} className="flex items-center gap-2">
+              <span
+                className="w-3 h-3 rounded-full block"
+                style={{ backgroundColor: backgroundColors[i] }}
+              ></span>
+              <span className="font-semibold text-gray-700">
+                {label}:
+              </span>{" "}
+              {values[i]}
+            </li>
+          ))}
         </ul>
-
       </div>
     </div>
   );
 }
-
-

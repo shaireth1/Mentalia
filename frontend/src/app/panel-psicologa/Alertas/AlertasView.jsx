@@ -42,7 +42,7 @@ export default function AlertasView() {
         tipo: a.isCritical ? "CRÍTICA" : "ALTA PRIORIDAD",
         fecha: new Date(a.createdAt).toLocaleString(),
         descripcion: a.message,
-        sesion: a.sessionId || a.conversationId || "N/A",
+      sesion: a.conversationId || a.sessionId || "N/A",
         estado:
           a.resolved || a.status === "atendida" ? "atendida" : "pendiente",
       }));

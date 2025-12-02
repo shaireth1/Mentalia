@@ -1,5 +1,6 @@
 // backend/controllers/sessionController.js
 import Session from "../models/Session.js";
+import ChatSession from "../models/ChatSession.js";
 
 /**
  * Obtener sesiones activas del usuario logueado
@@ -24,7 +25,7 @@ export async function getSessions(req, res) {
  */
 export async function logoutCurrent(req, res) {
   try {
-    const token = req.token; // lo llenaremos en el middleware
+    const token = req.token; 
     if (!token) return res.status(400).json({ msg: "Token no encontrado" });
 
     await Session.findOneAndUpdate(
@@ -53,5 +54,30 @@ export async function logoutAll(req, res) {
   } catch (error) {
     console.error("❌ Error en logoutAll:", error);
     return res.status(500).json({ msg: "Error al cerrar todas las sesiones" });
+  }
+}
+
+/**
+ * 🔥 Cerrar sesión anónima correctamente (lo que espera TU frontend)
+ */
+export async function endAnonSession(req, res) {
+  try {
+    const { sessionId } = req.params;
+
+    if (!sessionId.startsWith("anon-")) {
+      return res.status(400).json({ ok: false, msg: "ID inválido" });
+    }
+
+    // Cerrar sesión anónima en BD si existe
+    await ChatSession.findOneAndUpdate(
+      { sessionId },
+      { endedAt: new Date() }
+    );
+
+    console.log("✔ Sesión anónima finalizada:", sessionId);
+    return res.json({ ok: true });
+  } catch (error) {
+    console.error("❌ Error en endAnonSession:", error);
+    return res.status(500).json({ ok: false });
   }
 }

@@ -3,16 +3,25 @@ import Conversation from "../models/Conversation.js";
 import CrisisPhrase from "../models/CrisisPhrase.js";
 import AdminLog from "../models/AdminLog.js";
 
-// 📌 Obtener TODAS las alertas críticas
+// Función helper para que el log NUNCA rompa el endpoint
+async function safeAdminLog(payload) {
+  try {
+    await AdminLog.create(payload);
+  } catch (err) {
+    console.error("❌ Error registrando AdminLog:", err);
+  }
+}
+
+// 📌 Obtener TODAS las alertas críticas (RF16)
 export async function getCriticalAlerts(req, res) {
   try {
     const alerts = await Alert.find({ isCritical: true })
       .populate("userId", "programa ficha")
       .sort({ createdAt: -1 });
 
-    // RNF9 — log
-    await AdminLog.create({
-      adminId: req.user.id,
+    // RNF9 — log (no debe romper)
+    await safeAdminLog({
+      adminId: req.user?.id,
       action: "VER ALERTAS CRÍTICAS",
       endpoint: "/alerts",
       ip: req.ip
@@ -20,7 +29,8 @@ export async function getCriticalAlerts(req, res) {
 
     res.json(alerts);
   } catch (err) {
-    res.status(500).json({ msg: "Error obteniendo alertas" });
+    console.error("❌ Error obteniendo alertas críticas:", err);
+    res.status(500).json({ msg: "Error obteniendo alertas críticas" });
   }
 }
 
@@ -34,8 +44,8 @@ export async function resolveAlert(req, res) {
     await alert.save();
 
     // RNF9 — log
-    await AdminLog.create({
-      adminId: req.user.id,
+    await safeAdminLog({
+      adminId: req.user?.id,
       action: "ATENDER ALERTA",
       endpoint: "/alerts/:id/resolve",
       details: { alertId: req.params.id },
@@ -44,6 +54,7 @@ export async function resolveAlert(req, res) {
 
     res.json({ msg: "Alerta marcada como atendida" });
   } catch (err) {
+    console.error("❌ Error actualizando alerta:", err);
     res.status(500).json({ msg: "Error actualizando alerta" });
   }
 }
@@ -57,8 +68,8 @@ export async function getConversationByAlert(req, res) {
     const convo = await Conversation.findById(alert.conversationId);
 
     // RNF9 — log
-    await AdminLog.create({
-      adminId: req.user.id,
+    await safeAdminLog({
+      adminId: req.user?.id,
       action: "VER CONVERSACIÓN DE ALERTA",
       endpoint: "/alerts/:id/conversation",
       details: { alertId: req.params.alertId },
@@ -67,6 +78,7 @@ export async function getConversationByAlert(req, res) {
 
     res.json(convo);
   } catch (err) {
+    console.error("❌ Error obteniendo conversación:", err);
     res.status(500).json({ msg: "Error obteniendo conversación" });
   }
 }
@@ -82,8 +94,8 @@ export async function searchConversations(req, res) {
     });
 
     // RNF9 — log
-    await AdminLog.create({
-      adminId: req.user.id,
+    await safeAdminLog({
+      adminId: req.user?.id,
       action: "BUSCAR CONVERSACIONES",
       endpoint: "/conversations/search",
       details: { keyword },
@@ -92,6 +104,7 @@ export async function searchConversations(req, res) {
 
     res.json(conversations);
   } catch (err) {
+    console.error("❌ Error buscando conversaciones:", err);
     res.status(500).json({ msg: "Error buscando conversaciones" });
   }
 }
@@ -105,8 +118,8 @@ export async function getPendingCriticalCount(req, res) {
     });
 
     // RNF9 — log
-    await AdminLog.create({
-      adminId: req.user.id,
+    await safeAdminLog({
+      adminId: req.user?.id,
       action: "VER CONTADOR DE ALERTAS",
       endpoint: "/alerts/pending/count",
       ip: req.ip
@@ -114,6 +127,7 @@ export async function getPendingCriticalCount(req, res) {
 
     res.json({ count });
   } catch (err) {
+    console.error("❌ Error obteniendo cantidad de alertas:", err);
     res.status(500).json({ msg: "Error obteniendo cantidad de alertas" });
   }
 }

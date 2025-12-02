@@ -454,9 +454,9 @@ async function processMessage(
  // 2️⃣ Técnica pendiente (sí / afirmación / pedir técnica)
 // 2️⃣ MANEJO DE TÉCNICAS — SIEMPRE DEBE EJECUTAR ANTES QUE RF8
 // 2️⃣ SI HAY UNA TÉCNICA PENDIENTE → SE ENTREGA SIEMPRE (ANTES DE RF8)
+// 2️⃣ Técnica pendiente (RF7 + técnicas)
 if (ctx.pendingIntent === "offer_technique") {
 
-  // reforzar detección de afirmación
   const isYes =
     detectAffirmative(lower) ||
     detectTechniqueRequest(lower) ||
@@ -468,6 +468,7 @@ if (ctx.pendingIntent === "offer_technique") {
     lower.trim() === "okay" ||
     lower.trim() === "vale";
 
+  // Si usuario confirma técnica
   if (isYes) {
     const emotion = ctx.lastEmotion || "ansiedad";
     const list = techniques[emotion] || techniques.ansiedad;
@@ -489,9 +490,36 @@ if (ctx.pendingIntent === "offer_technique") {
     return { reply: finalReply, emotion };
   }
 
-  // Si usuario dijo algo que NO es afirmación → NO evaluar emoción ahora
-  // Mantener técnica pendiente sin romper
+  // Si NO dice sí, NO analizar emoción todavía
 }
+
+
+// ⭐⭐ INSERTAR AQUÍ ⭐⭐
+
+// 2.0 BIS — Confirmación corta "sí" aunque se haya perdido pendingIntent
+if (
+  (lower.trim() === "si" || lower.trim() === "sí") &&
+  !ctx.pendingIntent &&
+  ctx.lastEmotion
+) {
+  const emotion = ctx.lastEmotion || "ansiedad";
+  const list = techniques[emotion] || techniques.ansiedad;
+  const tip = list[Math.floor(Math.random() * list.length)];
+
+  const finalReply = toneTransform[tone](tip);
+
+  await saveTurn({
+    sessionId,
+    type,
+    userId,
+    userText: text,
+    replyText: tip,
+    emotion,
+  });
+
+  return { reply: finalReply, emotion };
+}
+
 
 
 // 2.1 Detectar si el usuario pide técnica directamente SIN que la hayas ofrecido

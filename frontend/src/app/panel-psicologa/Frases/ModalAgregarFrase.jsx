@@ -21,7 +21,7 @@ export default function ModalAgregarFrase({ close, onAdd }) {
       const token =
         typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
-      const res = await fetch(`${API_URL}/api/admin/crisis-phrases`, {
+      const res = await fetch(`${API_URL}/api/psychologist/phrases`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

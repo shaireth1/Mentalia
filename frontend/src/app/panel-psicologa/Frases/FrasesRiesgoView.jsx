@@ -19,7 +19,7 @@ export default function FrasesRiesgoView() {
       const token =
         typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
-      const res = await fetch(`${API_URL}/api/admin/crisis-phrases`, {
+      const res = await fetch(`${API_URL}/api/psychologist/phrases`, {
         method: "GET",
         credentials: "include",
         headers: {
@@ -62,7 +62,7 @@ export default function FrasesRiesgoView() {
         typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
       const res = await fetch(
-        `${API_URL}/api/admin/crisis-phrases/${id}`,
+        `${API_URL}//api/psychologist/phrases/${id}`,
         {
           method: "DELETE",
           credentials: "include",

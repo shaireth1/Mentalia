@@ -9,6 +9,14 @@ function aggregateStats(usersCount, chatbotUsage, emotions, alerts) {
   return { usersCount, chatbotUsage, emotions, alerts };
 }
 
+async function safeAdminLog(payload) {
+  try {
+    await AdminLog.create(payload);
+  } catch (err) {
+    console.error("❌ Error registrando AdminLog (stats):", err);
+  }
+}
+
 export async function getStats(req, res) {
   try {
     const chatbotUsage = await Conversation.countDocuments();
@@ -20,9 +28,8 @@ export async function getStats(req, res) {
       { $group: { _id: "$emotion", total: { $sum: 1 } } }
     ]);
 
-    // RNF9
-    await AdminLog.create({
-      adminId: req.user.id,
+    await safeAdminLog({
+      adminId: req.user?.id,
       action: "CONSULTAR ESTADÍSTICAS",
       endpoint: "/stats",
       ip: req.ip
@@ -30,6 +37,7 @@ export async function getStats(req, res) {
 
     res.json(aggregateStats(usersCount, chatbotUsage, emotions, alerts));
   } catch (err) {
+    console.error("❌ Error obteniendo estadísticas:", err);
     res.status(500).json({ msg: "Error obteniendo estadísticas" });
   }
 }
@@ -54,10 +62,12 @@ export async function exportPDF(req, res) {
     doc.pipe(res);
 
     doc.text("Estadísticas MENTALIA");
+    doc.moveDown();
     doc.text(`Usuarios atendidos: ${stats.usersCount}`);
     doc.text(`Conversaciones totales: ${stats.chatbotUsage}`);
     doc.text(`Alertas críticas: ${stats.alerts}`);
 
+    doc.moveDown();
     doc.text("Emociones:");
     stats.emotions.forEach(e => {
       doc.text(`- ${e._id}: ${e.total}`);
@@ -65,15 +75,15 @@ export async function exportPDF(req, res) {
 
     doc.end();
 
-    // RNF9
-    await AdminLog.create({
-      adminId: req.user.id,
+    await safeAdminLog({
+      adminId: req.user?.id,
       action: "EXPORTAR PDF",
       endpoint: "/stats/pdf",
       ip: req.ip
     });
 
   } catch (err) {
+    console.error("❌ Error exportando PDF:", err);
     res.status(500).json({ msg: "Error exportando PDF" });
   }
 }
@@ -102,15 +112,15 @@ export async function exportExcel(req, res) {
     await workbook.xlsx.write(res);
     res.end();
 
-    // RNF9
-    await AdminLog.create({
-      adminId: req.user.id,
+    await safeAdminLog({
+      adminId: req.user?.id,
       action: "EXPORTAR EXCEL",
       endpoint: "/stats/excel",
       ip: req.ip
     });
 
   } catch (err) {
+    console.error("❌ Error exportando Excel:", err);
     res.status(500).json({ msg: "Error exportando Excel" });
   }
 }

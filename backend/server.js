@@ -1,9 +1,11 @@
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
-import dotenv from "dotenv";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
+import dotenv from "dotenv";
+dotenv.config({ path: "./.env" });
+
 
 import chatbotRoutes from "./routes/chatbot.js";
 import authRoutes from "./routes/auth.js";

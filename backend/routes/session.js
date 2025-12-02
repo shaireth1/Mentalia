@@ -2,10 +2,14 @@
 import express from "express";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 import Session from "../models/Session.js";
+import { endAnonSession } from "../controllers/sessionController.js";
 
 const router = express.Router();
 
-// PING — Actualiza actividad del usuario
+// ⭐ Ruta que TU FRONTEND NECESITA
+router.post("/end/:sessionId", endAnonSession);
+
+// PING — Actualiza actividad del usuario autenticado
 router.post("/ping", authMiddleware, async (req, res) => {
   try {
     const session = await Session.findOne({
