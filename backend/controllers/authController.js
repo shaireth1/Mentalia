@@ -136,7 +136,6 @@ export async function registerUser(req, res) {
   }
 }
 
-
 // 🔐 Login de usuario (RF6)
 export async function loginUser(req, res) {
   try {
@@ -167,12 +166,20 @@ export async function loginUser(req, res) {
       { expiresIn: "7d" }
     );
 
-    // Guardar sesión
+    // 🔥 Mantengo TODAS tus líneas, solo agrego las que faltaban
     const newSession = new Session({
       userId: user._id,
       token,
+
+      // ⭐ AGREGADO PARA QUE FUNCIONE EL PANEL Y EL CIERRE DE SESIONES
+      userAgent: req.headers["user-agent"] || "",
+      ip: req.ip || "",
+      isActive: true,
+      lastActivity: new Date(),
+
       createdAt: new Date(),
     });
+
     await newSession.save();
 
     // Crear cookie HttpOnly
@@ -186,6 +193,10 @@ export async function loginUser(req, res) {
     return res.status(200).json({
       msg: "Inicio de sesión exitoso.",
       token,
+
+      // ⭐ AGREGADO — NECESARIO PARA CERRAR SESIONES
+      sessionId: newSession.sessionId,
+
       user: {
         id: user._id,
         nombre: user.nombre,
@@ -193,7 +204,7 @@ export async function loginUser(req, res) {
         programa: user.programa,
         rol: user.rol,
         tone: user.tone,
-        consentimientoDatos: user.consentimientoDatos, // ⭐ IMPORTANTE
+        consentimientoDatos: user.consentimientoDatos,
       },
     });
 
@@ -205,7 +216,6 @@ export async function loginUser(req, res) {
     });
   }
 }
-
 
 // 🔐 Logout seguro
 export function logoutUser(req, res) {

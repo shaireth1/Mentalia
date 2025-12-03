@@ -26,7 +26,7 @@ export default function LoginPage() {
       const res = await fetch(`${baseUrl}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",  // ⭐ CORRECTO PARA RNF8
+        credentials: "include",
         body: JSON.stringify(formData),
       });
 
@@ -41,6 +41,11 @@ export default function LoginPage() {
         localStorage.setItem("token", data.token);
       }
 
+      // ⭐ Guardar sessionId
+      if (data.sessionId) {
+        localStorage.setItem("sessionId", data.sessionId);
+      }
+
       localStorage.setItem("user", JSON.stringify(data.user));
 
       if (data.user.rol === "admin") {
@@ -49,16 +54,13 @@ export default function LoginPage() {
       }
 
       router.push("/panel-usuario-autenticado");
-
     } catch (err) {
-      console.error(err);
       setError("No se pudo conectar con el servidor");
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-start bg-[#f2e1ff] p-8">
-      {/* HEADER */}
       <div className="w-full max-w-7xl mb-8 flex items-center justify-between">
         <Link
           href="/"
@@ -79,13 +81,9 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* LOGIN FORM */}
       <div className="bg-white/90 rounded-2xl shadow-2xl grid md:grid-cols-2 w-full max-w-7xl overflow-hidden">
         <div className="min-h-[540px] flex flex-col justify-between bg-white">
-          <img
-            src="/icono-registrarse.jpg"
-            className="w-full h-full object-cover"
-          />
+          <img src="/icono-registrarse.jpg" className="w-full h-full object-cover" />
         </div>
 
         <div className="p-12 flex flex-col justify-center bg-white min-h-[540px]">
@@ -132,10 +130,7 @@ export default function LoginPage() {
             </div>
 
             <div className="text-right text-sm">
-              <Link
-                href="/forgot-password"
-                className="text-purple-700 hover:underline"
-              >
+              <Link href="/forgot-password" className="text-purple-700 hover:underline">
                 ¿Olvidaste tu contraseña?
               </Link>
             </div>

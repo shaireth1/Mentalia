@@ -2,16 +2,17 @@
 import Session from "../models/Session.js";
 import ChatSession from "../models/ChatSession.js";
 
-/**
- * Obtener sesiones activas del usuario logueado
- * (para pintarlas en Ajustes → Seguridad y sesiones)
- */
+// ==========================
+// Obtener sesiones activas
+// ==========================
 export async function getSessions(req, res) {
   try {
     const sessions = await Session.find({
       userId: req.user.id,
       isActive: true,
-    }).sort({ createdAt: -1 });
+    })
+      .sort({ createdAt: -1 })
+      .lean();
 
     return res.json(sessions);
   } catch (error) {
@@ -20,29 +21,45 @@ export async function getSessions(req, res) {
   }
 }
 
-/**
- * Cerrar la sesión ACTUAL (RF3 opción “cerrar solo esta sesión”)
- */
-export async function logoutCurrent(req, res) {
+// ==========================
+// Cerrar SOLO una sesión
+// ==========================
+export async function logoutOne(req, res) {
   try {
-    const token = req.token; 
-    if (!token) return res.status(400).json({ msg: "Token no encontrado" });
+    const { sessionId } = req.params;
 
     await Session.findOneAndUpdate(
-      { token, userId: req.user.id },
+      { sessionId, userId: req.user.id },
+      { isActive: false }
+    );
+
+    return res.json({ msg: "Sesión cerrada correctamente" });
+  } catch (error) {
+    console.error("❌ Error en logoutOne:", error);
+    return res.status(500).json({ msg: "Error al cerrar sesión individual" });
+  }
+}
+
+// ==========================
+// Cerrar SOLO la sesión actual
+// ==========================
+export async function logoutCurrent(req, res) {
+  try {
+    await Session.findOneAndUpdate(
+      { userId: req.user.id, token: req.token, isActive: true },
       { isActive: false }
     );
 
     return res.json({ msg: "Sesión actual cerrada correctamente" });
   } catch (error) {
     console.error("❌ Error en logoutCurrent:", error);
-    return res.status(500).json({ msg: "Error al cerrar sesión actual" });
+    return res.status(500).json({ msg: "Error al cerrar la sesión actual" });
   }
 }
 
-/**
- * Cerrar TODAS las sesiones del usuario (RF3 opción “cerrar todas”)
- */
+// ==========================
+// Cerrar TODAS las sesiones
+// ==========================
 export async function logoutAll(req, res) {
   try {
     await Session.updateMany(
@@ -57,9 +74,9 @@ export async function logoutAll(req, res) {
   }
 }
 
-/**
- * 🔥 Cerrar sesión anónima correctamente (lo que espera TU frontend)
- */
+// ==========================
+// Cerrar sesión anónima
+// ==========================
 export async function endAnonSession(req, res) {
   try {
     const { sessionId } = req.params;
@@ -68,13 +85,11 @@ export async function endAnonSession(req, res) {
       return res.status(400).json({ ok: false, msg: "ID inválido" });
     }
 
-    // Cerrar sesión anónima en BD si existe
     await ChatSession.findOneAndUpdate(
       { sessionId },
       { endedAt: new Date() }
     );
 
-    console.log("✔ Sesión anónima finalizada:", sessionId);
     return res.json({ ok: true });
   } catch (error) {
     console.error("❌ Error en endAnonSession:", error);

@@ -1,4 +1,3 @@
-// backend/middleware/authMiddleware.js
 import jwt from "jsonwebtoken";
 import Session from "../models/Session.js";
 
@@ -6,32 +5,32 @@ export async function authMiddleware(req, res, next) {
   try {
     let token = null;
 
-    // 1️⃣ Intentar leer desde Authorization: Bearer xxxx
+    // Token por headers
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith("Bearer ")) {
       token = authHeader.split(" ")[1];
     }
 
-    // 2️⃣ Si no hubo token en headers, intentar desde cookie
+    // Token por cookie
     if (!token && req.cookies?.token) {
       token = req.cookies.token;
     }
 
-    // 3️⃣ Si sigue sin token → 401
     if (!token) {
-      return res.status(401).json({ msg: "No autenticado. No hay token." });
+      return res.status(401).json({ msg: "No hay token." });
     }
 
-    // 4️⃣ Verificar JWT
+    // Verificar JWT
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch {
-      return res.status(401).json({ msg: "Token inválido o expirado." });
+      return res.status(401).json({ msg: "Token inválido." });
     }
 
-    // 5️⃣ Validar sesión activa usando tu modelo Session
+    // 🔥 VALIDAR SESIÓN ACTIVA POR TOKEN
     const session = await Session.findOne({
+      token,
       userId: decoded.id,
       isActive: true,
     });
@@ -40,7 +39,7 @@ export async function authMiddleware(req, res, next) {
       return res.status(401).json({ msg: "Sesión no encontrada o cerrada." });
     }
 
-    // 6️⃣ Verificar expiración por inactividad (1h)
+    // Expiración por inactividad (1h)
     const ONE_HOUR = 60 * 60 * 1000;
     if (Date.now() - session.lastActivity > ONE_HOUR) {
       session.isActive = false;
@@ -48,16 +47,16 @@ export async function authMiddleware(req, res, next) {
       return res.status(440).json({ msg: "Sesión expirada por inactividad." });
     }
 
-    // 🔄 7️⃣ Refrescar última actividad
     session.lastActivity = new Date();
     await session.save();
 
-    // 8️⃣ Guardar usuario autenticado
     req.user = {
       id: decoded.id,
       email: decoded.email,
       rol: decoded.rol,
     };
+
+    req.token = token;
 
     next();
   } catch (err) {

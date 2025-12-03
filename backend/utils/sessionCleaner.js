@@ -1,24 +1,20 @@
 // backend/utils/sessionCleaner.js
-
 import Session from "../models/Session.js";
 
 export async function cleanInactiveSessions() {
   try {
-    const THIRTY_MIN = 60 * 60 * 1000;
-
-
-    const now = Date.now();
+    const ONE_HOUR = 60 * 60 * 1000;
 
     const result = await Session.updateMany(
       {
         isActive: true,
-        lastActivity: { $lt: new Date(now - THIRTY_MIN) }
+        lastActivity: { $lt: new Date(Date.now() - ONE_HOUR) },
       },
-      { $set: { isActive: false } }
+      { isActive: false }
     );
 
     if (result.modifiedCount > 0) {
-      console.log(`⏳ Sesiones cerradas por inactividad: ${result.modifiedCount}`);
+      console.log(`⏳ ${result.modifiedCount} sesiones marcadas como inactivas`);
     }
   } catch (err) {
     console.error("❌ Error limpiando sesiones inactivas:", err);

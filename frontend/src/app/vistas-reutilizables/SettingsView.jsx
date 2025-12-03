@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Monitor, Smartphone, Laptop, LogOut } from "lucide-react";
+import { Monitor, Smartphone, Laptop, LogOut, XCircle } from "lucide-react";
 
 const baseUrl =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 function guessDeviceType(userAgent = "") {
+  if (!userAgent) return "Desktop";
+
   const ua = userAgent.toLowerCase();
   if (ua.includes("mobile") || ua.includes("android") || ua.includes("iphone")) {
     return "Smartphone";
@@ -36,9 +38,15 @@ export default function SettingsView() {
   const token =
     typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
-  // Cargar sesiones desde el backend
+  const currentSessionId =
+    typeof window !== "undefined" ? localStorage.getItem("sessionId") : null;
+
+  // ================================
+  // Cargar sesiones activas
+  // ================================
   useEffect(() => {
     if (!token) {
+      setMsg("No hay sesión activa.");
       setLoading(false);
       return;
     }
@@ -52,14 +60,13 @@ export default function SettingsView() {
         });
 
         const data = await res.json();
+
         if (!res.ok) {
-          console.error(data);
           setMsg(data.msg || "No se pudieron cargar las sesiones");
         } else {
-          setSessions(data);
+          setSessions(data || []);
         }
       } catch (err) {
-        console.error(err);
         setMsg("Error al cargar las sesiones");
       } finally {
         setLoading(false);
@@ -69,55 +76,64 @@ export default function SettingsView() {
     fetchSessions();
   }, [token]);
 
-  const currentToken =
-    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  // ================================
+  // Cerrar SOLO esta sesión
+  // ================================
+  const handleCloseCurrent = async () => {
+    if (!token || !currentSessionId) return;
 
-  const handleLogoutCurrent = async () => {
-    if (!token) return;
     try {
-      const res = await fetch(`${baseUrl}/api/sessions/logout-current`, {
-        method: "POST",
+      await fetch(`${baseUrl}/api/sessions/${currentSessionId}`, {
+        method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      const data = await res.json();
-      if (!res.ok) {
-        setMsg(data.msg || "No se pudo cerrar la sesión actual");
-        return;
-      }
 
-      // limpiar y redirigir
       localStorage.removeItem("token");
       localStorage.removeItem("user");
+      localStorage.removeItem("sessionId");
       window.location.href = "/login";
-    } catch (err) {
-      console.error(err);
-      setMsg("Error al cerrar la sesión actual");
+    } catch {
+      setMsg("Error al cerrar la sesión actual.");
     }
   };
 
-  const handleLogoutAll = async () => {
-    if (!token) return;
+  // ================================
+  // Cerrar SESIÓN INDIVIDUAL
+  // ================================
+  const handleCloseOne = async (id) => {
     try {
-      const res = await fetch(`${baseUrl}/api/sessions/logout-all`, {
+      await fetch(`${baseUrl}/api/sessions/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setSessions((prev) => prev.filter((s) => s._id !== id));
+    } catch {
+      setMsg("No se pudo cerrar esa sesión.");
+    }
+  };
+
+  // ================================
+  // Cerrar TODAS
+  // ================================
+  const handleCloseAll = async () => {
+    try {
+      await fetch(`${baseUrl}/api/sessions/logout-all`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      const data = await res.json();
-      if (!res.ok) {
-        setMsg(data.msg || "No se pudieron cerrar todas las sesiones");
-        return;
-      }
 
       localStorage.removeItem("token");
       localStorage.removeItem("user");
+      localStorage.removeItem("sessionId");
+
       window.location.href = "/login";
-    } catch (err) {
-      console.error(err);
-      setMsg("Error al cerrar todas las sesiones");
+    } catch {
+      setMsg("Error al cerrar todas las sesiones.");
     }
   };
 
@@ -128,9 +144,8 @@ export default function SettingsView() {
           Seguridad y Sesiones
         </h2>
 
-        {/* Botón para RF3: cerrar todas las sesiones */}
         <button
-          onClick={handleLogoutAll}
+          onClick={handleCloseAll}
           className="text-xs font-medium text-red-500 hover:text-red-600 border border-red-200 px-3 py-1 rounded-full"
         >
           Cerrar todas las sesiones
@@ -138,28 +153,21 @@ export default function SettingsView() {
       </div>
 
       <p className="text-sm text-gray-500 mb-4">
-        Aquí puedes ver los dispositivos donde has iniciado sesión con tu cuenta
-        de{" "}
-        <span className="text-purple-600 font-medium">MENTALIA</span> y cerrar
-        sesión en alguno si lo deseas.
+        Aquí puedes ver tus dispositivos con sesión activa en{" "}
+        <span className="text-purple-600 font-medium">MENTALIA</span>.
       </p>
 
-      {msg && (
-        <p className="text-xs text-center text-red-500 mb-3">{msg}</p>
-      )}
+      {msg && <p className="text-xs text-center text-red-500 mb-3">{msg}</p>}
 
       {loading ? (
         <p className="text-sm text-gray-400">Cargando sesiones...</p>
       ) : sessions.length === 0 ? (
-        <p className="text-sm text-gray-400">
-          No hay sesiones activas registradas.
-        </p>
+        <p className="text-sm text-gray-400">No hay sesiones activas.</p>
       ) : (
         <div className="space-y-4">
           {sessions.map((s) => {
-            const isCurrent = s.token === currentToken;
             const type = guessDeviceType(s.userAgent);
-            const browserText = s.userAgent || "Navegador desconocido";
+            const isCurrent = s.sessionId === currentSessionId;
 
             return (
               <div
@@ -174,20 +182,17 @@ export default function SettingsView() {
                   <div className="bg-white rounded-full p-2 shadow-sm">
                     {getIcon(type)}
                   </div>
+
                   <div>
                     <p className="font-medium text-gray-800">
                       {isCurrent ? "Este dispositivo" : "Otro dispositivo"}
-                      {isCurrent && (
-                        <span className="text-xs text-purple-700 font-semibold ml-2">
-                          (Actual)
-                        </span>
-                      )}
                     </p>
+
                     <p className="text-sm text-gray-500">
-                      {browserText}
+                      {s.userAgent || "Navegador no identificado"}
                     </p>
+
                     <p className="text-xs text-gray-400">
-                      {s.location || "Ubicación no disponible"} •{" "}
                       {new Date(s.createdAt).toLocaleString()}
                     </p>
                   </div>
@@ -195,17 +200,20 @@ export default function SettingsView() {
 
                 {isCurrent ? (
                   <button
-                    className="flex items-center gap-1 text-sm font-medium text-purple-700 hover:text-purple-900 transition"
-                    onClick={handleLogoutCurrent}
+                    onClick={handleCloseCurrent}
+                    className="text-sm text-purple-700 hover:text-purple-900 flex items-center gap-1"
                   >
                     <LogOut className="w-4 h-4" />
-                    Cerrar sesión aquí
+                    Cerrar aquí
                   </button>
                 ) : (
-                  <span className="flex items-center gap-1 text-sm text-gray-400">
-                    <LogOut className="w-4 h-4" />
-                    Sesión activa
-                  </span>
+                  <button
+                    onClick={() => handleCloseOne(s.sessionId)}
+                    className="text-sm text-red-600 hover:text-red-800 flex items-center gap-1"
+                  >
+                    <XCircle className="w-4 h-4" />
+                    Cerrar sesión
+                  </button>
                 )}
               </div>
             );
