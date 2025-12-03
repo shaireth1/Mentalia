@@ -1,58 +1,67 @@
+"use client";
+
 import { Eye, Pencil, Trash2 } from "lucide-react";
 
 export default function ContenidoItem({ data }) {
+  // wrapper relative para que los botones floten dentro del card sin romper el flujo
   return (
-    <div className="
-      bg-white 
-      rounded-2xl 
-      shadow-md 
-      border 
-      p-7 
-      flex 
-      justify-between 
-      items-center 
-      w-full
-    ">
-      
-      {/* Columna izquierda */}
-      <div className="flex flex-col">
+    <div className="relative w-full bg-white rounded-2xl border border-gray-200 p-6 shadow-sm">
+      {/* Acción: grupo de botones en la esquina superior derecha */}
+      <div className="absolute right-6 top-6 flex items-center gap-3">
+        <button
+          aria-label="ver"
+          className="w-10 h-10 flex items-center justify-center rounded-lg bg-white border border-gray-100 hover:bg-gray-50 shadow-sm transition"
+        >
+          <Eye size={18} className="text-gray-600" />
+        </button>
 
-        {/* Chips */}
-        <div className="flex gap-3 mb-3">
-          <span className="bg-blue-100 text-blue-600 px-4 py-1 text-xs font-semibold rounded-lg">
-            {data.tipo}
+        <button
+          aria-label="editar"
+          className="w-10 h-10 flex items-center justify-center rounded-lg bg-white border border-gray-100 hover:bg-gray-50 shadow-sm transition"
+        >
+          <Pencil size={18} className="text-gray-600" />
+        </button>
+
+        <button
+          aria-label="eliminar"
+          className="w-10 h-10 flex items-center justify-center rounded-lg bg-white border border-red-50 hover:bg-red-50 shadow-sm transition"
+        >
+          <Trash2 size={18} className="text-red-600" />
+        </button>
+      </div>
+
+      {/* Contenido del card (evita que las acciones tapen texto) */}
+      <div className="flex flex-col gap-3">
+        {/* Tags */}
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold px-3 py-1 bg-blue-100 text-blue-600 rounded-full">
+            {data.tipo ?? "TÉCNICA"}
           </span>
 
-          <span className="bg-gray-100 text-gray-600 px-4 py-1 text-xs rounded-lg">
-            {data.categoria}
+          <span className="text-xs font-medium px-3 py-1 bg-gray-100 text-gray-600 rounded-full">
+            {data.categoria ?? "ansiedad"}
           </span>
         </div>
 
-        <h3 className="text-lg font-semibold mb-1">{data.titulo}</h3>
-        <p className="text-gray-600 text-sm mb-2">{data.descripcion}</p>
+        {/* Título */}
+        <h2 className="text-lg font-semibold text-gray-800">
+          {data.titulo ?? "Título del contenido"}
+        </h2>
 
-        <p className="text-gray-500 text-xs">
-          Creado por {data.creador} el {data.fecha}
+        {/* Descripción */}
+        <p className="text-sm text-gray-600">
+          {data.descripcion ?? "Breve descripción del contenido..."}
         </p>
-      </div>
 
-      {/* Acciones */}
-      <div className="flex gap-4">
-
-        <button className="w-10 h-10 flex items-center justify-center rounded-full border hover:bg-gray-100 transition">
-          <Eye className="w-5 h-5" />
-        </button>
-
-        <button className="w-10 h-10 flex items-center justify-center rounded-full border hover:bg-gray-100 transition">
-          <Pencil className="w-5 h-5" />
-        </button>
-
-        <button className="w-10 h-10 flex items-center justify-center rounded-full border hover:bg-red-50 text-red-500 transition">
-          <Trash2 className="w-5 h-5" />
-        </button>
-
+        {/* Autor y fecha */}
+        <p className="text-sm text-gray-500 mt-1">
+          Creado por {data.creador ?? "Autor"} el {data.fecha ?? "DD/MM/YYYY"}
+        </p>
       </div>
     </div>
   );
 }
+
+
+
 

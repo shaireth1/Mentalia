@@ -18,7 +18,6 @@ export default function RecursosView() {
       tipo: "Técnica",
       categoria: "Ansiedad",
       tiempo: "10 min",
-      rating: 4.8,
       gratis: true,
       descripcion:
         "Aprende ejercicios que reducen la ansiedad y mejoran el bienestar.",
@@ -28,7 +27,6 @@ export default function RecursosView() {
       tipo: "Artículo",
       categoria: "Estrés",
       tiempo: "8 min lectura",
-      rating: 4.6,
       gratis: true,
       descripcion:
         "Estrategias para estudiantes del SENA para gestionar presión académica.",
@@ -38,7 +36,6 @@ export default function RecursosView() {
       tipo: "Video",
       categoria: "Mindfulness",
       tiempo: "25 min",
-      rating: 4.9,
       gratis: true,
       descripcion:
         "Una introducción completa a la práctica guiada del mindfulness.",
@@ -51,7 +48,6 @@ export default function RecursosView() {
       tipo: "Podcast",
       categoria: "Estudio",
       tiempo: "45 min",
-      rating: 4.7,
       gratis: true,
       descripcion:
         "Conversaciones con psicólogos especializados en bienestar estudiantil.",
