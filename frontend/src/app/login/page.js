@@ -26,7 +26,7 @@ export default function LoginPage() {
       const res = await fetch(`${baseUrl}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
+        credentials: "include",  // ⭐ CORRECTO PARA RNF8
         body: JSON.stringify(formData),
       });
 
@@ -41,11 +41,6 @@ export default function LoginPage() {
         localStorage.setItem("token", data.token);
       }
 
-      // ⭐ Guardar sessionId
-      if (data.sessionId) {
-        localStorage.setItem("sessionId", data.sessionId);
-      }
-
       localStorage.setItem("user", JSON.stringify(data.user));
 
       if (data.user.rol === "admin") {
@@ -54,36 +49,45 @@ export default function LoginPage() {
       }
 
       router.push("/panel-usuario-autenticado");
+
     } catch (err) {
+      console.error(err);
       setError("No se pudo conectar con el servidor");
     }
   };
+return (
+  <div className="min-h-screen bg-[#f2e1ff] px-8 py-10 flex flex-col">
 
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-start bg-[#f2e1ff] p-8">
-      <div className="w-full max-w-7xl mb-8 flex items-center justify-between">
-        <Link
-          href="/"
-          className="flex items-center text-purple-700 font-medium hover:text-purple-900 transition"
-        >
-          <ArrowLeft size={18} className="mr-2" />
-          Volver
-        </Link>
+    {/* HEADER */}
+    <div className="w-full max-w-7xl mx-auto mb-8 flex items-center justify-between">
+      <Link
+        href="/"
+        className="flex items-center text-purple-700 font-medium hover:text-purple-900 transition"
+      >
+        <ArrowLeft size={18} className="mr-2" />
+        Volver
+      </Link>
 
-        <div className="flex items-center">
-          <Heart className="w-7 h-7 text-purple-700" />
-          <div className="flex flex-col items-start ml-3">
-            <span className="text-2xl font-medium tracking-wide text-purple-700">
-              MENTALIA
-            </span>
-            <span className="text-xs text-purple-500 -mt-1">SENA</span>
-          </div>
+      <div className="flex items-center">
+        <Heart className="w-7 h-7 text-purple-700" />
+        <div className="flex flex-col items-start ml-3">
+          <span className="text-2xl font-medium tracking-wide text-purple-700">
+            MENTALIA
+          </span>
+          <span className="text-xs text-purple-500 -mt-1">SENA</span>
         </div>
       </div>
+    </div>
 
+    {/* CONTENEDOR QUE CENTRA LA TARJETA */}
+    <div className="flex flex-1 items-center justify-center">
       <div className="bg-white/90 rounded-2xl shadow-2xl grid md:grid-cols-2 w-full max-w-7xl overflow-hidden">
-        <div className="min-h-[540px] flex flex-col justify-between bg-white">
-          <img src="/icono-registrarse.jpg" className="w-full h-full object-cover" />
+
+        <div className="min-h-[540px] bg-white">
+          <img
+            src="/icono-registrarse.jpg"
+            className="w-full h-full object-cover"
+          />
         </div>
 
         <div className="p-12 flex flex-col justify-center bg-white min-h-[540px]">
@@ -96,6 +100,7 @@ export default function LoginPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
+
             <div>
               <label className="block text-sm font-medium text-purple-800">
                 Correo Electrónico *
@@ -120,6 +125,7 @@ export default function LoginPage() {
                 onChange={handleChange}
                 required
               />
+
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
@@ -130,7 +136,10 @@ export default function LoginPage() {
             </div>
 
             <div className="text-right text-sm">
-              <Link href="/forgot-password" className="text-purple-700 hover:underline">
+              <Link
+                href="/forgot-password"
+                className="text-purple-700 hover:underline"
+              >
                 ¿Olvidaste tu contraseña?
               </Link>
             </div>
@@ -151,8 +160,11 @@ export default function LoginPage() {
               </Link>
             </p>
           </div>
+
         </div>
       </div>
     </div>
-  );
+
+  </div>
+);
 }
