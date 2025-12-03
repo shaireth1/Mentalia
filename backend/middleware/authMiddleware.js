@@ -1,3 +1,4 @@
+// backend/middleware/authMiddleware.js
 import jwt from "jsonwebtoken";
 import Session from "../models/Session.js";
 
@@ -5,13 +6,13 @@ export async function authMiddleware(req, res, next) {
   try {
     let token = null;
 
-    // Token por headers
+    // Desde el header Authorization
     const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith("Bearer ")) {
+    if (authHeader?.startsWith("Bearer ")) {
       token = authHeader.split(" ")[1];
     }
 
-    // Token por cookie
+    // Desde cookie
     if (!token && req.cookies?.token) {
       token = req.cookies.token;
     }
@@ -20,7 +21,7 @@ export async function authMiddleware(req, res, next) {
       return res.status(401).json({ msg: "No hay token." });
     }
 
-    // Verificar JWT
+    // Validar JWT
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -28,7 +29,7 @@ export async function authMiddleware(req, res, next) {
       return res.status(401).json({ msg: "Token inválido." });
     }
 
-    // 🔥 VALIDAR SESIÓN ACTIVA POR TOKEN
+    // Validar sesión activa
     const session = await Session.findOne({
       token,
       userId: decoded.id,
@@ -39,7 +40,7 @@ export async function authMiddleware(req, res, next) {
       return res.status(401).json({ msg: "Sesión no encontrada o cerrada." });
     }
 
-    // Expiración por inactividad (1h)
+    // Expiración por inactividad (1 hora)
     const ONE_HOUR = 60 * 60 * 1000;
     if (Date.now() - session.lastActivity > ONE_HOUR) {
       session.isActive = false;
@@ -47,9 +48,11 @@ export async function authMiddleware(req, res, next) {
       return res.status(440).json({ msg: "Sesión expirada por inactividad." });
     }
 
+    // Actualizar actividad
     session.lastActivity = new Date();
     await session.save();
 
+    // Adjuntar usuario a la request
     req.user = {
       id: decoded.id,
       email: decoded.email,

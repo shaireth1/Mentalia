@@ -18,6 +18,9 @@ import SettingsView from "../vistas-reutilizables/SettingsView";
 import GraficaAlertasCriticas from "./GraficaAlertasCriticas";
 import ContenidoView from "./Contenido/Contenido";
 
+// ⭐ NUEVO — para RNF9
+import LogsView from "./logs/LogsView";
+
 export default function PanelPsicologa() {
   const router = useRouter();
   const [storedUser, setStoredUser] = useState(null);
@@ -159,6 +162,13 @@ export default function PanelPsicologa() {
 
             {/* EXPORTACIONES */}
             {activeTab === "Exportaciones" && <ExportacionesView />}
+
+            {/* ⭐ LOGS — RNF9 */}
+            {activeTab === "Logs" && (
+              <div className="mt-2">
+                <LogsView />
+              </div>
+            )}
           </main>
         </>
       )}

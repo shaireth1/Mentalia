@@ -6,7 +6,6 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function ExportacionesView() {
 
-  // Descargar PDF
   const descargarPDF = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -32,7 +31,6 @@ export default function ExportacionesView() {
     }
   };
 
-  // Descargar Excel
   const descargarExcel = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -109,7 +107,6 @@ export default function ExportacionesView() {
           </div>
         </div>
 
-        {/* INFO */}
         <div className="mt-10">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">
             Datos Incluidos en las Exportaciones
@@ -149,6 +146,7 @@ export default function ExportacionesView() {
             </p>
           </div>
         </div>
+
       </div>
     </div>
   );

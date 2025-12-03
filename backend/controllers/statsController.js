@@ -14,7 +14,8 @@ function aggregateStats({
   usersCount,
   chatbotUsage,
   emotions,
-  alerts,
+  alertsCritical,
+  alertsModerate,
   avgSessionTime,
   registeredUsers,
   anonymousUsers
@@ -23,7 +24,8 @@ function aggregateStats({
     usersCount,
     chatbotUsage,
     emotions,
-    alerts,
+    alertsCritical,
+    alertsModerate,
     avgSessionTime,
     registeredUsers,
     anonymousUsers
@@ -42,40 +44,30 @@ async function safeAdminLog(payload) {
 
 async function calculateStats() {
   const chatbotUsage = await Conversation.countDocuments();
-  const alerts = await Alert.countDocuments({ isCritical: true });
-  const usersCount = await JournalEntry.distinct("userId").then((arr) => arr.length);
+  const alertsCritical = await Alert.countDocuments({ isCritical: true });
+  const alertsModerate = await Alert.countDocuments({ isCritical: false });
+  const usersCount = await JournalEntry.distinct("userId").then(arr => arr.length);
 
   const emotions = await JournalEntry.aggregate([
     { $match: { deleted: false } },
-    { $group: { _id: "$emotion", total: { $sum: 1 } } }
+    { $group: { _id: "$emotion", total: { $sum: 1 } } },
+    { $sort: { total: -1 } }
   ]);
 
-  // Tiempo promedio de sesión (en segundos) usando startedAt y endedAt reales
   const durationsAgg = await Conversation.aggregate([
-    {
-      $match: {
-        startedAt: { $ne: null },
-        endedAt: { $ne: null }
-      }
-    },
+    { $match: { startedAt: { $ne: null }, endedAt: { $ne: null } } },
     {
       $project: {
         duration: {
-          $divide: [{ $subtract: ["$endedAt", "$startedAt"] }, 1000] // ms → s
+          $divide: [{ $subtract: ["$endedAt", "$startedAt"] }, 1000]
         }
       }
     },
-    {
-      $group: {
-        _id: null,
-        avgDuration: { $avg: "$duration" }
-      }
-    }
+    { $group: { _id: null, avgDuration: { $avg: "$duration" } } }
   ]);
 
   const avgSessionTime = durationsAgg[0]?.avgDuration || 0;
 
-  // Registrados vs anónimos usando field type: "registrado" | "anonimo"
   const registeredUsers = await Conversation.countDocuments({ type: "registrado" });
   const anonymousUsers = await Conversation.countDocuments({ type: "anonimo" });
 
@@ -83,7 +75,8 @@ async function calculateStats() {
     usersCount,
     chatbotUsage,
     emotions,
-    alerts,
+    alertsCritical,
+    alertsModerate,
     avgSessionTime,
     registeredUsers,
     anonymousUsers
@@ -110,30 +103,53 @@ export async function getStats(req, res) {
   }
 }
 
+/* ----------- PDF PROFESIONAL ----------- */
 export async function exportPDF(req, res) {
   try {
     const stats = await calculateStats();
 
-    const doc = new PDFDocument();
+    const doc = new PDFDocument({ margin: 50 });
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", "attachment; filename=estadisticas.pdf");
-
     doc.pipe(res);
 
-    doc.fontSize(18).text("Reporte de Estadísticas - MENTALIA", { underline: true });
+    /* Título */
+    doc.fontSize(22).text("Reporte de Estadísticas - MENTALIA", { underline: true });
+    doc.moveDown(1.5);
+
+    /* Sección: Métricas generales */
+    doc.fontSize(16).text("1. Métricas Generales", { underline: true });
     doc.moveDown();
 
-    doc.fontSize(12).text(`Usuarios atendidos: ${stats.usersCount}`);
-    doc.text(`Conversaciones totales: ${stats.chatbotUsage}`);
-    doc.text(`Alertas críticas: ${stats.alerts}`);
-    doc.text(`Tiempo promedio de sesión: ${stats.avgSessionTime.toFixed(2)} segundos`);
-    doc.text(`Usuarios registrados: ${stats.registeredUsers}`);
-    doc.text(`Usuarios anónimos: ${stats.anonymousUsers}`);
+    doc.fontSize(12)
+      .text(`• Usuarios atendidos: ${stats.usersCount}`)
+      .text(`• Conversaciones totales: ${stats.chatbotUsage}`)
+      .text(`• Alertas críticas: ${stats.alertsCritical}`)
+      .text(`• Alertas moderadas: ${stats.alertsModerate}`)
+      .text(`• Tiempo promedio de sesión: ${stats.avgSessionTime.toFixed(2)} s`)
+      .text(`• Usuarios registrados: ${stats.registeredUsers}`)
+      .text(`• Usuarios anónimos: ${stats.anonymousUsers}`);
 
+    doc.moveDown(1.5);
+
+    /* Sección emociones */
+    doc.fontSize(16).text("2. Emociones Detectadas", { underline: true });
     doc.moveDown();
-    doc.text("Emociones detectadas:");
-    stats.emotions.forEach((e) => {
-      doc.text(`• ${e._id}: ${e.total}`);
+
+    if (stats.emotions.length === 0) {
+      doc.text("No hay registros emocionales aún.");
+    } else {
+      stats.emotions.forEach(e => {
+        doc.text(`• ${e._id}: ${e.total}`);
+      });
+    }
+
+    doc.moveDown(1.5);
+
+    /* Cierre */
+    doc.fontSize(10).text("Reporte generado automáticamente por MENTALIA.", {
+      align: "right",
+      opacity: 0.7
     });
 
     doc.end();
@@ -150,32 +166,39 @@ export async function exportPDF(req, res) {
   }
 }
 
+/* ----------- EXCEL PROFESIONAL ----------- */
 export async function exportExcel(req, res) {
   try {
     const stats = await calculateStats();
 
     const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet("Estadísticas");
+    const sheet = workbook.addWorksheet("Estadísticas MENTALIA");
 
+    /* Columnas */
     sheet.columns = [
-      { header: "Métrica", key: "metric", width: 35 },
-      { header: "Valor", key: "value", width: 20 }
+      { header: "Categoría", key: "category", width: 35 },
+      { header: "Descripción", key: "value", width: 30 }
     ];
 
-    sheet.addRow({ metric: "Usuarios atendidos", value: stats.usersCount });
-    sheet.addRow({ metric: "Conversaciones totales", value: stats.chatbotUsage });
-    sheet.addRow({ metric: "Alertas críticas", value: stats.alerts });
-    sheet.addRow({ metric: "Tiempo promedio de sesión (s)", value: stats.avgSessionTime.toFixed(2) });
-    sheet.addRow({ metric: "Usuarios registrados", value: stats.registeredUsers });
-    sheet.addRow({ metric: "Usuarios anónimos", value: stats.anonymousUsers });
+    /* Sección métricas generales */
+    sheet.addRow(["MÉTRICAS GENERALES", ""]);
+    sheet.addRow(["Usuarios atendidos", stats.usersCount]);
+    sheet.addRow(["Conversaciones totales", stats.chatbotUsage]);
+    sheet.addRow(["Alertas críticas", stats.alertsCritical]);
+    sheet.addRow(["Alertas moderadas", stats.alertsModerate]);
+    sheet.addRow(["Tiempo promedio de sesión (s)", stats.avgSessionTime.toFixed(2)]);
+    sheet.addRow(["Usuarios registrados", stats.registeredUsers]);
+    sheet.addRow(["Usuarios anónimos", stats.anonymousUsers]);
 
-    sheet.addRow({});
-    sheet.addRow({ metric: "Emociones detectadas", value: "" });
+    sheet.addRow([]);
 
-    stats.emotions.forEach((e) => {
-      sheet.addRow({ metric: `• ${e._id}`, value: e.total });
+    /* Sección emociones */
+    sheet.addRow(["EMOCIONES DETECTADAS", ""]);
+    stats.emotions.forEach(e => {
+      sheet.addRow([e._id, e.total]);
     });
 
+    /* Descarga */
     res.setHeader(
       "Content-Type",
       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -197,11 +220,9 @@ export async function exportExcel(req, res) {
   }
 }
 
-/* ----------------- NUEVO: /stats/dashboard (tendencias) ----------------- */
-
+/* ----------------- /stats/dashboard ----------------- */
 export async function getDashboardStats(req, res) {
   try {
-    // Últimos 5 meses (incluyendo el actual)
     const now = new Date();
     const months = [];
     const chatbotUsage = [];
@@ -213,77 +234,33 @@ export async function getDashboardStats(req, res) {
       const start = new Date(d.getFullYear(), d.getMonth(), 1);
       const end = new Date(d.getFullYear(), d.getMonth() + 1, 1);
 
-      const label = MONTH_LABELS[d.getMonth()];
-      months.push(label);
+      months.push(MONTH_LABELS[d.getMonth()]);
 
-      // Conversaciones del mes
-      const convCount = await Conversation.countDocuments({
-        createdAt: { $gte: start, $lt: end }
-      });
-      chatbotUsage.push(convCount);
+      chatbotUsage.push(
+        await Conversation.countDocuments({ createdAt: { $gte: start, $lt: end } })
+      );
 
-      // Alertas críticas y moderadas del mes
-      const crit = await Alert.countDocuments({
-        isCritical: true,
-        createdAt: { $gte: start, $lt: end }
-      });
+      alertsCritical.push(
+        await Alert.countDocuments({ isCritical: true, createdAt: { $gte: start, $lt: end } })
+      );
 
-      const mod = await Alert.countDocuments({
-        isCritical: false,
-        createdAt: { $gte: start, $lt: end }
-      });
-
-      alertsCritical.push(crit);
-      alertsModerate.push(mod);
+      alertsModerate.push(
+        await Alert.countDocuments({ isCritical: false, createdAt: { $gte: start, $lt: end } })
+      );
     }
 
-    // Emociones totales (no por mes, pero sí reales)
+    /* Emociones totales */
     const emotionsAgg = await JournalEntry.aggregate([
       { $match: { deleted: false } },
       { $group: { _id: "$emotion", total: { $sum: 1 } } },
       { $sort: { total: -1 } }
     ]);
 
-    // Formato para frontend
-    const colorsByEmotion = {
-      ansiedad: "#8A5BFF",
-      estrés: "#FF4D4D",
-      estres: "#FF4D4D",
-      tristeza: "#4D8DFF",
-      preocupacion: "#FFCC66",
-      preocupación: "#FFCC66",
-      enojo: "#66CC66"
-    };
-
-    const emotions = emotionsAgg.map((e, idx) => ({
-      emotion: e._id || "Sin etiqueta",
-      count: e.total,
-      color: colorsByEmotion[e._id?.toLowerCase()] || [
-        "#8A5BFF",
-        "#FF4D4D",
-        "#4D8DFF",
-        "#FFCC66",
-        "#66CC66",
-        "#FF88AA",
-        "#00C2FF"
-      ][idx % 7]
-    }));
-
-    await safeAdminLog({
-      adminId: req.user?.id,
-      action: "CONSULTAR STATS DASHBOARD",
-      endpoint: "/stats/dashboard",
-      ip: req.ip
-    });
-
     res.json({
       months,
       chatbotUsage,
-      alerts: {
-        critical: alertsCritical,
-        moderate: alertsModerate
-      },
-      emotions
+      alerts: { critical: alertsCritical, moderate: alertsModerate },
+      emotions: emotionsAgg
     });
   } catch (err) {
     console.error("❌ Error obteniendo stats dashboard:", err);
