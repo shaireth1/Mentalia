@@ -16,7 +16,7 @@ import AlertasView from "./Alertas/AlertasView";
 import FrasesRiesgoView from "./frases/FrasesRiesgoView";
 import SettingsView from "../vistas-reutilizables/SettingsView";
 import GraficaAlertasCriticas from "./GraficaAlertasCriticas";
-import ContenidoView from "./Contenido/Contenido";
+import ContenidoView from "./Contenido/ContenidoView";
 
 // ⭐ NUEVO — para RNF9
 import LogsView from "./logs/LogsView";
