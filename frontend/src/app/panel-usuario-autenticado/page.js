@@ -259,7 +259,11 @@ export default function Dashboard() {
       {/* HEADER */}
       <header className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white flex justify-between items-center px-8 py-4 shadow-md">
         <div className="flex items-center space-x-3">
-          <Heart className="w-6 h-6 text-white" />
+          <img 
+            src="/mentalialogo.png.png" 
+            alt="Logo Mentalia"
+            className="w-8 h-8 object-contain"
+          />
           <div>
             <h1 className="font-semibold text-base tracking-wide">MENTALIA</h1>
             <p className="text-xs opacity-80">

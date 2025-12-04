@@ -69,7 +69,11 @@ return (
       </Link>
 
       <div className="flex items-center">
-        <Heart className="w-7 h-7 text-purple-700" />
+        <img 
+            src="/logomentalia.png.png" 
+            alt="Logo Mentalia"
+            className="w-8 h-8 object-contain"
+          />
         <div className="flex flex-col items-start ml-3">
           <span className="text-2xl font-medium tracking-wide text-purple-700">
             MENTALIA

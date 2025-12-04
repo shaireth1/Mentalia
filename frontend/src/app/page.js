@@ -20,7 +20,13 @@ export default function Home() {
         {/* Texto principal */}
         <div className="text-white max-w-xl">
           <h1 className="text-5xl font-extrabold mb-2 flex items-center gap-3">
-            <Heart className="w-10 h-10 text-white" /> 
+            <Image 
+              src="/logomentalia.png.png"
+              alt="Logo Mentalia"
+              width={50}
+              height={50}
+              className="w-10 h-10 object-contain"
+            />
             <span className="tracking-tight">MENTALIA</span>
           </h1>
 
@@ -100,4 +106,3 @@ export default function Home() {
     </main>
   );
 }
-
