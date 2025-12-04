@@ -36,26 +36,44 @@ export default function ContenidoCard({ data }) {
           </p>
         </div>
 
-        {/* BOTONES */}
+        {/* BOTONES (DISEÑO CORREGIDO) */}
         <div className="flex gap-3">
 
+          {/* Ver */}
           <button
             onClick={() => setOpenView(true)}
-            className="p-2 bg-[#E6F6F2] hover:bg-[#CFEFE6] rounded-lg shadow transition"
+            className="
+              p-2 rounded-lg bg-[#F7F7FB] 
+              hover:bg-[#EDEDF3] 
+              transition shadow-sm
+            "
           >
-            <Eye size={18} className="text-[#009C74]" />
+            <Eye size={18} className="text-gray-600" />
           </button>
 
+          {/* Editar */}
           <button
             onClick={() => setOpenEdit(true)}
-            className="p-2 bg-[#E6F6F2] hover:bg-[#CFEFE6] rounded-lg shadow transition"
+            className="
+              p-2 rounded-lg bg-[#F7F7FB] 
+              hover:bg-[#EDEDF3] 
+              transition shadow-sm
+            "
           >
-            <Pencil size={18} className="text-[#009C74]" />
+            <Pencil size={18} className="text-gray-600" />
           </button>
 
-          <button className="p-2 bg-red-100 hover:bg-red-200 rounded-lg shadow transition">
+          {/* Eliminar */}
+          <button
+            className="
+              p-2 rounded-lg bg-[#FFF2F2] 
+              hover:bg-[#FFE0E0] 
+              transition shadow-sm
+            "
+          >
             <Trash2 size={18} className="text-red-600" />
           </button>
+
         </div>
       </div>
 
@@ -69,5 +87,4 @@ export default function ContenidoCard({ data }) {
     </>
   );
 }
-
 

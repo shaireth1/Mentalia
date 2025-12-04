@@ -2,7 +2,6 @@
 
 import {
   Clock,
-  Star,
   ExternalLink,
   FileText,
   Play,
@@ -17,7 +16,6 @@ export default function TarjetaRecurso({
   tipo,
   categoria,
   tiempo,
-  rating,
   imagen,
   gratis,
   onClick,
@@ -38,7 +36,7 @@ export default function TarjetaRecurso({
       hover:shadow-md transition cursor-pointer overflow-hidden flex"
       onClick={onClick}
     >
-      {/* Imagen más pequeña */}
+      {/* Imagen */}
       <div className="relative w-40 h-28 flex-shrink-0">
         <img
           src={imagen}
@@ -67,7 +65,7 @@ export default function TarjetaRecurso({
         )}
       </div>
 
-      {/* Contenido compacto */}
+      {/* Contenido */}
       <div className="p-3 flex flex-col justify-between w-full">
 
         <div>
@@ -80,16 +78,11 @@ export default function TarjetaRecurso({
           </p>
         </div>
 
-        {/* Tiempo + rating */}
+        {/* Tiempo — ⭐ AQUÍ SE QUITÓ LA PUNTUACIÓN */}
         <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
           <div className="flex items-center gap-1">
             <Clock size={13} />
             {tiempo}
-          </div>
-
-          <div className="flex items-center gap-1 text-yellow-400">
-            <Star size={14} fill="#facc15" stroke="none" />
-            <span className="text-gray-700">{rating}</span>
           </div>
         </div>
 
@@ -97,7 +90,7 @@ export default function TarjetaRecurso({
         <div className="mt-2">
           <span
             className="text-[10px] bg-purple-100 text-purple-700 
-          px-2 py-0.5 rounded-full font-medium"
+            px-2 py-0.5 rounded-full font-medium"
           >
             {categoria}
           </span>
@@ -106,6 +99,7 @@ export default function TarjetaRecurso({
         {/* Botón Ver recurso */}
         <div className="flex justify-end mt-3">
           <button
+            onClick={onClick}
             className="flex items-center gap-1 bg-[#7b63ff] 
             hover:bg-[#684ce8] transition text-white text-xs 
             px-3 py-1 rounded-lg"
@@ -118,5 +112,3 @@ export default function TarjetaRecurso({
     </div>
   );
 }
-
-

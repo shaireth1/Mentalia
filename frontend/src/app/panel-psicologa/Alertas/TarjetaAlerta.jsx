@@ -18,19 +18,12 @@ export default function TarjetaAlerta({ alerta, onAtender, onDescartar }) {
 
   return (
     <div
-      className={`
-        w-full bg-white rounded-lg shadow-sm
-        border border-gray-200
-        ${s.borde || ""}
-        px-5 py-4
-      `}
+      className={`w-full bg-white rounded-lg shadow-sm border border-gray-200 px-5 py-4 ${s.borde || ""}`}
     >
       {/* ENCABEZADO */}
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <span
-            className={`px-3 py-1 text-xs font-semibold rounded-full ${s.badgeBg} ${s.badgeText}`}
-          >
+          <span className={`px-3 py-1 text-xs font-semibold rounded-full ${s.badgeBg} ${s.badgeText}`}>
             {alerta.tipo}
           </span>
 
@@ -47,19 +40,42 @@ export default function TarjetaAlerta({ alerta, onAtender, onDescartar }) {
 
         {alerta.estado !== "atendida" && (
           <div className="flex gap-3">
+
+            {/* BOTÓN ATENDER (CORPORATIVO VERDE) */}
             <button
               onClick={onAtender}
-              className="px-4 py-1.5 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 transition"
+              className="
+                px-4 py-2
+                bg-[#009C74]
+                hover:bg-[#00845F]
+                text-white
+                rounded-lg
+                text-sm font-medium
+                shadow-sm
+                transition
+              "
             >
               Atender
             </button>
 
+            {/* BOTÓN DESCARTAR (GRIS SUAVE) */}
             <button
               onClick={onDescartar}
-              className="px-4 py-1.5 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-100 transition"
+              className="
+                px-4 py-2
+                bg-[#F7F7FB]
+                hover:bg-[#EDEDF3]
+                text-gray-700
+                border border-gray-300
+                rounded-lg
+                text-sm font-medium
+                shadow-sm
+                transition
+              "
             >
               Descartar
             </button>
+
           </div>
         )}
       </div>
