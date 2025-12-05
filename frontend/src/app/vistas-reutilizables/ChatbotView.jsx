@@ -152,14 +152,26 @@ export default function ChatbotView({ mode = "anonimo" }) {
         : `${baseUrl}/api/chatbot/autenticado`;
 
     try {
-      let userIdToSend = null;
+     let userIdToSend = null;
 
-      if (mode === "autenticado") {
-        try {
-          const saved = JSON.parse(localStorage.getItem("user"));
-          userIdToSend = saved?.id || saved?._id || null;
-        } catch {}
-      }
+if (mode === "autenticado") {
+  try {
+    const saved = JSON.parse(localStorage.getItem("user"));
+
+    // Aseguramos TODAS las variantes posibles
+    userIdToSend =
+      saved?.id ||
+      saved?._id ||
+      saved?.userId ||
+      saved?.data?._id ||
+      null;
+
+    console.log("📌 userId enviado al backend:", userIdToSend);
+  } catch (e) {
+    console.error("Error leyendo user:", e);
+  }
+}
+
 
       const bodyPayload = {
         message: textToSend,

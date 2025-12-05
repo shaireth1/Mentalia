@@ -1,6 +1,15 @@
 "use client";
 
 export default function TarjetaAlerta({ alerta, onAtender, onDescartar }) {
+  // ⭐ Normalizamos el tipo visual según prioridad real
+  let tipoVisual = alerta.tipo;
+
+  // Si no es crítica y prioridad es "alto", se fuerza como ALTA PRIORIDAD
+  if (alerta.tipo !== "CRÍTICA" && alerta.prioridad === "alto") {
+    tipoVisual = "ALTA PRIORIDAD";
+  }
+
+  // Estilos ampliados con NORMAL incluido
   const estilos = {
     CRÍTICA: {
       borde: "border-l-4 border-[#FF4D4D]",
@@ -12,19 +21,29 @@ export default function TarjetaAlerta({ alerta, onAtender, onDescartar }) {
       badgeBg: "bg-[#FFF3E0]",
       badgeText: "text-[#B46900]",
     },
+    NORMAL: {
+      borde: "border-l-4 border-[#CFCFCF]",
+      badgeBg: "bg-[#F5F5F5]",
+      badgeText: "text-[#555555]",
+    },
   };
 
-  const s = estilos[alerta.tipo] || {};
+  // Selección de estilo final
+  const s = estilos[tipoVisual] || {};
 
   return (
     <div
-      className={`w-full bg-white rounded-lg shadow-sm border border-gray-200 px-5 py-4 ${s.borde || ""}`}
+      className={`w-full bg-white rounded-lg shadow-sm border border-gray-200 px-5 py-4 ${
+        s.borde || ""
+      }`}
     >
       {/* ENCABEZADO */}
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-3">
-          <span className={`px-3 py-1 text-xs font-semibold rounded-full ${s.badgeBg} ${s.badgeText}`}>
-            {alerta.tipo}
+          <span
+            className={`px-3 py-1 text-xs font-semibold rounded-full ${s.badgeBg} ${s.badgeText}`}
+          >
+            {tipoVisual}
           </span>
 
           <span className="text-gray-600 text-xs md:text-sm">
@@ -40,7 +59,6 @@ export default function TarjetaAlerta({ alerta, onAtender, onDescartar }) {
 
         {alerta.estado !== "atendida" && (
           <div className="flex gap-3">
-
             {/* BOTÓN ATENDER (CORPORATIVO VERDE) */}
             <button
               onClick={onAtender}
@@ -58,7 +76,7 @@ export default function TarjetaAlerta({ alerta, onAtender, onDescartar }) {
               Atender
             </button>
 
-            {/* BOTÓN DESCARTAR (GRIS SUAVE) */}
+            {/* BOTÓN DESCARTAR */}
             <button
               onClick={onDescartar}
               className="
@@ -75,7 +93,6 @@ export default function TarjetaAlerta({ alerta, onAtender, onDescartar }) {
             >
               Descartar
             </button>
-
           </div>
         )}
       </div>

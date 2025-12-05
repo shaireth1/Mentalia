@@ -31,6 +31,8 @@ import {
   getDashboardStats    // <-- 🔥 NUEVO IMPORT
 } from "../controllers/statsController.js";
 
+import { searchConversations } from "../controllers/searchController.js";
+
 const router = express.Router();
 
 router.use(authMiddleware, adminMiddleware, logAdminAction);
@@ -63,5 +65,7 @@ router.get("/stats/excel", exportExcel);
 
 // 🔥 NUEVA RUTA PARA DASHBOARD (datos reales para gráficas)
 router.get("/stats/dashboard", getDashboardStats);
+
+router.get("/conversations/search", authMiddleware, searchConversations);
 
 export default router;

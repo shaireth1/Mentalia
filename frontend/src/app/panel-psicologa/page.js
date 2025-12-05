@@ -21,6 +21,9 @@ import ContenidoView from "./Contenido/ContenidoView";
 // ⭐ NUEVO — para RNF9
 import LogsView from "./logs/LogsView";
 
+// ⭐ NUEVO — RF21
+import BusquedaView from "./Busqueda/BusquedaView";
+
 export default function PanelPsicologa() {
   const router = useRouter();
   const [storedUser, setStoredUser] = useState(null);
@@ -167,6 +170,13 @@ export default function PanelPsicologa() {
             {activeTab === "Logs" && (
               <div className="mt-2">
                 <LogsView />
+              </div>
+            )}
+
+            {/* ⭐ NUEVO — RF21 */}
+            {activeTab === "Busqueda" && (
+              <div className="mt-2">
+                <BusquedaView />
               </div>
             )}
           </main>

@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, Settings, BarChart3 } from "lucide-react";
+import { LogOut, Settings, BarChart3, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function LayoutAdmin({ user, children, onChangeView, activeView }) {
@@ -95,6 +95,27 @@ export default function LayoutAdmin({ user, children, onChangeView, activeView }
               <span className="text-sm">Configuración</span>
             </button>
 
+            {/* BOTÓN BÚSQUEDA — AHORA ALINEADO */}
+            {/* BOTÓN BÚSQUEDA — AHORA ALINEADO */}
+<button
+  onClick={() => onChangeView("Busqueda")}
+  className={`
+    flex items-center gap-3 px-3 py-2 w-full rounded-md transition text-left
+    ${
+      activeView === "Busqueda"
+        ? "bg-purple-100 text-purple-600 font-medium shadow-sm"
+        : "text-gray-700 hover:bg-gray-100 hover:text-purple-600"
+    }
+  `}
+>
+  <Search
+    size={18}
+    className={activeView === "Busqueda" ? "text-purple-600" : "text-gray-500"}
+  />
+  <span className="text-sm">Búsqueda de conversaciones</span>
+</button>
+
+
           </nav>
         </aside>
 
@@ -106,4 +127,3 @@ export default function LayoutAdmin({ user, children, onChangeView, activeView }
     </div>
   );
 }
-

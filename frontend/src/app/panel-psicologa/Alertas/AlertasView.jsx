@@ -29,13 +29,16 @@ export default function AlertasView() {
 
       const adaptadas = data.map((a) => ({
         id: a._id,
+
+        // ⭐ CORRECCIÓN 1 → YA NO ES "NORMAL"
         tipo: a.isCritical ? "CRÍTICA" : "ALTA PRIORIDAD",
+
+        prioridad: a.severity || "medio",
         fecha: new Date(a.createdAt).toLocaleString(),
         descripcion: a.message,
         sesion: a.sessionId,
         estado: a.resolved ? "atendida" : "pendiente",
 
-        // ⭐ GUARDAR conversationId REAL
         conversationId: a.conversationId,
       }));
 
@@ -93,7 +96,11 @@ export default function AlertasView() {
   const alertasFiltradas = alertas.filter((a) => {
     if (filtro === "Todas las alertas") return true;
     if (filtro === "Críticas") return a.tipo === "CRÍTICA";
-    if (filtro === "Alta prioridad") return a.tipo === "ALTA PRIORIDAD";
+
+    // ⭐ CORRECCIÓN 2 → ALTA PRIORIDAD = NO críticas
+    if (filtro === "Alta prioridad")
+      return a.prioridad !== "alto";
+
     return true;
   });
 

@@ -10,10 +10,23 @@ import AdminLog from "../models/AdminLog.js";
    ============================ */
 export const createAlert = async (data) => {
   try {
+
+    /* ⭐ NUEVO ⭐
+       Nos aseguramos de que la severidad **siempre exista**
+       y se guarde en la alerta para que el frontend pueda filtrar.
+    */
+    const severityValue = data.severity || "medio";
+
     const alertData = {
       ...data,
-      isCritical: data.severity === "alto",
-      riskLevel: data.riskLevel || (data.severity === "alto" ? 5 : 2),
+
+      // ⭐ corregido: guardamos severity REAL
+      severity: severityValue,
+
+      // ⭐ CRÍTICA = severidad alto
+      isCritical: severityValue === "alto",
+
+      riskLevel: data.riskLevel || (severityValue === "alto" ? 5 : 2),
     };
 
     const alert = await Alert.create(alertData);
@@ -44,6 +57,7 @@ export const notifyCriticalAlert = async (alert) => {
         <p><strong>Frase:</strong> ${alert.phrase}</p>
         <p><strong>Mensaje:</strong> ${alert.message}</p>
         <p><strong>Categoría:</strong> ${alert.category}</p>
+        <p><strong>Severidad:</strong> ${alert.severity}</p>
         <p><strong>Sesión:</strong> ${alert.sessionId}</p>
       `
     });
