@@ -1,4 +1,4 @@
-Descripción del proyecto
+Descripción del proyecto:
 MENTALIA es una plataforma web creada para brindar apoyo emocional a los estudiantes del SENA mediante un chatbot psicológico con análisis emocional, detección de frases de riesgo, diario emocional, recursos de bienestar y un panel administrativo para la psicóloga institucional.
 El sistema incluye módulos para usuarios anónimos, usuarios autenticados y para la psicóloga, así como manejo de alertas críticas, estadísticas y análisis de emociones.
 
