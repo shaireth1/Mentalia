@@ -369,23 +369,26 @@ async function saveTurn({
       timestamp: new Date(),
     };
 
-    await chatModel.findOneAndUpdate(
-      { sessionId },
-      {
-        $setOnInsert: {
-          sessionId,
-          type,
-          anonymous: type === "anonimo",
-          userId: type === "registrado" ? userId : null,
-          startedAt: new Date(),
-        },
-        $push: {
-          messages: { $each: [userMsg, botMsg] },
-        },
-        $set: { endedAt: null },
-      },
-      { upsert: true, new: true }
-    );
+    const updated = await chatModel.findOneAndUpdate(
+  { sessionId },
+  {
+    $setOnInsert: {
+      sessionId,
+      type,
+      anonymous: type === "anonimo",
+      userId: type === "registrado" ? userId : null,
+      startedAt: new Date(),
+    },
+    $push: {
+      messages: { $each: [userMsg, botMsg] },
+    },
+    $set: { endedAt: null },
+  },
+  { upsert: true, new: true }
+);
+
+return updated;
+
   } catch (err) {
     console.error("❌ Error almacenando turno RF11:", err);
   }
@@ -419,36 +422,46 @@ async function processMessage(
   setContext(sessionId, { tone });
 
   // 1️⃣ RF9 — Crisis (máxima prioridad)
-  const crisisMatch = await detectCrisisAdvanced(lower);
-  if (crisisMatch) {
-  
-    await createAlert({
-  phrase: crisisMatch.phrase.text,
-  category: crisisMatch.phrase.category,
-  severity: crisisMatch.phrase.severity,
-  target: crisisMatch.phrase.target,
-  sessionId,
-  userType: type,
-  userId: type === "registrado" ? userId : null,
-  message: text,
-});
+const crisisMatch = await detectCrisisAdvanced(lower);
+if (crisisMatch) {
 
+  // 1. Crear respuesta del bot para crisis
+  const baseReply = buildCrisisReply(crisisMatch);
 
-    const baseReply = buildCrisisReply(crisisMatch);
-    const finalReply = toneTransform[tone](baseReply);
+  // 2. Guardar turno y obtener la conversación real (RF11)
+  const convo = await saveTurn({
+    sessionId,
+    type,
+    userId,
+    userText: text,
+    replyText: baseReply,
+    emotion: "crisis",
+    confidence: 100,
+  });
 
-    await saveTurn({
-      sessionId,
-      type,
-      userId,
-      userText: text,
-      replyText: baseReply,
-      emotion: "crisis",
-      confidence: 100,
-    });
+  // 3. Crear alerta y vincular conversación (RF16)
+  await createAlert({
+    phrase: crisisMatch.phrase.text,
+    category: crisisMatch.phrase.category,
+    severity: crisisMatch.phrase.severity,
+    target: crisisMatch.phrase.target,
+    sessionId,
+    userType: type,
+    userId: type === "registrado" ? userId : null,
+    message: text,
 
-    return { reply: finalReply, emotion: "crisis" };
-  }
+    // RF16 — Vincular conversación completa
+    conversationId: convo?._id || null,
+
+    // RF21 — Guardar coincidencia textual
+    matchedPhrases: [crisisMatch.phrase.text],
+  });
+
+  // 4. Respuesta final transformada
+  const finalReply = toneTransform[tone](baseReply);
+
+  return { reply: finalReply, emotion: "crisis" };
+}
 
   // 2️⃣ Técnica pendiente (RF7 + técnicas)
  // 2️⃣ Técnica pendiente (sí / afirmación / pedir técnica)

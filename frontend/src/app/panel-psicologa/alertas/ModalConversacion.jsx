@@ -11,23 +11,27 @@ export default function ModalConversacion({ open, onClose, conversation }) {
           Conversación del Usuario
         </h2>
 
-        {/* Mensajes */}
-        <div className="space-y-4">
-          {conversation?.messages?.map((msg, i) => (
-            <div
-              key={i}
-              className={`p-3 rounded-lg max-w-[80%] ${
-                msg.sender === "user"
-                  ? "bg-purple-100 text-purple-900 self-start"
-                  : "bg-gray-200 text-gray-800 self-end ml-auto"
-              }`}
-            >
-              <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
-              <p className="text-[10px] mt-1 opacity-60 text-right">
-                {new Date(msg.timestamp).toLocaleString()}
-              </p>
-            </div>
-          ))}
+        {/* CONTENEDOR FLEX QUE FALTABA */}
+        <div className="flex flex-col space-y-4">
+          {conversation?.messages?.map((msg, i) => {
+            // evitar Invalid Date
+            const fecha =
+              msg.timestamp ? new Date(msg.timestamp).toLocaleString() : "Sin fecha";
+
+            return (
+              <div
+                key={i}
+                className={`p-3 rounded-lg max-w-[80%] ${
+                  msg.sender === "user"
+                    ? "bg-purple-100 text-purple-900 self-start"
+                    : "bg-gray-200 text-gray-800 self-end ml-auto"
+                }`}
+              >
+                <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
+                <p className="text-[10px] mt-1 opacity-60 text-right">{fecha}</p>
+              </div>
+            );
+          })}
         </div>
 
         {/* Botón cerrar */}

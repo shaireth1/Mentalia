@@ -58,13 +58,20 @@ export async function resolveAlert(req, res) {
   }
 }
 
-// 📌 Cargar conversación completa asociada a una alerta
+// 📌 Cargar conversación completa asociada a una alerta (FUNCIONAL ANÓNIMOS + REGISTRADOS)
 export async function getConversationByAlert(req, res) {
   try {
     const alert = await Alert.findById(req.params.alertId);
     if (!alert) return res.status(404).json({ msg: "Alerta no hallada" });
 
-    const convo = await Conversation.findById(alert.conversationId);
+    // Buscar primero en Conversation (usuarios registrados)
+    let convo = await Conversation.findById(alert.conversationId);
+
+    // 🔥 Si NO está en Conversation, buscar en ChatSession (anónimos)
+    if (!convo) {
+      const ChatSession = (await import("../models/ChatSession.js")).default;
+      convo = await ChatSession.findById(alert.conversationId);
+    }
 
     await safeAdminLog({
       adminId: req.user?.id,
@@ -73,6 +80,11 @@ export async function getConversationByAlert(req, res) {
       details: { alertId: req.params.alertId },
       ip: req.ip
     });
+
+    // Si no existe en ningún modelo, devolver vacío
+    if (!convo) {
+      return res.json({ messages: [] });
+    }
 
     res.json(convo);
   } catch (err) {

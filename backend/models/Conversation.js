@@ -5,7 +5,11 @@ const messageSchema = new mongoose.Schema({
   sender: { type: String, enum: ["user", "bot"], required: true },
   text: { type: String, required: true },
   emotion: { type: String, default: "neutral" },
-  createdAt: { type: Date, default: Date.now }
+
+  createdAt: { type: Date, default: Date.now },
+
+  // ⭐ AGREGADO para que el frontend tenga fecha válida
+  timestamp: { type: Date, default: Date.now } 
 });
 
 const conversationSchema = new mongoose.Schema({
