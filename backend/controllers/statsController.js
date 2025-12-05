@@ -6,6 +6,9 @@ import PDFDocument from "pdfkit";
 import ExcelJS from "exceljs";
 import AdminLog from "../models/AdminLog.js";
 
+// ⭐ IMPORTAMOS NORMALIZADOR SIN TOCAR NADA MÁS
+import { normalizeEmotion } from "../utils/emotionAnalyzer.js";
+
 /* ----------------- Helpers comunes ----------------- */
 
 const MONTH_LABELS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
@@ -220,7 +223,7 @@ export async function exportExcel(req, res) {
   }
 }
 
-/* ----------------- /stats/dashboard ----------------- */
+/* ----------------- /stats/dashboard (Opción B Combinada) ----------------- */
 export async function getDashboardStats(req, res) {
   try {
     const now = new Date();
@@ -249,19 +252,65 @@ export async function getDashboardStats(req, res) {
       );
     }
 
-    /* Emociones totales */
-    const emotionsAgg = await JournalEntry.aggregate([
+    // ⭐⭐⭐ Emociones del diario
+    const journalEmotions = await JournalEntry.aggregate([
       { $match: { deleted: false } },
-      { $group: { _id: "$emotion", total: { $sum: 1 } } },
-      { $sort: { total: -1 } }
+      { $group: { _id: "$emotion", total: { $sum: 1 } } }
     ]);
+
+    // ⭐⭐⭐ Emociones en conversaciones registradas
+    const convoEmotions = await Conversation.aggregate([
+      { $unwind: "$messages" },
+      { $match: { "messages.emotion": { $ne: null } } },
+      { $group: { _id: "$messages.emotion", total: { $sum: 1 } } }
+    ]);
+
+    // ⭐⭐⭐ Emociones anónimas
+    const ChatSession = (await import("../models/ChatSession.js")).default;
+
+    const anonEmotions = await ChatSession.aggregate([
+      { $unwind: "$messages" },
+      { $match: { "messages.emotion": { $ne: null } } },
+      { $group: { _id: "$messages.emotion", total: { $sum: 1 } } }
+    ]);
+
+    // ⭐⭐⭐ Combinar todo en un único mapa
+    const emotionMap = new Map();
+
+    const addToMap = (list) => {
+      for (const e of list) {
+        if (!emotionMap.has(e._id)) emotionMap.set(e._id, e.total);
+        else emotionMap.set(e._id, emotionMap.get(e._id) + e.total);
+      }
+    };
+
+    addToMap(journalEmotions);
+    addToMap(convoEmotions);
+    addToMap(anonEmotions);
+
+    /* ======================================================
+       ⭐ NORMALIZACIÓN DE EMOCIONES ANTES DE ENVIAR AL FRONT
+    ====================================================== */
+    const normalizedMap = new Map();
+
+    for (const [rawEmotion, total] of emotionMap.entries()) {
+      const emo = normalizeEmotion(rawEmotion);
+
+      if (!normalizedMap.has(emo)) normalizedMap.set(emo, total);
+      else normalizedMap.set(emo, normalizedMap.get(emo) + total);
+    }
+
+    const emotionsCombined = [...normalizedMap.entries()]
+      .map(([emotion, total]) => ({ emotion, total }))
+      .sort((a, b) => b.total - a.total);
 
     res.json({
       months,
       chatbotUsage,
       alerts: { critical: alertsCritical, moderate: alertsModerate },
-      emotions: emotionsAgg
+      emotions: emotionsCombined
     });
+
   } catch (err) {
     console.error("❌ Error obteniendo stats dashboard:", err);
     res.status(500).json({ msg: "Error obteniendo estadísticas del dashboard" });

@@ -9,9 +9,6 @@ import CrisisPhrase from "../models/CrisisPhrase.js";
 import { anonymizeText } from "../utils/anonymize.js";
 import { createAlert } from "./alertController.js";
 
-
-
-
 // 🧠 Memoria contextual por sesión (no se guarda en BD)
 const sessionContext = new Map();
 
@@ -119,7 +116,6 @@ function detectTechniqueRequest(t = "") {
     /enséñame.*técnica/i.test(t)
   );
 }
-
 
 const detectPositive = (t = "") =>
   positiveKeywords.some((k) => t.toLowerCase().includes(k));
@@ -370,24 +366,24 @@ async function saveTurn({
     };
 
     const updated = await chatModel.findOneAndUpdate(
-  { sessionId },
-  {
-    $setOnInsert: {
-      sessionId,
-      type,
-      anonymous: type === "anonimo",
-      userId: type === "registrado" ? userId : null,
-      startedAt: new Date(),
-    },
-    $push: {
-      messages: { $each: [userMsg, botMsg] },
-    },
-    $set: { endedAt: null },
-  },
-  { upsert: true, new: true }
-);
+      { sessionId },
+      {
+        $setOnInsert: {
+          sessionId,
+          type,
+          anonymous: type === "anonimo",
+          userId: type === "registrado" ? userId : null,
+          startedAt: new Date(),
+        },
+        $push: {
+          messages: { $each: [userMsg, botMsg] },
+        },
+        $set: { endedAt: null },
+      },
+      { upsert: true, new: true }
+    );
 
-return updated;
+    return updated;
 
   } catch (err) {
     console.error("❌ Error almacenando turno RF11:", err);
@@ -422,72 +418,95 @@ async function processMessage(
   setContext(sessionId, { tone });
 
   // 1️⃣ RF9 — Crisis (máxima prioridad)
-const crisisMatch = await detectCrisisAdvanced(lower);
-if (crisisMatch) {
+  const crisisMatch = await detectCrisisAdvanced(lower);
+  if (crisisMatch) {
 
-  // 1. Crear respuesta del bot para crisis
-  const baseReply = buildCrisisReply(crisisMatch);
+    // 1. Crear respuesta del bot para crisis
+    const baseReply = buildCrisisReply(crisisMatch);
 
-  // 2. Guardar turno y obtener la conversación real (RF11)
-  const convo = await saveTurn({
-    sessionId,
-    type,
-    userId,
-    userText: text,
-    replyText: baseReply,
-    emotion: "crisis",
-    confidence: 100,
-  });
+    // 2. Guardar turno y obtener la conversación real (RF11)
+    const convo = await saveTurn({
+      sessionId,
+      type,
+      userId,
+      userText: text,
+      replyText: baseReply,
+      emotion: "crisis",
+      confidence: 100,
+    });
 
-  // 3. Crear alerta y vincular conversación (RF16)
-  await createAlert({
-    phrase: crisisMatch.phrase.text,
-    category: crisisMatch.phrase.category,
-    severity: crisisMatch.phrase.severity,
-    target: crisisMatch.phrase.target,
-    sessionId,
-    userType: type,
-    userId: type === "registrado" ? userId : null,
-    message: text,
+    // 3. Crear alerta y vincular conversación (RF16)
+    await createAlert({
+      phrase: crisisMatch.phrase.text,
+      category: crisisMatch.phrase.category,
+      severity: crisisMatch.phrase.severity,
+      target: crisisMatch.phrase.target,
+      sessionId,
+      userType: type,
+      userId: type === "registrado" ? userId : null,
+      message: text,
 
-    // RF16 — Vincular conversación completa
-    conversationId: convo?._id || null,
+      // RF16 — Vincular conversación completa
+      conversationId: convo?._id || null,
 
-    // RF21 — Guardar coincidencia textual
-    matchedPhrases: [crisisMatch.phrase.text],
-  });
+      // RF21 — Guardar coincidencia textual
+      matchedPhrases: [crisisMatch.phrase.text],
+    });
 
-  // 4. Respuesta final transformada
-  const finalReply = toneTransform[tone](baseReply);
+    // 4. Respuesta final transformada
+    const finalReply = toneTransform[tone](baseReply);
 
-  return { reply: finalReply, emotion: "crisis" };
-}
+    return { reply: finalReply, emotion: "crisis" };
+  }
 
   // 2️⃣ Técnica pendiente (RF7 + técnicas)
- // 2️⃣ Técnica pendiente (sí / afirmación / pedir técnica)
-// 2️⃣ MANEJO DE TÉCNICAS — SIEMPRE DEBE EJECUTAR ANTES QUE RF8
-// 2️⃣ SI HAY UNA TÉCNICA PENDIENTE → SE ENTREGA SIEMPRE (ANTES DE RF8)
-// 2️⃣ Técnica pendiente (RF7 + técnicas)
-if (ctx.pendingIntent === "offer_technique") {
+  if (ctx.pendingIntent === "offer_technique") {
 
-  const isYes =
-    detectAffirmative(lower) ||
-    detectTechniqueRequest(lower) ||
-    lower.trim() === "si" ||
-    lower.trim() === "sí" ||
-    lower.trim() === "claro" ||
-    lower.trim() === "dale" ||
-    lower.trim() === "ok" ||
-    lower.trim() === "okay" ||
-    lower.trim() === "vale";
+    const isYes =
+      detectAffirmative(lower) ||
+      detectTechniqueRequest(lower) ||
+      lower.trim() === "si" ||
+      lower.trim() === "sí" ||
+      lower.trim() === "claro" ||
+      lower.trim() === "dale" ||
+      lower.trim() === "ok" ||
+      lower.trim() === "okay" ||
+      lower.trim() === "vale";
 
-  // Si usuario confirma técnica
-  if (isYes) {
+    // Si usuario confirma técnica
+    if (isYes) {
+      const emotion = ctx.lastEmotion || "ansiedad";
+      const list = techniques[emotion] || techniques.ansiedad;
+      const tip = list[Math.floor(Math.random() * list.length)];
+
+      setContext(sessionId, { pendingIntent: null });
+
+      const finalReply = toneTransform[tone](tip);
+
+      await saveTurn({
+        sessionId,
+        type,
+        userId,
+        userText: text,
+        replyText: tip,
+        emotion,
+      });
+
+      return { reply: finalReply, emotion };
+    }
+
+    // Si NO dice sí, NO analizar emoción todavía
+  }
+
+  // 2.0 BIS — Confirmación corta "sí" aunque se haya perdido pendingIntent
+  if (
+    (lower.trim() === "si" || lower.trim() === "sí") &&
+    !ctx.pendingIntent &&
+    ctx.lastEmotion
+  ) {
     const emotion = ctx.lastEmotion || "ansiedad";
     const list = techniques[emotion] || techniques.ansiedad;
     const tip = list[Math.floor(Math.random() * list.length)];
-
-    setContext(sessionId, { pendingIntent: null });
 
     const finalReply = toneTransform[tone](tip);
 
@@ -503,58 +522,25 @@ if (ctx.pendingIntent === "offer_technique") {
     return { reply: finalReply, emotion };
   }
 
-  // Si NO dice sí, NO analizar emoción todavía
-}
+  // 2.1 Detectar si el usuario pide técnica directamente SIN que la hayas ofrecido
+  if (detectTechniqueRequest(lower)) {
+    const emotion = ctx.lastEmotion || "ansiedad";
+    const list = techniques[emotion] || techniques.ansiedad;
+    const tip = list[Math.floor(Math.random() * list.length)];
 
+    const finalReply = toneTransform[tone](tip);
 
-// ⭐⭐ INSERTAR AQUÍ ⭐⭐
+    await saveTurn({
+      sessionId,
+      type,
+      userId,
+      userText: text,
+      replyText: tip,
+      emotion,
+    });
 
-// 2.0 BIS — Confirmación corta "sí" aunque se haya perdido pendingIntent
-if (
-  (lower.trim() === "si" || lower.trim() === "sí") &&
-  !ctx.pendingIntent &&
-  ctx.lastEmotion
-) {
-  const emotion = ctx.lastEmotion || "ansiedad";
-  const list = techniques[emotion] || techniques.ansiedad;
-  const tip = list[Math.floor(Math.random() * list.length)];
-
-  const finalReply = toneTransform[tone](tip);
-
-  await saveTurn({
-    sessionId,
-    type,
-    userId,
-    userText: text,
-    replyText: tip,
-    emotion,
-  });
-
-  return { reply: finalReply, emotion };
-}
-
-
-
-// 2.1 Detectar si el usuario pide técnica directamente SIN que la hayas ofrecido
-if (detectTechniqueRequest(lower)) {
-  
-  const emotion = ctx.lastEmotion || "ansiedad";
-  const list = techniques[emotion] || techniques.ansiedad;
-  const tip = list[Math.floor(Math.random() * list.length)];
-
-  const finalReply = toneTransform[tone](tip);
-
-  await saveTurn({
-    sessionId,
-    type,
-    userId,
-    userText: text,
-    replyText: tip,
-    emotion,
-  });
-
-  return { reply: finalReply, emotion };
-}
+    return { reply: finalReply, emotion };
+  }
 
   // 3️⃣ Respuesta positiva
   if (detectPositive(lower)) {

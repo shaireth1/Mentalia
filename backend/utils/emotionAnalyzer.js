@@ -135,3 +135,29 @@ export function analyzeEmotion(text = "") {
     scores
   };
 }
+
+
+/* ============================================================
+   ⭐ NORMALIZADOR OFICIAL DE MENTALIA PARA STATS/DASHBOARD
+============================================================ */
+export function normalizeEmotion(raw = "") {
+  if (!raw) return "desconocida";
+
+  let clean = raw
+    .toLowerCase()
+    .replace(/[^\p{L}\s]/gu, "")     // quita emojis y símbolos
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // quita tildes
+    .trim();
+
+  // Diccionario oficial para stats
+  if (clean.includes("triste")) return "tristeza";
+  if (clean.includes("ansiedad") || clean.includes("ansioso")) return "ansiedad";
+  if (clean.includes("estres")) return "estres";
+  if (clean.includes("miedo") || clean.includes("temor")) return "miedo";
+  if (clean.includes("enojo") || clean.includes("rabia") || clean.includes("ira"))
+    return "enojo";
+  if (clean.includes("preocup")) return "preocupacion";
+
+  return "desconocida";
+}

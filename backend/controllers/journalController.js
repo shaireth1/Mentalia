@@ -1,15 +1,21 @@
 // backend/controllers/journalController.js
 import JournalEntry from "../models/JournalEntry.js";
+import { normalizeEmotion } from "../utils/emotionAnalyzer.js";
 
 export async function createEntry(req, res) {
   try {
     const { title, emotion, note, tags, date, intensity } = req.body;
     const userId = req.user.id;
 
+    // 🧠 Normalizar emoción: si no viene, la inferimos del note/title
+    const normalizedEmotion = normalizeEmotion(
+      emotion || note || title || ""
+    );
+
     const entry = await JournalEntry.create({
       userId,
       title,
-      emotion,
+      emotion: normalizedEmotion,
       note,
       tags,
       date: date ? new Date(date) : new Date(),
@@ -60,11 +66,15 @@ export async function updateEntry(req, res) {
     const userId = req.user.id;
     const { title, emotion, note, tags, date, intensity } = req.body;
 
+    const normalizedEmotion = normalizeEmotion(
+      emotion || note || title || ""
+    );
+
     const updated = await JournalEntry.findOneAndUpdate(
       { _id: id, userId },
       {
         title,
-        emotion,
+        emotion: normalizedEmotion,
         note,
         tags,
         date: date ? new Date(date) : new Date(),
