@@ -1,6 +1,11 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "../context/AuthContext"; // 👈 importa el provider
+
+import { AuthProvider } from "../context/AuthContext";
+
+// ⭐ IMPORTAR ACCESIBILIDAD
+import { AccesibilidadProvider } from "../context/AccesibilidadContext";
+import AccesibilidadPanel from "../components/AccesibilidadPanel";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,7 +28,15 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>{children}</AuthProvider> {/* 👈 aquí envuelves la app */}
+        {/* 🌟 PROVIDERS GLOBALES */}
+        <AuthProvider>
+          <AccesibilidadProvider>
+            {/* 🌟 PANEL FLOTANTE DE ACCESIBILIDAD */}
+            <AccesibilidadPanel />
+
+            {children}
+          </AccesibilidadProvider>
+        </AuthProvider>
       </body>
     </html>
   );

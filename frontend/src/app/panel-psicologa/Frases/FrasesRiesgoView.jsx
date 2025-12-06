@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from "react";
 import ModalAgregarFrase from "./ModalAgregarFrase";
+import ModalEditarFrase from "./ModalEditarFrase";
 import { Pencil, Trash2, Plus } from "lucide-react";
 
 export default function FrasesRiesgoView() {
   const [openModal, setOpenModal] = useState(false);
   const [frases, setFrases] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [editFrase, setEditFrase] = useState(null); // 🔥 MODAL DE EDICIÓN
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   // ============================
@@ -35,7 +37,7 @@ export default function FrasesRiesgoView() {
           res.statusText,
           text
         );
-        return; // <- evitamos intentar hacer res.json() con HTML
+        return;
       }
 
       const data = await res.json();
@@ -62,7 +64,7 @@ export default function FrasesRiesgoView() {
         typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
       const res = await fetch(
-        `${API_URL}//api/psychologist/phrases/${id}`,
+        `${API_URL}/api/psychologist/phrases/${id}`, // 🔥 CORREGIDO
         {
           method: "DELETE",
           credentials: "include",
@@ -109,13 +111,14 @@ export default function FrasesRiesgoView() {
       {/* LOADING */}
       {loading && <p className="text-gray-500">Cargando frases...</p>}
 
-      {/* LISTA */}
+      {/* LISTA VACÍA */}
       {!loading && frases.length === 0 && (
         <p className="text-gray-500 text-sm">
           No hay frases configuradas todavía.
         </p>
       )}
 
+      {/* LISTA DE FRASES */}
       <div className="flex flex-col gap-4">
         {frases.map((frase) => (
           <div
@@ -149,8 +152,11 @@ export default function FrasesRiesgoView() {
             </div>
 
             <div className="flex gap-3">
-              {/* Editar (si luego quieres, lo conectamos) */}
-              <button className="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition text-gray-700">
+              {/* Editar */}
+              <button
+                onClick={() => setEditFrase(frase)} // 🔥 Abre el modal con la frase exacta
+                className="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition text-gray-700"
+              >
                 <Pencil size={18} />
               </button>
 
@@ -166,11 +172,20 @@ export default function FrasesRiesgoView() {
         ))}
       </div>
 
-      {/* MODAL */}
+      {/* MODAL AGREGAR */}
       {openModal && (
         <ModalAgregarFrase
           close={() => setOpenModal(false)}
           onAdd={cargarFrases}
+        />
+      )}
+
+      {/* MODAL EDITAR */}
+      {editFrase && (
+        <ModalEditarFrase
+          frase={editFrase}
+          close={() => setEditFrase(null)}
+          onUpdated={cargarFrases}
         />
       )}
     </div>

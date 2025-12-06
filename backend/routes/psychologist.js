@@ -5,13 +5,13 @@ import { adminMiddleware } from "../middleware/adminMiddleware.js";
 import { logAdminAction } from "../middleware/logAdminAction.js";
 
 // ALERTAS
-import { 
+import {
   getCriticalAlerts,
   resolveAlert,
   getConversationByAlert,
   getPendingCriticalCount,
-  getTodayAlerts,         
-  getActiveChatbotSessions  
+  getTodayAlerts,
+  getActiveChatbotSessions,
 } from "../controllers/psychologistController.js";
 
 // FRASES DE RIESGO
@@ -19,7 +19,7 @@ import {
   getPhrases,
   createPhrase,
   updatePhrase,
-  deletePhrase
+  deletePhrase,
 } from "../controllers/riskPhraseAdminController.js";
 
 // ESTADÍSTICAS
@@ -27,11 +27,22 @@ import {
   getStats,
   exportPDF,
   exportExcel,
-  getDashboardStats
+  getDashboardStats,
 } from "../controllers/statsController.js";
 
-// 👉 CORRECTO: controlador de búsqueda
+// BÚSQUEDA
 import { searchConversations } from "../controllers/searchController.js";
+
+// CONTENIDOS (RF25–RF29)
+import {
+  getContents,
+  createContent,
+  updateContent,
+  deleteContent,
+} from "../controllers/contentController.js";
+
+// Middleware de subida de archivos
+import { uploadContent } from "../middleware/uploadContent.js";
 
 const router = express.Router();
 
@@ -61,5 +72,21 @@ router.get("/stats", getStats);
 router.get("/stats/pdf", exportPDF);
 router.get("/stats/excel", exportExcel);
 router.get("/stats/dashboard", getDashboardStats);
+
+/* ============================
+   📌 CONTENIDOS (RF25–RF29)
+   ============================ */
+router.get("/content", getContents);
+router.post(
+  "/content",
+  uploadContent.single("archivo"), // campo "archivo" en FormData
+  createContent
+);
+router.put(
+  "/content/:id",
+  uploadContent.single("archivo"),
+  updateContent
+);
+router.delete("/content/:id", deleteContent);
 
 export default router;

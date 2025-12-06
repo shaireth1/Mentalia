@@ -1,161 +1,161 @@
 "use client";
 
-import { useState } from "react";
-import { BookOpen } from "lucide-react";
-import BuscadorRecursos from "./componentes/BuscadorRecursos";
-import FiltroTipos from "./componentes/FiltroTipos";
-import FiltroCategorias from "./componentes/FiltroCategorias";
-import TarjetaRecurso from "./componentes/TarjetaRecurso";
-import ModalVerRecurso from "./componentes/ModalVerRecurso"; // 👈 IMPORTANTE
+import { useEffect, useState } from "react";
+import { Play, FileText, Link2 } from "lucide-react";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function RecursosView() {
-  const [busqueda, setBusqueda] = useState("");
-  const [tipoFiltro, setTipoFiltro] = useState("todos");
-  const [categoriaFiltro, setCategoriaFiltro] = useState("todas");
+  const [recursos, setRecursos] = useState([]);
+  const [categoria, setCategoria] = useState("todos");
+  const [tipo, setTipo] = useState("todos");
+  const [buscar, setBuscar] = useState("");
 
-  // ⭐ ESTADO PARA EL MODAL
-  const [openModal, setOpenModal] = useState(false);
-  const [recursoSeleccionado, setRecursoSeleccionado] = useState(null);
+  const cargar = async () => {
+    const params = new URLSearchParams();
 
-  const abrirRecurso = (data) => {
-    setRecursoSeleccionado(data);
-    setOpenModal(true);
+    if (categoria !== "todos") params.set("categoria", categoria);
+    if (tipo !== "todos") params.set("tipo", tipo);
+    if (buscar.trim()) params.set("buscar", buscar.trim());
+
+    const res = await fetch(`${API_URL}/api/content?${params}`);
+    const data = await res.json();
+    setRecursos(data);
   };
 
-  const cerrarModal = () => {
-    setOpenModal(false);
-    setRecursoSeleccionado(null);
-  };
-
-  const destacados = [
-    {
-      titulo: "Técnicas de Respiración para la Ansiedad",
-      tipo: "Técnica",
-      categoria: "Ansiedad",
-      tiempo: "10 min",
-      rating: 4.8,
-      gratis: true,
-      imagen: "https://images.unsplash.com/photo-1469474968028-56623f02e42e",
-      enlace: "https://google.com",
-      descripcion:
-        "Aprende ejercicios que reducen la ansiedad y mejoran el bienestar.\n\n**Técnica 4-7-8**\n1. Inhala 4\n2. Mantén 7\n3. Exhala 8",
-    },
-    {
-      titulo: "Cómo Manejar el Estrés Académico",
-      tipo: "Artículo",
-      categoria: "Estrés",
-      tiempo: "8 min lectura",
-      rating: 4.6,
-      gratis: true,
-      imagen: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b",
-      enlace: "https://google.com",
-      descripcion:
-        "Estrategias para estudiantes del SENA para gestionar presión académica.",
-    },
-    {
-      titulo: "Mindfulness para Principiantes",
-      tipo: "Video",
-      categoria: "Mindfulness",
-      tiempo: "25 min",
-      rating: 4.9,
-      gratis: true,
-      imagen: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97",
-      enlace: "https://google.com",
-      descripcion:
-        "Una introducción completa a la práctica guiada del mindfulness.",
-    },
-  ];
-
-  const todosLosRecursos = [
-    {
-      titulo: "Podcast: Salud Mental en Estudiantes",
-      tipo: "Podcast",
-      categoria: "Estudio",
-      tiempo: "45 min",
-      rating: 4.7,
-      gratis: true,
-      imagen: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
-      enlace: "https://google.com",
-      descripcion:
-        "Conversaciones con psicólogos especializados en bienestar estudiantil.",
-    },
-  ];
-
-  function filtrar(lista) {
-    return lista.filter((r) => {
-      const text = busqueda.toLowerCase();
-      const coincideTexto =
-        r.titulo.toLowerCase().includes(text) ||
-        r.descripcion.toLowerCase().includes(text);
-
-      const coincideTipo =
-        tipoFiltro === "todos" ||
-        r.tipo.toLowerCase() === tipoFiltro.toLowerCase();
-
-      const coincideCategoria =
-        categoriaFiltro === "todas" ||
-        r.categoria.toLowerCase() === categoriaFiltro.toLowerCase();
-
-      return coincideTexto && coincideTipo && coincideCategoria;
-    });
-  }
-
-  const destacadosFiltrados = filtrar(destacados);
-  const recursosFiltrados = filtrar(todosLosRecursos);
+  useEffect(() => {
+    cargar();
+  }, [categoria, tipo]);
 
   return (
-    <div className="px-6 space-y-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-800 flex items-center gap-2">
-          <BookOpen className="text-purple-600" size={28} />
-          Recursos de Bienestar
-        </h1>
+    <div className="p-6 w-full">
+      <h2 className="text-2xl font-semibold">Recursos de Bienestar</h2>
+      <p className="text-gray-500 mb-6">
+        Herramientas y contenido para tu crecimiento emocional
+      </p>
 
-        <p className="text-gray-500 text-sm mt-1">
-          Herramientas y contenido para tu crecimiento emocional
-        </p>
+      {/* FILTROS */}
+      <div className="flex flex-wrap gap-3 mb-6">
+        <input
+          className="flex-1 px-4 py-2 rounded-xl border"
+          placeholder="Buscar recursos…"
+          value={buscar}
+          onChange={(e) => setBuscar(e.target.value)}
+        />
+
+        <select
+          className="px-4 py-2 rounded-xl border"
+          value={tipo}
+          onChange={(e) => setTipo(e.target.value)}
+        >
+          <option value="todos">Todos los tipos</option>
+          <option value="articulo">Artículo</option>
+          <option value="video">Video</option>
+          <option value="tecnica">Técnica</option>
+          <option value="recurso">Recurso externo</option>
+        </select>
+
+        <select
+          className="px-4 py-2 rounded-xl border"
+          value={categoria}
+          onChange={(e) => setCategoria(e.target.value)}
+        >
+          <option value="todos">Todas las categorías</option>
+          <option value="ansiedad">Ansiedad</option>
+          <option value="estres">Estrés</option>
+          <option value="mindfulness">Mindfulness</option>
+          <option value="general">General</option>
+        </select>
+
+        <button
+          onClick={cargar}
+          className="px-4 py-2 rounded-xl bg-purple-600 text-white"
+        >
+          Buscar
+        </button>
       </div>
 
-      {/* Buscador + filtros */}
-      <div className="flex flex-row gap-3 items-center">
-        <div className="flex-1">
-          <BuscadorRecursos value={busqueda} onChange={setBusqueda} />
+      {/* LISTADO */}
+      {recursos.length === 0 ? (
+        <p className="text-gray-500">No hay contenido disponible.</p>
+      ) : (
+        <div className="flex flex-wrap gap-8">
+          {recursos.map((item) => (
+            <RecursoCard key={item._id} item={item} />
+          ))}
         </div>
-
-        <FiltroTipos value={tipoFiltro} onChange={setTipoFiltro} />
-        <FiltroCategorias value={categoriaFiltro} onChange={setCategoriaFiltro} />
-      </div>
-
-      {/* DESTACADOS */}
-      <h2 className="mt-10 mb-2 text-lg font-semibold text-gray-800">
-        Destacados esta semana
-      </h2>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-2">
-        {destacadosFiltrados.map((r, i) => (
-          <TarjetaRecurso key={i} {...r} onClick={() => abrirRecurso(r)} />
-        ))}
-      </div>
-
-      {/* TODOS LOS RECURSOS */}
-      <h2 className="mt-12 mb-2 text-lg font-semibold text-gray-800">
-        Todos los recursos
-      </h2>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-2">
-        {recursosFiltrados.map((r, i) => (
-          <TarjetaRecurso key={i} {...r} onClick={() => abrirRecurso(r)} />
-        ))}
-      </div>
-
-      {/* MODAL */}
-      <ModalVerRecurso
-        open={openModal}
-        close={cerrarModal}
-        data={recursoSeleccionado}
-      />
+      )}
     </div>
   );
 }
 
+/* =========================================================
+📌 TARJETA — IGUAL A FIGMA
+========================================================= */
+function RecursoCard({ item }) {
+  const esVideo = item.tipo === "video";
+  const esArticulo = item.tipo === "articulo";
+  const esTecnica = item.tipo === "tecnica";
+  const esLinkExterno = item.enlace && !item.archivoUrl;
 
+  const imagen =
+    item.archivoUrl ||
+    "https://images.pexels.com/photos/322552/pexels-photo-322552.jpeg";
+
+  const abrirRecurso = () => {
+    if (esVideo || esLinkExterno) {
+      window.open(item.enlace, "_blank");
+    } else if (item.archivoUrl) {
+      window.open(item.archivoUrl, "_blank");
+    }
+  };
+
+  return (
+    <div className="bg-white shadow-md rounded-2xl overflow-hidden w-[330px] cursor-pointer hover:shadow-xl transition"
+      onClick={abrirRecurso}
+    >
+      {/* Imagen */}
+      <div className="relative h-[180px] w-full">
+        <img
+          src={imagen}
+          alt="imagen recurso"
+          className="object-cover w-full h-full"
+        />
+
+        {/* Tipo */}
+        <span className="absolute top-3 left-3 bg-indigo-100 text-indigo-700 px-3 py-[3px] rounded-full text-sm capitalize">
+          {item.tipo}
+        </span>
+
+        {/* Gratis */}
+        <span className="absolute top-3 right-3 bg-green-100 text-green-700 px-3 py-[3px] rounded-full text-sm">
+          Gratis
+        </span>
+      </div>
+
+      {/* Contenido */}
+      <div className="p-4">
+        <h3 className="text-lg font-semibold">{item.titulo}</h3>
+
+        <p className="text-gray-600 mt-2 line-clamp-3">{item.descripcion}</p>
+
+        {/* Categoría */}
+        <div className="mt-3">
+          <span className="bg-purple-100 text-purple-700 px-3 py-[3px] rounded-full text-sm capitalize">
+            {item.categoria}
+          </span>
+        </div>
+
+        {/* Botón */}
+        <button
+          className="mt-4 w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 rounded-lg transition flex items-center justify-center gap-2"
+        >
+          {esVideo ? <Play size={18} /> : null}
+          {esArticulo ? <FileText size={18} /> : null}
+          {esLinkExterno ? <Link2 size={18} /> : null}
+          Ver recurso
+        </button>
+      </div>
+    </div>
+  );
+}

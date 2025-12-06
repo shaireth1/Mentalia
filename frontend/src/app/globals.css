@@ -10,3 +10,20 @@ body {
   font-family: 'Segoe UI', sans-serif;
   background: transparent;
 }
+/* Contraste alto */
+html[data-contraste="alto"] {
+  filter: contrast(150%);
+  background: white !important;
+  color: black !important;
+}
+
+/* Modo oscuro */
+html[data-contraste="oscuro"] {
+  background: #111 !important;
+  color: #eee !important;
+}
+
+html[data-contraste="oscuro"] * {
+  background-color: transparent !important;
+  color: #eee !important;
+}
