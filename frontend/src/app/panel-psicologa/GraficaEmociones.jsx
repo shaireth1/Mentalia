@@ -45,14 +45,23 @@ export default function GraficaEmociones() {
 
       const data = await res.json();
 
-      const parsed = (data.emotions || []).map((e) => {
-        const raw = e._id || "desconocida";
-        const emotion = normalize(raw);
-        const count = e.total || e.count || 0;
-        const color = EMOTION_COLORS[emotion] || "#a855f7";
+      const parsed =
+        (data.emotions || [])
+          .map((e) => {
+            const raw = e._id || e.emotion || "desconocida";
+            const emotion = normalize(raw);
+            const count = e.total || e.count || 0;
+            const color = EMOTION_COLORS[emotion] || "#a855f7";
 
-        return { emotion, count, color };
-      });
+            return { emotion, count, color };
+          })
+          .filter(
+            (e) =>
+              e.count > 0 &&
+              e.emotion !== "neutral" &&
+              e.emotion !== "crisis" &&
+              e.emotion !== "desconocida"
+          ) || [];
 
       setEmociones(parsed);
     } catch (err) {

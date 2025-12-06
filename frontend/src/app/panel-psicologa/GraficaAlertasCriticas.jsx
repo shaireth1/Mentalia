@@ -45,7 +45,7 @@ export default function GraficaAlertasCriticas() {
 
   if (!chartData) {
     return (
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 h-72">
+      <div className="bg-white p-6 rounded-xl shadow-sm border-gray-200 h-72">
         <p className="text-gray-500 text-sm">Cargando evolución de alertas…</p>
       </div>
     );
@@ -58,17 +58,21 @@ export default function GraficaAlertasCriticas() {
         label: "Alertas Moderadas",
         data: chartData.moderate,
         borderColor: "#fbbf24",
-        backgroundColor: "#fbbf24",
-        tension: 0.4,
-        pointRadius: 4
+        backgroundColor: "rgba(251,191,36,0.10)",
+        tension: 0.55,
+        borderWidth: 2,
+        pointRadius: 4,
+        pointBackgroundColor: "#fbbf24"
       },
       {
         label: "Alertas Críticas",
         data: chartData.critical,
         borderColor: "#ef4444",
-        backgroundColor: "#ef4444",
-        tension: 0.4,
-        pointRadius: 4
+        backgroundColor: "rgba(239,68,68,0.10)",
+        tension: 0.55,
+        borderWidth: 2,
+        pointRadius: 4,
+        pointBackgroundColor: "#ef4444"
       }
     ]
   };
@@ -81,12 +85,17 @@ export default function GraficaAlertasCriticas() {
     },
     scales: {
       x: { grid: { display: false } },
-      y: { grid: { color: "#e5e7eb", borderDash: [5, 5] } }
+      y: {
+        grid: {
+          color: "rgba(0,0,0,0.05)",   // MÁS SUAVE FIGMA
+          borderDash: [4, 4]
+        }
+      }
     }
   };
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 h-72">
+    <div className="bg-white p-6 rounded-xl shadow-sm border-gray-200 h-72">
       <h3 className="text-gray-700 font-semibold mb-4">Evolución de Alertas Críticas</h3>
       <div className="h-52">
         <Line data={data} options={options} />

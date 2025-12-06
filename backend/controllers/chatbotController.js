@@ -359,11 +359,12 @@ async function saveTurn({
     };
 
     const botMsg = {
-      sender: "bot",
-      text: replyText,
-      emotion,
-      timestamp: new Date(),
-    };
+  sender: "bot",
+  text: replyText,
+  emotion: null,   // 👈 EL BOT NO DEBE GUARDAR EMOCIÓN
+  timestamp: new Date(),
+};
+
 
     const updated = await chatModel.findOneAndUpdate(
       { sessionId },

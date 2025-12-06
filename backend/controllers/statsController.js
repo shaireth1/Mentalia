@@ -239,9 +239,14 @@ export async function getDashboardStats(req, res) {
 
       months.push(MONTH_LABELS[d.getMonth()]);
 
-      chatbotUsage.push(
-        await Conversation.countDocuments({ createdAt: { $gte: start, $lt: end } })
-      );
+      // ⭐ CONTAR MENSAJES DEL CHATBOT (uso real)
+      const messagesCount = await Conversation.aggregate([
+        { $match: { createdAt: { $gte: start, $lt: end } } },
+        { $unwind: "$messages" },
+        { $group: { _id: null, total: { $sum: 1 } } }
+      ]);
+
+      chatbotUsage.push(messagesCount[0]?.total || 0);
 
       alertsCritical.push(
         await Alert.countDocuments({ isCritical: true, createdAt: { $gte: start, $lt: end } })
@@ -300,8 +305,13 @@ export async function getDashboardStats(req, res) {
       else normalizedMap.set(emo, normalizedMap.get(emo) + total);
     }
 
+    /* ⭐⭐⭐ Convertir normalizedMap a array ordenado y limpio */
     const emotionsCombined = [...normalizedMap.entries()]
-      .map(([emotion, total]) => ({ emotion, total }))
+      .map(([emotion, total]) => ({
+        emotion: emotion && emotion !== "" ? emotion : "desconocida",
+        total
+      }))
+      .filter(e => e.total > 0)
       .sort((a, b) => b.total - a.total);
 
     res.json({
