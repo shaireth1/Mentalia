@@ -13,8 +13,8 @@ import GraficaUsoChatbot from "./GraficaUsoChatbot";
 import GraficaEmociones from "./GraficaEmociones";
 
 import AlertasView from "./Alertas/AlertasView";
-import FrasesRiesgoView from "./frases/FrasesRiesgoView";
-import SettingsView from "../vistas-reutilizables/SettingsView";
+import FrasesRiesgoView from "./Frases/FrasesRiesgoView";
+import SettingsView from "../vistas_reutilizables/SettingsView";
 import GraficaAlertasCriticas from "./GraficaAlertasCriticas";
 import ContenidoView from "./Contenido/ContenidoView";
 

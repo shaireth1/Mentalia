@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { MessageCircle, BookOpen, LogOut } from "lucide-react";
 
-import ChatbotView from "../vistas-reutilizables/ChatbotView";
-import RecursosView from "../vistas-reutilizables/RecursosView";
+import ChatbotView from "../vistas_reutilizables/ChatbotView";
+import RecursosView from "../vistas_reutilizables/RecursosView";
 
 export default function ChatPage() {
   const [activeView, setActiveView] = useState("chat");
