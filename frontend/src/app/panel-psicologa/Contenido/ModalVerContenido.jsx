@@ -5,7 +5,13 @@ import { X } from "lucide-react";
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function ModalVerContenido({ data, close }) {
-  const fileUrl = data.archivoUrl ? `${API_URL}${data.archivoUrl}` : null;
+  const rawFileUrl = data.archivoUrl || null;
+
+  const fileUrl = rawFileUrl
+    ? rawFileUrl.startsWith("http")
+      ? rawFileUrl
+      : `${API_URL}${rawFileUrl}`
+    : null;
 
   const fechaText = data.fecha
     ? new Date(data.fecha).toLocaleDateString("es-CO", {
@@ -70,14 +76,23 @@ export default function ModalVerContenido({ data, close }) {
 
         {/* Archivo subido */}
         {fileUrl && (
-          <div className="mt-2">
+          <div className="mt-4 flex flex-col gap-2">
             <a
               href={fileUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center text-sm text-emerald-600 hover:underline"
+              className="inline-flex items-center justify-center text-sm text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-4 py-2 rounded-lg font-medium"
             >
               Ver archivo adjunto
+            </a>
+
+            <a
+              href={fileUrl}
+              download={data.titulo || "recurso-mentalia"}
+              onClick={(e) => e.stopPropagation()}
+              className="inline-flex items-center justify-center text-sm text-purple-600 border border-purple-600 hover:bg-purple-50 px-4 py-2 rounded-lg font-medium"
+            >
+              Descargar archivo
             </a>
           </div>
         )}

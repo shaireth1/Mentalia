@@ -36,6 +36,8 @@ export default function ModalContenidoCreate({ close, onCreated }) {
       fd.append("categoria", categoria);
       fd.append("enlace", enlace.trim());
       fd.append("tecnicaTipo", tecnicaTipo);
+      fd.append("imagenUrl", ""); // siempre vacío para que frontend use miniaturas predeterminadas
+
 
       if (archivo) {
         // campo "archivo" = el que espera multer

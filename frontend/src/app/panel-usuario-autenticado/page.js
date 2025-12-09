@@ -21,7 +21,7 @@ import DiarioEmocional from "./DiarioEmocional";
 import ChatbotView from "../vistas_reutilizables/ChatbotView";
 import RecursosView from "../vistas_reutilizables/RecursosView";
 import MiBienestar from "./Bienestar/MiBienestar";
-import FrasesRiesgoView from "./Frases/FrasesRiesgoView";
+
 
 const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 

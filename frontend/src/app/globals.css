@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ================================
+   🔤 BASE GENERAL
+================================ */
 html,
 body {
   height: 100%;
@@ -9,21 +12,93 @@ body {
   padding: 0;
   font-family: 'Segoe UI', sans-serif;
   background: transparent;
-}
-/* Contraste alto */
-html[data-contraste="alto"] {
-  filter: contrast(150%);
-  background: white !important;
-  color: black !important;
+  font-size: var(--app-font-size, 16px); /* ⭐ Aplica tamaño de fuente global */
 }
 
-/* Modo oscuro */
+/* Para asegurar que TODA la aplicación use el font-size dinámico */
+* {
+  font-size: inherit;
+}
+
+
+/* ================================
+   🌗 SISTEMA DE CONTRASTE
+================================ */
+
+/* --- Estándar (no requiere reglas) --- */
+
+
+
+/* --- ALTO CONTRASTE --- */
+html[data-contrast="high"],
+html[data-contraste="alto"] {
+  filter: contrast(150%);
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+html[data-contrast="high"] *,
+html[data-contraste="alto"] * {
+  color: inherit !important;
+}
+
+
+
+/* --- MODO OSCURO --- */
+html[data-contrast="dark"],
 html[data-contraste="oscuro"] {
   background: #111 !important;
   color: #eee !important;
 }
 
+html[data-contrast="dark"] *,
 html[data-contraste="oscuro"] * {
   background-color: transparent !important;
   color: #eee !important;
+}
+
+
+/* ================================
+   🎧 ACCESIBILIDAD — UTILIDADES
+================================ */
+
+/* Evita que el panel de accesibilidad herede el modo oscuro totalmente */
+#accesibilidad-panel,
+#accesibilidad-panel * {
+  background-color: initial !important;
+  color: initial !important;
+}
+
+/* Accesibilidad: resaltar focos para navegación por teclado */
+:focus {
+  outline: 3px solid #7c3aed !important; /* morado Mentalia */
+  outline-offset: 2px;
+}
+
+/* ================================
+   🧩 FIXES ESPECIALES
+================================ */
+
+/* Evita que contrast/dark mode dañe modales */
+.modal-keep-bg,
+.modal-keep-bg * {
+  background-color: white !important;
+  color: #333 !important;
+}
+
+/* Evita que las tarjetas pierdan su fondo */
+.card-bg,
+.card-bg * {
+  background-color: white !important;
+}
+
+/* Evita que los gráficos en panel psicóloga se inviertan */
+.chart-container canvas {
+  filter: none !important;
+}
+
+/* Evita que imágenes/miniaturas pierdan contraste o color */
+img,
+video {
+  filter: none !important;
 }

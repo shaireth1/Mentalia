@@ -36,7 +36,6 @@ export default function TarjetaRecurso({
       hover:shadow-md transition cursor-pointer overflow-hidden flex"
       onClick={onClick}
     >
-      {/* Imagen */}
       <div className="relative w-40 h-28 flex-shrink-0">
         <img
           src={imagen}
@@ -44,7 +43,6 @@ export default function TarjetaRecurso({
           className="w-full h-full object-cover"
         />
 
-        {/* Badge tipo */}
         <div
           className="absolute top-2 left-2 flex items-center gap-1 
           bg-white/90 px-2 py-0.5 rounded-full text-[10px] font-medium shadow-sm 
@@ -54,7 +52,6 @@ export default function TarjetaRecurso({
           {tipo}
         </div>
 
-        {/* Badge gratis */}
         {gratis && (
           <div
             className="absolute top-2 right-2 bg-green-100 text-green-700 
@@ -65,7 +62,6 @@ export default function TarjetaRecurso({
         )}
       </div>
 
-      {/* Contenido */}
       <div className="p-3 flex flex-col justify-between w-full">
 
         <div>
@@ -78,7 +74,6 @@ export default function TarjetaRecurso({
           </p>
         </div>
 
-        {/* Tiempo — ⭐ AQUÍ SE QUITÓ LA PUNTUACIÓN */}
         <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
           <div className="flex items-center gap-1">
             <Clock size={13} />
@@ -86,7 +81,6 @@ export default function TarjetaRecurso({
           </div>
         </div>
 
-        {/* Categoría */}
         <div className="mt-2">
           <span
             className="text-[10px] bg-purple-100 text-purple-700 
@@ -96,7 +90,6 @@ export default function TarjetaRecurso({
           </span>
         </div>
 
-        {/* Botón Ver recurso */}
         <div className="flex justify-end mt-3">
           <button
             onClick={onClick}

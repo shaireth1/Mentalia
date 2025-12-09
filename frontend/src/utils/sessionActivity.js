@@ -1,8 +1,7 @@
-export function setupActivityMonitoring(token, onLogout) {
+export function setupBackendSessionMonitor(token, onLogout) {
   if (!token) return;
 
-  // Enviar ping al backend
-  const sendPing = async () => {
+  const ping = async () => {
     try {
       const res = await fetch("http://localhost:4000/api/session/ping", {
         method: "POST",
@@ -12,30 +11,19 @@ export function setupActivityMonitoring(token, onLogout) {
       });
 
       if (res.status === 401) {
-        onLogout();
+        console.warn("⛔ Sesión expirada por backend");
+        onLogout(true);
       }
     } catch (err) {
       console.error("Ping error:", err);
     }
   };
 
-  // Estos eventos cuentan como actividad
-  const events = ["click", "mousemove", "keydown"];
+  // PING cada 2 minutos
+  const interval = setInterval(ping, 2 * 60 * 1000);
 
-  const registerActivity = () => {
-    sendPing();
-  };
+  // Ejecutar ahora mismo
+  ping();
 
-  // Escuchar actividad
-  events.forEach((ev) => {
-    window.addEventListener(ev, registerActivity);
-  });
-
-  // También ping automático cada 2 min
-  const interval = setInterval(sendPing, 120000);
-
-  return () => {
-    events.forEach((ev) => window.removeEventListener(ev, registerActivity));
-    clearInterval(interval);
-  };
+  return () => clearInterval(interval);
 }

@@ -62,17 +62,21 @@ export function AccesibilidadProvider({ children }) {
     };
   };
 
-  const toggleVoice = () => {
-    setVoiceOn((prev) => {
-      const next = !prev;
-      if (next) {
-        startReading();
-      } else {
-        stopReading();
-      }
-      return next;
-    });
-  };
+ const toggleVoice = () => {
+  setVoiceOn((prev) => {
+    const next = !prev;
+
+    if (next) {
+      startReading();
+    } else {
+      stopReading();
+      setVoiceOn(false); // 🔥 Reinicia estado cuando paran la lectura
+    }
+
+    return next;
+  });
+};
+
 
   const value = {
     fontSize,

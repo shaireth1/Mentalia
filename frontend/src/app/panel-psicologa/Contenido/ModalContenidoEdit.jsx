@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Upload } from "lucide-react";
+import { X, Upload, Music, FileAudio, FileImage, FileVideo } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -20,6 +20,25 @@ export default function ModalContenidoEdit({ data, close, onUpdated }) {
   const [enlace, setEnlace] = useState(data.enlace || "");
   const [tecnicaTipo, setTecnicaTipo] = useState(data.tecnicaTipo || "otro");
   const [loading, setLoading] = useState(false);
+  const [preview, setPreview] = useState(null);
+
+  const handleFilePreview = (e) => {
+    const file = e.target.files?.[0];
+    setArchivo(file);
+
+    if (!file) return;
+
+    const url = URL.createObjectURL(file);
+    setPreview(url);
+  };
+
+  const getAcceptForType = () => {
+    if (tipo === "video") return "video/mp4";
+    if (tipo === "recurso") return "audio/*,image/*,application/pdf";
+    if (tipo === "tecnica") return "image/*,application/pdf";
+    if (tipo === "articulo") return "application/pdf,image/*";
+    return "*/*";
+  };
 
   const handleUpdate = async () => {
     if (!titulo.trim() || !descripcion.trim()) return;
@@ -36,22 +55,21 @@ export default function ModalContenidoEdit({ data, close, onUpdated }) {
       fd.append("categoria", categoria);
       fd.append("enlace", enlace.trim());
       fd.append("tecnicaTipo", tecnicaTipo);
+      fd.append("imagenUrl", ""); 
+
 
       if (archivo) {
         fd.append("archivo", archivo);
       }
 
-      const res = await fetch(
-        `${API_URL}/api/psychologist/content/${data._id}`,
-        {
-          method: "PUT",
-          body: fd,
-          credentials: "include",
-          headers: {
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-        }
-      );
+      const res = await fetch(`${API_URL}/api/psychologist/content/${data._id}`, {
+        method: "PUT",
+        body: fd,
+        credentials: "include",
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
 
       if (!res.ok) {
         const txt = await res.text();
@@ -71,6 +89,7 @@ export default function ModalContenidoEdit({ data, close, onUpdated }) {
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-white w-full max-w-xl rounded-2xl p-6 shadow-xl relative">
+
         {/* Cerrar */}
         <button
           onClick={close}
@@ -82,6 +101,7 @@ export default function ModalContenidoEdit({ data, close, onUpdated }) {
         <h2 className="text-2xl font-semibold mb-5">Editar Contenido</h2>
 
         <div className="flex flex-col gap-4">
+
           {/* TÍTULO */}
           <div>
             <label className="text-sm text-gray-600">Título</label>
@@ -104,7 +124,7 @@ export default function ModalContenidoEdit({ data, close, onUpdated }) {
                 <option value="articulo">Artículo / Tema</option>
                 <option value="video">Video / Cápsula</option>
                 <option value="tecnica">Técnica validada</option>
-                <option value="recurso">Recurso externo</option>
+                <option value="recurso">Recurso externo (podcast/libro)</option>
               </select>
             </div>
 
@@ -129,9 +149,7 @@ export default function ModalContenidoEdit({ data, close, onUpdated }) {
           {/* TIPO DE TÉCNICA */}
           {tipo === "tecnica" && (
             <div>
-              <label className="text-sm text-gray-600">
-                Tipo de técnica (RF28)
-              </label>
+              <label className="text-sm text-gray-600">Tipo de técnica</label>
               <select
                 className={selectStyle}
                 value={tecnicaTipo}
@@ -147,9 +165,7 @@ export default function ModalContenidoEdit({ data, close, onUpdated }) {
 
           {/* DESCRIPCIÓN */}
           <div>
-            <label className="text-sm text-gray-600">
-              Contenido / Descripción
-            </label>
+            <label className="text-sm text-gray-600">Descripción</label>
             <textarea
               className={`${inputStyle} h-28`}
               value={descripcion}
@@ -157,47 +173,47 @@ export default function ModalContenidoEdit({ data, close, onUpdated }) {
             />
           </div>
 
-          {/* ENLACE EXTERNO */}
+          {/* ENLACE */}
           <div>
-            <label className="text-sm text-gray-600">
-              Enlace externo (podcast, libro, video sugerido)
-            </label>
+            <label className="text-sm text-gray-600">Enlace externo</label>
             <input
               className={inputStyle}
+              placeholder="https://..."
               value={enlace}
               onChange={(e) => setEnlace(e.target.value)}
-              placeholder="https://..."
             />
           </div>
 
           {/* ARCHIVO */}
           <div>
-            <label className="text-sm text-gray-600">
-              Archivo (imagen, PDF o video — opcional)
-            </label>
+            <label className="text-sm text-gray-600">Archivo (opcional)</label>
 
-            <div className="flex gap-3">
-              <input
-                type="file"
-                onChange={(e) => setArchivo(e.target.files?.[0] || null)}
-                className="
-                  w-full px-4 py-[10px] bg-white border border-[#D6C8F5]
-                  rounded-xl text-sm cursor-pointer
-                "
-              />
-            </div>
+            <input
+              type="file"
+              accept={getAcceptForType()}
+              onChange={handleFilePreview}
+              className="w-full px-4 py-[10px] bg-white border border-[#D6C8F5] rounded-xl text-sm cursor-pointer"
+            />
+
+            {/* PREVIEW */}
+            {preview && (
+              <div className="mt-3">
+                {preview.includes("video") ? (
+                  <video src={preview} controls className="w-full rounded-lg" />
+                ) : preview.includes("audio") ? (
+                  <audio src={preview} controls className="w-full" />
+                ) : (
+                  <img src={preview} className="w-full rounded-lg" />
+                )}
+              </div>
+            )}
           </div>
 
           {/* BOTÓN */}
           <button
             disabled={loading}
             onClick={handleUpdate}
-            className="
-            mt-2 bg-[#009C74] hover:bg-[#00845F] 
-            disabled:opacity-60 disabled:cursor-not-allowed
-            text-white py-2.5 rounded-xl w-full font-semibold 
-            flex items-center justify-center gap-2 transition
-          "
+            className="mt-2 bg-[#009C74] hover:bg-[#00845F] disabled:opacity-60 text-white py-2.5 rounded-xl w-full font-semibold flex items-center justify-center gap-2 transition"
           >
             <Upload size={18} />
             {loading ? "Actualizando..." : "Actualizar Contenido"}

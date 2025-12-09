@@ -22,19 +22,24 @@ const storage = multer.diskStorage({
   },
 });
 
-// Filtro (solo imágenes, videos, pdfs)
+// Filtro actualizado — AHORA SÍ ACEPTA MP3 / AUDIO 🎧🔥
 const fileFilter = (req, file, cb) => {
   const allowed = [
-    "image/png",
-    "image/jpeg",
-    "image/jpg",
-    "video/mp4",
-    "application/pdf",
-  ];
+  "image/png",
+  "image/jpeg",
+  "image/jpg",
+  "video/mp4",
+  "application/pdf",
+  "audio/mpeg",
+  "audio/mp3",
+  "audio/wav"
+];
+
 
   if (allowed.includes(file.mimetype)) {
     cb(null, true);
   } else {
+    console.log("❌ Archivo rechazado:", file.originalname, file.mimetype);
     cb(new Error("Tipo de archivo no permitido"), false);
   }
 };
@@ -42,9 +47,8 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 120 * 1024 * 1024 } // 120 MB
- // 30MB
+  limits: { fileSize: 120 * 1024 * 1024 }, // 120MB
 });
 
-// ⬅️ EXPORTAMOS LA INSTANCIA (no el .single aquí)
+// ⬅️ EXPORTAMOS LA INSTANCIA
 export const uploadContent = upload;
