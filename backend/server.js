@@ -40,9 +40,14 @@ const __dirname = path.dirname(__filename);
 // ============================
 app.use(
   cors({
-    origin: "http://localhost:3000",
-    credentials: true,
-  })
+  origin: [
+    "http://localhost:3000",
+    "https://mentalia-beta.vercel.app",  
+    "https://mentalia-oguqfdtqk-shais-projects-e2ee0504.vercel.app"
+  ],
+  credentials: true,
+})
+
 );
 
 app.use(express.json());
