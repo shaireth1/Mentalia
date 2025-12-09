@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import TarjetaAlerta from "./TarjetaAlerta";
-import FiltroAlertas from "./FiltroAlertas";
+import TarjetaAlerta from "./TarjetaAlerta.jsx";
+import FiltroAlertas from "./FiltroAlertas.jsx";
 import ModalConversacion from "./ModalConversacion.jsx";
 
 
