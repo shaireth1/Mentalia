@@ -40,18 +40,29 @@ const __dirname = path.dirname(__filename);
 // ============================
 app.use(
   cors({
-    origin: [
-      "http://localhost:3000",
-      "https://mentalia-beta.vercel.app",
-      "https://mentalia-oguqfdtqk-shais-projects-e2ee0504.vercel.app"
-    ],
+    origin: function (origin, callback) {
+      const allowedOrigins = [
+        "http://localhost:3000",
+        "https://mentalia-beta.vercel.app",
+      ];
+
+      // Permitir sin origin (ej: Postman, Render healthcheck)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.log("🚫 CORS bloqueado para:", origin);
+        callback(new Error("No autorizado por CORS"));
+      }
+    },
+    credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
   })
 );
 
-// IMPORTANTÍSIMO: permitir respuestas al preflight
+// Permitir preflight
 app.options("*", cors());
 
 
