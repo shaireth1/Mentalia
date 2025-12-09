@@ -12,11 +12,15 @@ export default function ForgotPasswordPage() {
     setMessage("");
 
     try {
-      const response = await fetch("http://localhost:4000/api/auth/forgot-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
+      const response = await fetch(
+  `${process.env.NEXT_PUBLIC_API_URL}/api/auth/forgot-password`,
+  {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  }
+);
+
 
       const data = await response.json();
       setMessage(data.msg || "Ocurrió un error, intenta nuevamente.");
