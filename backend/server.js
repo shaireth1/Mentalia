@@ -40,15 +40,21 @@ const __dirname = path.dirname(__filename);
 // ============================
 app.use(
   cors({
-  origin: [
-    "http://localhost:3000",
-    "https://mentalia-beta.vercel.app",  
-    "https://mentalia-oguqfdtqk-shais-projects-e2ee0504.vercel.app"
-  ],
-  credentials: true,
-})
-
+    origin: [
+      "http://localhost:3000",
+      "https://mentalia-beta.vercel.app",
+      "https://mentalia-oguqfdtqk-shais-projects-e2ee0504.vercel.app"
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  })
 );
+
+// IMPORTANTÍSIMO: permitir respuestas al preflight
+app.options("*", cors());
+
+
 
 app.use(express.json());
 app.use(morgan("dev"));
