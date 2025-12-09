@@ -44,15 +44,13 @@ app.use(
       const allowedOrigins = [
         "http://localhost:3000",
         "https://mentalia-beta.vercel.app",
+        "https://mentalia-brown.vercel.app"
       ];
 
-      // Permitir sin origin (ej: Postman, Render healthcheck)
-      if (!origin) return callback(null, true);
-
-      if (allowedOrigins.includes(origin)) {
+      if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        console.log("🚫 CORS bloqueado para:", origin);
+        console.log("❌ CORS bloqueado para:", origin);
         callback(new Error("No autorizado por CORS"));
       }
     },
@@ -62,8 +60,9 @@ app.use(
   })
 );
 
-// Permitir preflight
+// Preflight
 app.options("*", cors());
+
 
 
 
