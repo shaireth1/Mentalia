@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import TarjetaAlerta from "./TarjetaAlerta";
 import FiltroAlertas from "./FiltroAlertas";
-import ModalConversacion from "./ModalConversacion";
+import ModalConversacion from "./ModalConversacion.jsx";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
