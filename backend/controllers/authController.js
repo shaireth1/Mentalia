@@ -4,6 +4,8 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import Session from "../models/Session.js";
 import sendEmail from "../utils/sendEmail.js";
+const FRONTEND_URL =
+  process.env.FRONTEND_URL || "http://localhost:3000";
 
 // 🟢 Registro de usuario (RF1, RF4, RF5, RNF1, RNF10)
 export async function registerUser(req, res) {
@@ -106,7 +108,8 @@ export async function registerUser(req, res) {
         </p>
 
         <div style="text-align: center; margin-top: 25px;">
-          <a href="http://localhost:3000/login"
++ <a href="${process.env.FRONTEND_URL}/login"
+
             style="background: #7c3aed; color: white; padding: 12px 20px; border-radius: 8px; text-decoration: none; font-size: 16px;">
             Iniciar sesión en MENTALIA
           </a>

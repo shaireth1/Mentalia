@@ -20,7 +20,8 @@ export async function forgotPassword(req, res) {
     user.resetPasswordExpire = Date.now() + 1000 * 60 * 10; // 10 minutos
     await user.save();
 
-    const resetUrl = `http://localhost:3000/reset-password/${resetToken}`;
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+
 
     const html = `
       <h2>Recuperación de contraseña</h2>

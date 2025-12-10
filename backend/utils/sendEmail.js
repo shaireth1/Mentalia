@@ -5,7 +5,7 @@ export default async function sendEmail({ to, subject, html }) {
     const transporter = nodemailer.createTransport({
       host: process.env.BREVO_SMTP_HOST,
       port: Number(process.env.BREVO_SMTP_PORT) || 587,
-      secure: false, // 587 = STARTTLS
+      secure: false,
       auth: {
         user: process.env.BREVO_SMTP_USER,
         pass: process.env.BREVO_SMTP_PASS,
@@ -19,8 +19,8 @@ export default async function sendEmail({ to, subject, html }) {
       html,
     });
 
-    console.log("📨 Correo enviado correctamente a:", to);
+    console.log("📨 Correo enviado correctamente:", to);
   } catch (error) {
-    console.error("❌ Error enviando correo Brevo:", error);
+    console.error("❌ Error enviando correo:", error);
   }
 }

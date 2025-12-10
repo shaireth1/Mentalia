@@ -1,3 +1,4 @@
+// backend/server.js
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
@@ -17,42 +18,35 @@ import userRoutes from "./routes/user.js";
 import chatSessionRoutes from "./routes/chatSession.js";
 import alertRoutes from "./routes/alerts.js";
 import journalRoutes from "./routes/journal.js";
-import psychologistRoutes from "./routes/psychologist.js"; // ⭐ Ya estaba OK
-
-import { cleanInactiveSessions } from "./utils/sessionCleaner.js";
-import { checkDailyCriticalAlerts } from "./controllers/alertController.js";
+import psychologistRoutes from "./routes/psychologist.js";
 import contentPublicRoutes from "./routes/contentPublic.js";
 
+import { cleanInactiveSessions } from "./utils/sessionCleaner.js";
+// import { checkDailyCriticalAlerts } from "./controllers/alertController.js";
 
-
-dotenv.config();
-
-const app = express();
-
-// ============================
-// ⚙️ CONFIG PATHS PARA UPLOADS
-// ============================
+// PATH CONFIG
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// EXPRESS
+const app = express();
+
 // ============================
-// 🌐 MIDDLEWARES
+// 🌐 CORS — VERSIÓN CORRECTA PARA RENDER
 // ============================
+const allowedOrigins = [
+  "http://localhost:3000",
+  process.env.FRONTEND_URL, // https://mentalia-brown.vercel.app
+].filter(Boolean);
+
 app.use(
   cors({
     origin: function (origin, callback) {
-      const allowedOrigins = [
-        "http://localhost:3000",
-        "https://mentalia-beta.vercel.app",
-        "https://mentalia-brown.vercel.app"
-      ];
-
       if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.log("❌ CORS bloqueado para:", origin);
-        callback(new Error("No autorizado por CORS"));
+        return callback(null, true);
       }
+      console.log("❌ CORS bloqueado para:", origin);
+      return callback(new Error("No autorizado por CORS"));
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -63,32 +57,29 @@ app.use(
 // Preflight
 app.options("*", cors());
 
-
-
-
+// BASICS
 app.use(express.json());
 app.use(morgan("dev"));
 app.use(cookieParser());
 
-// ============================
-// 🗂️ SERVIR ARCHIVOS SUBIDOS (RF26)
-// ============================
-// Esto permite acceder a videos, imágenes y PDFs subidos desde el frontend
+// STATIC UPLOADS
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ============================
 // 🗄️ CONEXIÓN BD
 // ============================
-const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/mentalia";
-
 mongoose
-  .connect(MONGO_URI)
-  .then(() => console.log("✅ Conectado a MongoDB"))
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log("✅ MongoDB Conectado"))
   .catch((err) => console.error("❌ Error MongoDB:", err));
 
 // ============================
 // 🚏 RUTAS
 // ============================
+app.get("/", (req, res) => {
+  res.send("MENTALIA Backend funcionando correctamente 🚀");
+});
+
 app.use("/api/chatbot", chatbotRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/sessions", sessionRoutes);
@@ -98,27 +89,13 @@ app.use("/api/chat-sessions", chatSessionRoutes);
 app.use("/api/alerts", alertRoutes);
 app.use("/api/journal", journalRoutes);
 app.use("/api/content", contentPublicRoutes);
-
-
-// ⭐ Ruta principal de la psicóloga (alertas, frases, contenidos, estadísticas…)
 app.use("/api/psychologist", psychologistRoutes);
 
-// ============================
-// 🧹 LIMPIEZA DE SESIONES
-// ============================
+// CLEANER
 setInterval(cleanInactiveSessions, 60 * 1000);
 
-// ============================
-// 🚨 CRON PARA ALERTAS CRÍTICAS (opcional activar)
-// ============================
-// setInterval(() => {
-//   checkDailyCriticalAlerts();
-// }, 60 * 1000);
-
-// ============================
-// 🚀 SERVIDOR
-// ============================
+// SERVIDOR
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`🚀 Servidor en http://0.0.0.0:${PORT}`);
-});
+app.listen(PORT, "0.0.0.0", () =>
+  console.log(`🚀 Servidor corriendo en puerto ${PORT}`)
+);
