@@ -3,7 +3,7 @@ import "./globals.css";
 
 import { AuthProvider } from "../context/AuthContext";
 
-// ⭐ IMPORTAR ACCESIBILIDAD
+// ⭐ ACCESIBILIDAD
 import { AccesibilidadProvider } from "../context/AccesibilidadContext";
 import AccesibilidadPanel from "../components/AccesibilidadPanel";
 
@@ -26,7 +26,15 @@ export default function RootLayout({ children }) {
   return (
     <html lang="es">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`
+          ${geistSans.variable}
+          ${geistMono.variable}
+          antialiased
+          
+          /* ⭐ NUEVO: evita que nada se salga en móviles */
+          overflow-x-hidden
+          min-w-[320px]
+        `}
       >
         {/* 🌟 PROVIDERS GLOBALES */}
         <AuthProvider>
@@ -34,7 +42,10 @@ export default function RootLayout({ children }) {
             {/* 🌟 PANEL FLOTANTE DE ACCESIBILIDAD */}
             <AccesibilidadPanel />
 
-            {children}
+            {/* ⭐ NUEVO: hace que todo el contenido sea flexible */}
+            <div className="w-full max-w-[2000px] mx-auto">
+              {children}
+            </div>
           </AccesibilidadProvider>
         </AuthProvider>
       </body>

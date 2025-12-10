@@ -1,20 +1,29 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
-import { MessageCircle, BookOpen, LogOut } from "lucide-react";
+import { MessageCircle, BookOpen, LogOut, Menu } from "lucide-react";
 
 import ChatbotView from "../vistas_reutilizables/ChatbotView";
 import RecursosView from "../vistas_reutilizables/RecursosView";
 
 export default function ChatPage() {
   const [activeView, setActiveView] = useState("chat");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <div className="flex flex-col h-screen bg-[#f6f4fb]">
 
-      {/* HEADER – ahora idéntico al de autenticados */}
-      <header className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white flex justify-between items-center px-8 py-4 shadow-md">
+      {/* HEADER RESPONSIVO */}
+      <header className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white flex justify-between items-center px-6 py-4 shadow-md">
+
+        {/* MENU MOBILE */}
+        <button
+          className="md:hidden block"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+        >
+          <Menu size={24} />
+        </button>
+
         {/* LOGO + TITULO */}
         <div className="flex items-center gap-2">
           <img
@@ -22,8 +31,7 @@ export default function ChatPage() {
             alt="Logo Mentalia"
             className="w-7 h-7 object-contain"
           />
-
-          <div className="leading-tight">
+          <div className="leading-tight hidden sm:block">
             <h1 className="text-base font-semibold tracking-wide">MENTALIA</h1>
             <p className="text-xs opacity-90">
               Plataforma de Apoyo Emocional - SENA
@@ -31,14 +39,15 @@ export default function ChatPage() {
           </div>
         </div>
 
-        {/* USUARIO ANÓNIMO + LOGOUT */}
+        {/* USUARIO ANÓNIMO */}
         <div className="flex items-center space-x-4 text-xs">
-          <div className="text-right leading-tight">
+          <div className="text-right leading-tight hidden sm:block">
             <p className="font-semibold text-sm">Usuario Anónimo</p>
             <p className="opacity-90">anonimo@mentalia.com</p>
-            <p className="">Sesión Temporal</p>
+            <p>Sesión Temporal</p>
           </div>
 
+          {/* LOGOUT */}
           <button
             onClick={() => {
               sessionStorage.removeItem("chatHistory");
@@ -50,18 +59,26 @@ export default function ChatPage() {
             <LogOut size={16} />
           </button>
         </div>
-
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden relative">
 
-        {/* SIDEBAR */}
-        <aside className="w-60 bg-white border-r border-gray-200 py-4 px-4 flex flex-col justify-between">
+        {/* SIDEBAR RESPONSIVA */}
+        <aside
+          className={`
+            bg-white border-r border-gray-200 py-4 px-4 flex flex-col justify-between
+            w-60 z-20 h-full fixed md:static transition-transform duration-300
+            ${sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+          `}
+        >
           <nav className="space-y-3">
 
             {/* Botón Chat */}
             <button
-              onClick={() => setActiveView("chat")}
+              onClick={() => {
+                setActiveView("chat");
+                setSidebarOpen(false);
+              }}
               className={`flex items-center w-full px-3 py-2 text-left text-sm rounded-md ${
                 activeView === "chat"
                   ? "text-[#6b21a8] bg-purple-100"
@@ -73,7 +90,10 @@ export default function ChatPage() {
 
             {/* Botón Recursos */}
             <button
-              onClick={() => setActiveView("recursos")}
+              onClick={() => {
+                setActiveView("recursos");
+                setSidebarOpen(false);
+              }}
               className={`flex items-center w-full px-3 py-2 text-left text-sm rounded-md ${
                 activeView === "recursos"
                   ? "text-[#6b21a8] bg-purple-100"
@@ -86,6 +106,14 @@ export default function ChatPage() {
           </nav>
         </aside>
 
+        {/* CAPA PARA CERRAR EL MENÚ EN MÓVIL */}
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black/30 z-10 md:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
         {/* CONTENIDO PRINCIPAL */}
         <main className="flex-1 flex flex-col p-4 overflow-y-auto">
           {activeView === "chat" && <ChatbotView mode="anonimo" />}
@@ -96,5 +124,3 @@ export default function ChatPage() {
     </div>
   );
 }
-
-

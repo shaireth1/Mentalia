@@ -4,18 +4,19 @@ import Link from "next/link";
 import Image from "next/image";
 import { Heart, ArrowLeft, Eye } from "lucide-react";
 import { useState } from "react";
-import { useRouter } from "next/navigation"; // <-- Necesario para redirección
+import { useRouter } from "next/navigation";
 
-/* 🔹 Estilos */
+/* 🔹 Estilos reutilizables */
 const label =
   "block text-sm font-semibold text-purple-700 mb-1 tracking-wide";
 const input =
   "w-full border border-purple-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-purple-400 focus:outline-none text-sm";
 
 export default function Register() {
-  const router = useRouter(); // <-- Inicializar router
+  const router = useRouter();
 
   const [showPassword, setShowPassword] = useState(false);
+
   const [formData, setFormData] = useState({
     fullName: "",
     idNumber: "",
@@ -26,18 +27,18 @@ export default function Register() {
     email: "",
     phone: "",
     password: "",
-    consentimiento: false,     // ⭐ AGREGADO PARA RNF10
+    consentimiento: false,
   });
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData({ 
-      ...formData, 
-      [name]: type === "checkbox" ? checked : value 
+    setFormData({
+      ...formData,
+      [name]: type === "checkbox" ? checked : value,
     });
   };
 
-  // 📌 Registro
+  /* >>>>>> REGISTRO <<<<<< */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -56,25 +57,26 @@ export default function Register() {
       telefono: formData.phone,
       email: formData.email,
       password: formData.password,
-
-      consentimientoDatos: true,  // ⭐ SE ENVÍA AL BACKEND (RNF10)
+      consentimientoDatos: true,
     };
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        }
+      );
 
       const data = await res.json();
 
       if (res.ok) {
         alert("✅ Usuario registrado con éxito");
-        router.push("/login"); // <-- Redirección restaurada
-        return;
+        router.push("/login");
       } else {
-        alert("❌ Error: " + (data.msg || data.error));
+        alert("❌ " + (data.msg || data.error));
       }
     } catch (err) {
       console.error("Error en el registro:", err);
@@ -85,7 +87,7 @@ export default function Register() {
   return (
     <main className="min-h-screen flex items-center justify-center bg-[#f3e8ff] font-sans p-6 relative">
       
-      {/* Botón volver */}
+      {/* Volver */}
       <div className="absolute top-6 left-6 flex items-center gap-2 text-purple-700 hover:underline cursor-pointer">
         <ArrowLeft className="w-4 h-4" />
         <Link href="/" className="text-sm font-medium">
@@ -93,7 +95,7 @@ export default function Register() {
         </Link>
       </div>
 
-      {/* Logo superior derecho */}
+      {/* Logo */}
       <div className="absolute top-6 right-8 flex flex-col items-center text-purple-700">
         <div className="flex items-center">
           <Heart className="w-6 h-6 mr-2" />
@@ -104,8 +106,8 @@ export default function Register() {
 
       <div className="flex flex-col md:flex-row max-w-5xl mx-auto w-full gap-10 items-center justify-center">
         
-        {/* Panel izquierdo */}
-        <div className="bg-white rounded-2xl shadow-md overflow-hidden w-full md:w-[60%] flex flex-col mx-auto">
+        {/* PANEL IZQUIERDO */}
+        <div className="bg-white rounded-2xl shadow-md overflow-hidden w-full md:w-[60%] flex flex-col">
           <div className="h-[280px] w-full overflow-hidden">
             <Image
               src="/icono-registrarse.jpg"
@@ -115,7 +117,7 @@ export default function Register() {
               className="w-full h-full object-cover"
             />
           </div>
-          <div className="p-6 flex flex-col justify-start flex-grow bg-white">
+          <div className="p-6">
             <h2 className="text-lg font-semibold text-purple-700 mb-2">
               Tecnología al servicio de tu bienestar
             </h2>
@@ -126,7 +128,7 @@ export default function Register() {
           </div>
         </div>
 
-        {/* Panel derecho */}
+        {/* PANEL DERECHO */}
         <div className="bg-white rounded-2xl shadow-md p-6 w-full md:w-[60%]">
           <h2 className="text-2xl font-semibold text-center text-purple-700 mb-1">
             Crear Cuenta
@@ -273,7 +275,7 @@ export default function Register() {
 
             </div>
 
-            {/* ⭐ AGREGADO PARA RNF10 */}
+            {/* Consentimiento informado */}
             <div className="flex items-start gap-3 text-xs text-gray-600 mt-2">
               <input
                 type="checkbox"

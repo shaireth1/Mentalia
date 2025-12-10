@@ -32,7 +32,7 @@ export default function FiltroCategorias({ value, onChange }) {
     { label: "Ansiedad", value: "Ansiedad", icon: HeartPulse },
     { label: "Depresión", value: "Depresión", icon: Frown },
     { label: "Estrés", value: "Estrés", icon: AlertTriangle },
-    { label: "Mindfulness", value: "Mindfulness", icon: Flower2 }, // 🔥 reemplazo seguro
+    { label: "Mindfulness", value: "Mindfulness", icon: Flower2 },
     { label: "Relaciones", value: "Relaciones", icon: Users },
     { label: "Estudio", value: "Estudio", icon: BookOpen },
   ];
@@ -40,21 +40,25 @@ export default function FiltroCategorias({ value, onChange }) {
   const selectedCat = categorias.find((c) => c.value === value) || categorias[0];
 
   return (
-    <div className="relative" ref={ref}>
+    <div className="relative w-full sm:w-auto" ref={ref}>
+      {/* Botón responsivo */}
       <button
         onClick={() => setOpen(!open)}
-        className="border border-gray-300 rounded-xl px-4 py-2 bg-white 
-        flex items-center gap-2 text-gray-700 hover:bg-gray-50 transition shadow-sm"
+        className="border border-gray-300 rounded-xl px-4 py-3 bg-white 
+        flex items-center justify-between gap-2 text-gray-700 hover:bg-gray-50 
+        transition shadow-sm w-full sm:w-auto text-sm"
       >
-        <selectedCat.icon size={18} className="text-purple-500" />
-        <span className="text-sm">{selectedCat.label}</span>
-        <ChevronDown size={18} className="text-gray-500" />
+        <div className="flex items-center gap-2 truncate">
+          <selectedCat.icon size={18} className="text-purple-500 shrink-0" />
+          <span className="truncate">{selectedCat.label}</span>
+        </div>
+        <ChevronDown size={18} className="text-gray-500 shrink-0" />
       </button>
 
       {open && (
         <div
-          className="absolute right-0 mt-2 w-56 bg-white shadow-lg 
-        rounded-xl border border-gray-200 py-2 z-20"
+          className="absolute right-0 sm:right-0 mt-2 w-full sm:w-56 bg-white shadow-lg 
+        rounded-xl border border-gray-200 py-2 z-20 max-h-64 overflow-auto"
         >
           {categorias.map((c) => (
             <button
@@ -81,7 +85,3 @@ export default function FiltroCategorias({ value, onChange }) {
     </div>
   );
 }
-
-
-
-

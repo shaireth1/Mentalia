@@ -12,24 +12,20 @@ body {
   padding: 0;
   font-family: 'Segoe UI', sans-serif;
   background: transparent;
-  font-size: var(--app-font-size, 16px); /* ⭐ Aplica tamaño de fuente global */
+  font-size: var(--app-font-size, 16px);
+  overflow-x: hidden; /* movido para evitar conflictos */
 }
 
-/* Para asegurar que TODA la aplicación use el font-size dinámico */
+/* Toda la app hereda el tamaño */
 * {
   font-size: inherit;
+  box-sizing: border-box; /* Mantener SOLO esto */
 }
-
 
 /* ================================
    🌗 SISTEMA DE CONTRASTE
 ================================ */
 
-/* --- Estándar (no requiere reglas) --- */
-
-
-
-/* --- ALTO CONTRASTE --- */
 html[data-contrast="high"],
 html[data-contraste="alto"] {
   filter: contrast(150%);
@@ -42,9 +38,6 @@ html[data-contraste="alto"] * {
   color: inherit !important;
 }
 
-
-
-/* --- MODO OSCURO --- */
 html[data-contrast="dark"],
 html[data-contraste="oscuro"] {
   background: #111 !important;
@@ -57,21 +50,18 @@ html[data-contraste="oscuro"] * {
   color: #eee !important;
 }
 
-
 /* ================================
-   🎧 ACCESIBILIDAD — UTILIDADES
+   🎧 ACCESIBILIDAD
 ================================ */
 
-/* Evita que el panel de accesibilidad herede el modo oscuro totalmente */
 #accesibilidad-panel,
 #accesibilidad-panel * {
   background-color: initial !important;
   color: initial !important;
 }
 
-/* Accesibilidad: resaltar focos para navegación por teclado */
 :focus {
-  outline: 3px solid #7c3aed !important; /* morado Mentalia */
+  outline: 3px solid #7c3aed !important;
   outline-offset: 2px;
 }
 
@@ -79,26 +69,49 @@ html[data-contraste="oscuro"] * {
    🧩 FIXES ESPECIALES
 ================================ */
 
-/* Evita que contrast/dark mode dañe modales */
 .modal-keep-bg,
 .modal-keep-bg * {
   background-color: white !important;
   color: #333 !important;
 }
 
-/* Evita que las tarjetas pierdan su fondo */
 .card-bg,
 .card-bg * {
   background-color: white !important;
 }
 
-/* Evita que los gráficos en panel psicóloga se inviertan */
 .chart-container canvas {
   filter: none !important;
 }
 
-/* Evita que imágenes/miniaturas pierdan contraste o color */
 img,
 video {
   filter: none !important;
+  max-width: 100%; /* aquí sí está bien */
+}
+
+/* ================================
+   📱 RESPONSIVIDAD REAL
+================================ */
+
+/* Contenedor global flexible */
+.container-responsive {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+/* Secciones tipo fila/columna */
+.section-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+@media (min-width: 768px) {
+  .section-grid {
+    flex-direction: row;
+  }
 }

@@ -32,36 +32,49 @@ export default function TarjetaRecurso({
 
   return (
     <div
-      className="bg-white rounded-xl border border-gray-200 shadow-sm 
-      hover:shadow-md transition cursor-pointer overflow-hidden flex"
+      className="
+        bg-white rounded-xl border border-gray-200 shadow-sm 
+        hover:shadow-md transition cursor-pointer overflow-hidden 
+        flex flex-col md:flex-row
+      "
       onClick={onClick}
     >
-      <div className="relative w-40 h-28 flex-shrink-0">
+      {/* Imagen */}
+      <div className="relative w-full md:w-40 h-40 md:h-28 flex-shrink-0">
         <img
           src={imagen}
           alt={titulo}
-          className="w-full h-full object-cover"
+          className="
+            w-full h-full object-cover
+          "
         />
 
+        {/* Tipo */}
         <div
-          className="absolute top-2 left-2 flex items-center gap-1 
-          bg-white/90 px-2 py-0.5 rounded-full text-[10px] font-medium shadow-sm 
-          text-gray-700"
+          className="
+            absolute top-2 left-2 flex items-center gap-1 
+            bg-white/90 px-2 py-0.5 rounded-full text-[10px] font-medium shadow-sm 
+            text-gray-700
+          "
         >
           <Icono size={12} className="text-green-700" />
           {tipo}
         </div>
 
+        {/* Gratis */}
         {gratis && (
           <div
-            className="absolute top-2 right-2 bg-green-100 text-green-700 
-            px-2 py-0.5 rounded-full text-[10px] font-semibold shadow-sm"
+            className="
+              absolute top-2 right-2 bg-green-100 text-green-700 
+              px-2 py-0.5 rounded-full text-[10px] font-semibold shadow-sm
+            "
           >
             Gratis
           </div>
         )}
       </div>
 
+      {/* Contenido */}
       <div className="p-3 flex flex-col justify-between w-full">
 
         <div>
@@ -83,8 +96,10 @@ export default function TarjetaRecurso({
 
         <div className="mt-2">
           <span
-            className="text-[10px] bg-purple-100 text-purple-700 
-            px-2 py-0.5 rounded-full font-medium"
+            className="
+              text-[10px] bg-purple-100 text-purple-700 
+              px-2 py-0.5 rounded-full font-medium
+            "
           >
             {categoria}
           </span>
@@ -93,9 +108,11 @@ export default function TarjetaRecurso({
         <div className="flex justify-end mt-3">
           <button
             onClick={onClick}
-            className="flex items-center gap-1 bg-[#7b63ff] 
-            hover:bg-[#684ce8] transition text-white text-xs 
-            px-3 py-1 rounded-lg"
+            className="
+              flex items-center gap-1 bg-[#7b63ff] 
+              hover:bg-[#684ce8] transition text-white text-xs 
+              px-3 py-1 rounded-lg
+            "
           >
             Ver recurso
             <ExternalLink size={13} />

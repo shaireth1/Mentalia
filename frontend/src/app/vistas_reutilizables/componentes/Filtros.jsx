@@ -4,19 +4,25 @@ import { useState } from "react";
 import { Filter, ListFilter, Layers } from "lucide-react";
 
 export default function Filtros({ onChange }) {
-  // Valores iniciales
   const [categoria, setCategoria] = useState("");
   const [tipo, setTipo] = useState("");
   const [estado, setEstado] = useState("");
 
-  // Opciones
   const categorias = ["Ansiedad", "Autoestima", "Motivación", "Mindfulness", "Relaciones"];
   const tipos = ["PDF", "Video", "Artículo", "Podcast"];
   const estados = ["Nuevo", "Popular", "Recomendado"];
 
   const handleSelect = (setter, value, key) => {
     setter(value);
-    onChange({ categoria, tipo, estado, [key]: value });
+
+    // Corrección: enviar los valores actualizados REALMENTE
+    const filtrosActuales = {
+      categoria: key === "categoria" ? value : categoria,
+      tipo: key === "tipo" ? value : tipo,
+      estado: key === "estado" ? value : estado,
+    };
+
+    onChange(filtrosActuales);
   };
 
   return (

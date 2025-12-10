@@ -42,7 +42,7 @@ export default function RecursosView() {
 
   useEffect(() => {
     cargar();
-  }, [categoria, tipo]);
+  }, [categoria, tipo, buscar]); // 🔥 Se agrega "buscar" para que funcione el buscador
 
   return (
     <div className="p-6 w-full">
@@ -107,26 +107,24 @@ export default function RecursosView() {
 }
 
 /* =========================================================
-📌 TARJETA — Preview y miniaturas correctas
+📌 TARJETA — Preview y miniaturas correctas + fix clicks
 ========================================================= */
 function RecursoCard({ item }) {
   const esVideo = item.tipo === "video";
   const esArticulo = item.tipo === "articulo";
-  const esTecnica = item.tipo === "tecnica";
   const esLinkExterno = item.enlace && !item.archivoUrl;
   const tieneArchivo = !!item.archivoUrl;
 
-  // 📌 Miniaturas predeterminadas según tipo / archivo
+  // 📌 Miniaturas corregidas
   const getThumbnail = (item) => {
     if (item.imagenUrl) return item.imagenUrl;
 
-    // Usa los nombres EXACTOS de tu carpeta
     if (item.tipo === "articulo") return "/recursos/article.png";
     if (item.tipo === "video") return "/recursos/video.png";
     if (item.tipo === "tecnica") return "/recursos/technique.png";
 
     if (item.tipo === "recurso") {
-      if (item.archivoUrl && item.archivoUrl.endsWith(".pdf"))
+      if (item.archivoUrl && /\.pdf($|\?)/i.test(item.archivoUrl))
         return "/recursos/pdf.png";
 
       if (item.archivoUrl && /(\.mp3|\.wav|\.mpeg)/i.test(item.archivoUrl))
@@ -188,7 +186,14 @@ function RecursoCard({ item }) {
         </div>
 
         <div className="mt-4 flex flex-col gap-2">
-          <button className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 rounded-lg transition flex items-center justify-center gap-2">
+          {/* FIX: evitar doble click */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              abrirRecurso();
+            }}
+            className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 rounded-lg transition flex items-center justify-center gap-2"
+          >
             {esVideo && <Play size={18} />}
             {esArticulo && <FileText size={18} />}
             {esLinkExterno && <Link2 size={18} />}

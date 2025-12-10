@@ -1,4 +1,5 @@
 "use client";
+
 import { useState } from "react";
 
 export default function ForgotPasswordPage() {
@@ -13,14 +14,13 @@ export default function ForgotPasswordPage() {
 
     try {
       const response = await fetch(
-  `${process.env.NEXT_PUBLIC_API_URL}/api/auth/forgot-password`,
-  {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email }),
-  }
-);
-
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/forgot-password`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        }
+      );
 
       const data = await response.json();
       setMessage(data.msg || "Ocurrió un error, intenta nuevamente.");
@@ -34,12 +34,14 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#f2e1ff] p-6">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
         <h2 className="text-2xl font-semibold text-purple-800 mb-4 text-center">
           Recuperar contraseña
         </h2>
+
         <p className="text-purple-600 text-sm text-center mb-6">
-          Ingresa tu correo electrónico registrado y te enviaremos un enlace para restablecer tu contraseña.
+          Ingresa tu correo electrónico registrado y te enviaremos un enlace para
+          restablecer tu contraseña.
         </p>
 
         <form onSubmit={handleForgotPassword} className="space-y-4">
@@ -56,7 +58,9 @@ export default function ForgotPasswordPage() {
             type="submit"
             disabled={loading}
             className={`w-full py-3 rounded-lg font-semibold text-white transition-all ${
-              loading ? "bg-purple-400" : "bg-purple-700 hover:bg-purple-800"
+              loading
+                ? "bg-purple-400 cursor-not-allowed"
+                : "bg-purple-700 hover:bg-purple-800"
             }`}
           >
             {loading ? "Enviando..." : "Enviar enlace de recuperación"}
@@ -64,7 +68,9 @@ export default function ForgotPasswordPage() {
         </form>
 
         {message && (
-          <p className="mt-4 text-center text-sm text-purple-700">{message}</p>
+          <p className="mt-4 text-center text-sm text-purple-700">
+            {message}
+          </p>
         )}
       </div>
     </div>

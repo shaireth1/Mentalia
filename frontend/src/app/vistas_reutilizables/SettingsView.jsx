@@ -208,7 +208,7 @@ export default function SettingsView() {
                   </button>
                 ) : (
                   <button
-                    onClick={() => handleCloseOne(s.sessionId)}
+                    onClick={() => handleCloseOne(s._id)}
                     className="text-sm text-red-600 hover:text-red-800 flex items-center gap-1"
                   >
                     <XCircle className="w-4 h-4" />
