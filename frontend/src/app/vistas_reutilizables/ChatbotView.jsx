@@ -14,8 +14,9 @@ export default function ChatbotView({ mode = "anonimo" }) {
   const [isBotTyping, setIsBotTyping] = useState(false);
   const chatEndRef = useRef(null);
 
-  const baseUrl =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+
 
   // ⭐ Ahora sí: sessionId se genera después de montar
   useEffect(() => {
@@ -191,10 +192,12 @@ if (mode === "autenticado") {
       }
 
       const res = await fetch(endpoint, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(bodyPayload),
-      });
+  method: "POST",
+  headers,
+  credentials: mode === "autenticado" ? "include" : "omit",
+  body: JSON.stringify(bodyPayload),
+});
+
 
       if (!res.ok) {
         throw new Error("Servidor no respondió correctamente");

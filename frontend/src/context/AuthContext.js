@@ -9,11 +9,11 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const router = useRouter();
-
-  // ⭐ Referencia al timer real (para evitar duplicados)
   const inactivityRef = useRef(null);
 
-  // 🟣 Cargar sesión guardada
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+  // Cargar sesión guardada
   useEffect(() => {
     const savedToken = localStorage.getItem("token");
     const savedUser = localStorage.getItem("user");
@@ -24,7 +24,7 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  // 🟣 Monitoreo de inactividad REAL
+  // Timer de inactividad
   useEffect(() => {
     if (!token) return;
 
@@ -33,15 +33,13 @@ export function AuthProvider({ children }) {
     const resetTimer = () => {
       clearTimeout(inactivityRef.current);
       inactivityRef.current = setTimeout(() => {
-        handleLogout(true); // ⛔ cerrar por inactividad
-      }, 30 * 60 * 1000); // 30 minutos exactos
+        handleLogout(true);
+      }, 30 * 60 * 1000);
     };
 
     const events = ["click", "mousemove", "keydown", "scroll", "touchstart"];
-
     events.forEach((ev) => window.addEventListener(ev, resetTimer));
-
-    resetTimer(); // iniciar el timer
+    resetTimer();
 
     return () => {
       events.forEach((ev) => window.removeEventListener(ev, resetTimer));
@@ -49,53 +47,40 @@ export function AuthProvider({ children }) {
     };
   }, [token]);
 
-  // 🟣 🔥 Monitor del backend (ping cada 2 min)
+  // Monitor backend
   useEffect(() => {
     if (!token) return;
-
-    // instala el monitor
     const stop = setupBackendSessionMonitor(token, handleLogout);
-
-    // limpieza
-    return () => {
-      if (stop) stop();
-    };
+    return () => stop && stop();
   }, [token]);
 
-  // 🟣 Logout
+  // Logout global
   const handleLogout = async (auto = false) => {
     try {
       if (token) {
-        await fetch("http://localhost:4000/api/auth/logout", {
+        await fetch(`${API_URL}/api/auth/logout`, {
           method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
           credentials: "include",
+          headers: { Authorization: `Bearer ${token}` },
         });
       }
     } catch (err) {
       console.error("Logout error:", err);
     }
 
-    // 🧹 limpiar sesión
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-
     setToken(null);
     setUser(null);
 
     clearTimeout(inactivityRef.current);
 
-    if (auto) {
-      alert("⚠️ Tu sesión se cerró automáticamente por inactividad.");
-    }
-
+    if (auto) alert("⚠️ Tu sesión se cerró por inactividad.");
     router.push("/login");
   };
 
   return (
-    <AuthContext.Provider
-      value={{ user, token, setUser, setToken, handleLogout }}
-    >
+    <AuthContext.Provider value={{ user, token, setUser, setToken, handleLogout }}>
       {children}
     </AuthContext.Provider>
   );
