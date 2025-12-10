@@ -22,7 +22,6 @@ import psychologistRoutes from "./routes/psychologist.js";
 import contentPublicRoutes from "./routes/contentPublic.js";
 
 import { cleanInactiveSessions } from "./utils/sessionCleaner.js";
-// import { checkDailyCriticalAlerts } from "./controllers/alertController.js";
 
 // PATH CONFIG
 const __filename = fileURLToPath(import.meta.url);
@@ -31,24 +30,17 @@ const __dirname = path.dirname(__filename);
 // EXPRESS
 const app = express();
 
-// ============================
-// 🌐 CORS — VERSIÓN CORRECTA PARA RENDER
-// ============================
-const allowedOrigins = [
-  "http://localhost:3000",
-  process.env.FRONTEND_URL, // https://mentalia-brown.vercel.app
-].filter(Boolean);
-
+// ======================================================
+// 🌐 CORS — CONFIGURACIÓN CORRECTA PARA RENDER Y VERCEL
+// ======================================================
 app.use(
   cors({
     origin: [
       "http://localhost:3000",
       "https://mentalia-brown.vercel.app",
-      "https://mentalia-beta.vercel.app"
+      "https://mentalia-beta.vercel.app",
     ],
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
@@ -63,17 +55,17 @@ app.use(cookieParser());
 // STATIC UPLOADS
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// ============================
+// ======================================================
 // 🗄️ CONEXIÓN BD
-// ============================
+// ======================================================
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB Conectado"))
   .catch((err) => console.error("❌ Error MongoDB:", err));
 
-// ============================
+// ======================================================
 // 🚏 RUTAS
-// ============================
+// ======================================================
 app.get("/", (req, res) => {
   res.send("MENTALIA Backend funcionando correctamente 🚀");
 });
@@ -89,7 +81,7 @@ app.use("/api/journal", journalRoutes);
 app.use("/api/content", contentPublicRoutes);
 app.use("/api/psychologist", psychologistRoutes);
 
-// CLEANER
+// LIMPIEZA
 setInterval(cleanInactiveSessions, 60 * 1000);
 
 // SERVIDOR
