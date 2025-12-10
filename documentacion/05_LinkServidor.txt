@@ -1,0 +1,24 @@
+LINKS DEL PROYECTO MENTALIA
+---------------------------
+
+📌 DOCUMENTACIÓN OFICIAL (alojada en el hosting institucional SENA):
+https://mentaliachat.adsosena.site/documentacion/
+
+La carpeta incluye:
+- 01_Informe_Tecnico.pdf
+- 02_Manual_Tecnico.pdf
+- 03_Manual_Usuario.pdf
+- 04_BaseDatos.sql
+
+📌 FRONTEND (Desplegado en Vercel):
+https://mentalia-brown.vercel.app/
+
+📌 BACKEND (Desplegado en Render):
+https://mentalia-backend-ob7c.onrender.com/
+
+📌 REPOSITORIO EN GITHUB:
+https://github.com/tu-usuario/Mentalia   (el mismo que está en 06_Repositorio_Github.txt)
+
+Notas:
+- El sitio institucional sirve únicamente como repositorio de documentación.
+- El frontend y el backend se encuentran activos y conectados entre sí.

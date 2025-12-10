@@ -1,0 +1,17 @@
+REPOSITORIO OFICIAL DEL PROYECTO MENTALIA
+-----------------------------------------
+
+📌 REPOSITORIO GENERAL (Frontend + Backend + Documentación)
+https://github.com/shaireth1/Mentalia.git
+
+Este repositorio contiene:
+- Código fuente del FRONTEND (Next.js)
+- Código fuente del BACKEND (Node.js + Express)
+- Configuración de despliegue para Vercel y Render
+- Carpeta de documentación (informes, manuales y scripts)
+- Base de datos en formato .sql
+- Recursos adicionales utilizados durante el desarrollo
+
+Notas:
+- Todo el proyecto fue gestionado desde este repositorio central.
+- Es el repositorio oficial utilizado para el despliegue en Render (backend) y Vercel (frontend).
