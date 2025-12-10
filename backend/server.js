@@ -41,13 +41,11 @@ const allowedOrigins = [
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      console.log("❌ CORS bloqueado para:", origin);
-      return callback(new Error("No autorizado por CORS"));
-    },
+    origin: [
+      "http://localhost:3000",
+      "https://mentalia-brown.vercel.app",
+      "https://mentalia-beta.vercel.app"
+    ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
