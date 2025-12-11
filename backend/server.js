@@ -23,31 +23,40 @@ import contentPublicRoutes from "./routes/contentPublic.js";
 
 import { cleanInactiveSessions } from "./utils/sessionCleaner.js";
 
+// ------------------------------------------------------
 // PATH CONFIG
+// ------------------------------------------------------
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// ------------------------------------------------------
 // EXPRESS
+// ------------------------------------------------------
 const app = express();
 
 // ======================================================
-// 🌐 CORS — CONFIGURACIÓN CORRECTA PARA RENDER Y VERCEL
+// 🌐 CORS — CONFIGURACIÓN CORRECTA PARA VERCEL + RAILWAY
 // ======================================================
 app.use(
   cors({
     origin: [
       "http://localhost:3000",
-      "https://mentalia-brown.vercel.app",
-      "https://mentalia-beta.vercel.app",
+      "https://mentalia-brown.vercel.app",   // tu frontend principal
+      "https://mentalia-beta.vercel.app",    // si usas el beta
+      "https://mentalia-production.up.railway.app" // tu backend desplegado
     ],
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
 // Preflight
 app.options("*", cors());
 
+// ------------------------------------------------------
 // BASICS
+// ------------------------------------------------------
 app.use(express.json());
 app.use(morgan("dev"));
 app.use(cookieParser());
@@ -56,7 +65,7 @@ app.use(cookieParser());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ======================================================
-// 🗄️ CONEXIÓN BD
+// 🗄️ CONEXIÓN A MONGO ATLAS
 // ======================================================
 mongoose
   .connect(process.env.MONGO_URI)
@@ -81,10 +90,14 @@ app.use("/api/journal", journalRoutes);
 app.use("/api/content", contentPublicRoutes);
 app.use("/api/psychologist", psychologistRoutes);
 
-// LIMPIEZA
+// ======================================================
+// ♻️ LIMPIEZA PERIÓDICA DE SESIONES
+// ======================================================
 setInterval(cleanInactiveSessions, 60 * 1000);
 
-// SERVIDOR
+// ======================================================
+// 🚀 SERVIDOR
+// ======================================================
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, "0.0.0.0", () =>
   console.log(`🚀 Servidor corriendo en puerto ${PORT}`)
