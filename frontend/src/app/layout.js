@@ -30,8 +30,8 @@ export default function RootLayout({ children }) {
           ${geistSans.variable}
           ${geistMono.variable}
           antialiased
-          
-          /* ⭐ NUEVO: evita que nada se salga en móviles */
+
+          /* ⭐ Evita scroll horizontal en móviles */
           overflow-x-hidden
           min-w-[320px]
         `}
@@ -42,13 +42,13 @@ export default function RootLayout({ children }) {
             {/* 🌟 PANEL FLOTANTE DE ACCESIBILIDAD */}
             <AccesibilidadPanel />
 
-            {/* ⭐ NUEVO: hace que todo el contenido sea flexible */}
-            <div className="w-full max-w-[2000px] mx-auto">
-              {children}
-            </div>
+            {/* ❗️ SIN CONTENEDORES QUE DEFORMEN EL DISEÑO */}
+            {children}
+
           </AccesibilidadProvider>
         </AuthProvider>
       </body>
     </html>
   );
 }
+
