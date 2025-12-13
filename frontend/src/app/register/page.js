@@ -14,7 +14,6 @@ const input =
 
 export default function Register() {
   const router = useRouter();
-
   const [showPassword, setShowPassword] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -38,12 +37,53 @@ export default function Register() {
     });
   };
 
+  // ✅ Manejo NUMÉRICO real (sin letras ni exceso)
+  const handleNumericChange = (e, maxLength) => {
+    const { name, value } = e.target;
+    let cleanValue = value.replace(/\D/g, "");
+    if (maxLength) cleanValue = cleanValue.slice(0, maxLength);
+
+    setFormData({
+      ...formData,
+      [name]: cleanValue,
+    });
+  };
+
+  // ✅ Bloquea letras al escribir
+  const onlyNumbersKeyDown = (e) => {
+    if (
+      !/[0-9]/.test(e.key) &&
+      e.key !== "Backspace" &&
+      e.key !== "Delete" &&
+      e.key !== "ArrowLeft" &&
+      e.key !== "ArrowRight" &&
+      e.key !== "Tab"
+    ) {
+      e.preventDefault();
+    }
+  };
+
   /* >>>>>> REGISTRO <<<<<< */
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.consentimiento) {
       alert("⚠️ Debes aceptar el consentimiento informado para continuar.");
+      return;
+    }
+
+    if (formData.idNumber.length < 6 || formData.idNumber.length > 10) {
+      alert("⚠️ La identificación debe tener entre 6 y 10 números.");
+      return;
+    }
+
+    if (formData.ficha.length !== 7) {
+      alert("⚠️ El número de ficha debe tener exactamente 7 dígitos.");
+      return;
+    }
+
+    if (formData.phone.length < 7 || formData.phone.length > 10) {
+      alert("⚠️ El teléfono debe tener entre 7 y 10 dígitos.");
       return;
     }
 
@@ -86,7 +126,6 @@ export default function Register() {
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-[#f3e8ff] font-sans p-6 relative">
-      
       {/* Volver */}
       <div className="absolute top-6 left-6 flex items-center gap-2 text-purple-700 hover:underline cursor-pointer">
         <ArrowLeft className="w-4 h-4" />
@@ -105,7 +144,6 @@ export default function Register() {
       </div>
 
       <div className="flex flex-col md:flex-row max-w-5xl mx-auto w-full gap-10 items-center justify-center">
-        
         {/* PANEL IZQUIERDO */}
         <div className="bg-white rounded-2xl shadow-md overflow-hidden w-full md:w-[60%] flex flex-col">
           <div className="h-[280px] w-full overflow-hidden">
@@ -133,20 +171,16 @@ export default function Register() {
           <h2 className="text-2xl font-semibold text-center text-purple-700 mb-1">
             Crear Cuenta
           </h2>
-          <p className="text-sm text-center text-purple-500 mb-8">
-            Completa tus datos para comenzar tu journey de bienestar
-          </p>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
-
               <div>
                 <label className={label}>Nombre Completo *</label>
                 <input
                   name="fullName"
                   type="text"
-                  placeholder="Tu nombre completo"
                   className={input}
+                  value={formData.fullName}
                   onChange={handleChange}
                   required
                 />
@@ -157,9 +191,12 @@ export default function Register() {
                 <input
                   name="idNumber"
                   type="text"
-                  placeholder="Número de documento"
+                  inputMode="numeric"
+                  maxLength={10}
                   className={input}
-                  onChange={handleChange}
+                  value={formData.idNumber}
+                  onKeyDown={onlyNumbersKeyDown}
+                  onChange={(e) => handleNumericChange(e, 10)}
                   required
                 />
               </div>
@@ -169,8 +206,8 @@ export default function Register() {
                 <input
                   name="age"
                   type="number"
-                  placeholder="Ingresa tu edad"
                   className={input}
+                  value={formData.age}
                   onChange={handleChange}
                   required
                 />
@@ -181,6 +218,7 @@ export default function Register() {
                 <select
                   name="gender"
                   className={input}
+                  value={formData.gender}
                   onChange={handleChange}
                   required
                 >
@@ -196,6 +234,7 @@ export default function Register() {
                 <select
                   name="program"
                   className={input}
+                  value={formData.program}
                   onChange={handleChange}
                   required
                 >
@@ -224,9 +263,12 @@ export default function Register() {
                 <input
                   name="ficha"
                   type="text"
-                  placeholder="Número de ficha"
+                  inputMode="numeric"
+                  maxLength={7}
                   className={input}
-                  onChange={handleChange}
+                  value={formData.ficha}
+                  onKeyDown={onlyNumbersKeyDown}
+                  onChange={(e) => handleNumericChange(e, 7)}
                   required
                 />
               </div>
@@ -236,9 +278,12 @@ export default function Register() {
                 <input
                   name="phone"
                   type="text"
-                  placeholder="Número de teléfono"
+                  inputMode="numeric"
+                  maxLength={10}
                   className={input}
-                  onChange={handleChange}
+                  value={formData.phone}
+                  onKeyDown={onlyNumbersKeyDown}
+                  onChange={(e) => handleNumericChange(e, 10)}
                   required
                 />
               </div>
@@ -248,8 +293,8 @@ export default function Register() {
                 <input
                   name="email"
                   type="email"
-                  placeholder="Ingresa tu email"
                   className={input}
+                  value={formData.email}
                   onChange={handleChange}
                   required
                 />
@@ -257,25 +302,22 @@ export default function Register() {
 
               <div className="md:col-span-2 relative">
                 <label className={label}>Contraseña *</label>
-                <div className="relative">
-                  <input
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Mínimo 8 caracteres"
-                    className={`${input} pr-10`}
-                    onChange={handleChange}
-                    required
-                  />
-                  <Eye
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3 w-5 h-5 text-gray-500 cursor-pointer"
-                  />
-                </div>
+                <input
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  className={`${input} pr-10`}
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                />
+                <Eye
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-9 w-5 h-5 text-gray-500 cursor-pointer"
+                />
               </div>
-
             </div>
 
-            {/* Consentimiento informado */}
+            {/* Consentimiento */}
             <div className="flex items-start gap-3 text-xs text-gray-600 mt-2">
               <input
                 type="checkbox"
@@ -300,7 +342,7 @@ export default function Register() {
 
             <button
               type="submit"
-              className="w-full py-3 mt-4 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-lg font-semibold hover:opacity-90 transition-all"
+              className="w-full py-3 mt-4 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-lg font-semibold"
             >
               Crear Cuenta
             </button>
@@ -308,10 +350,7 @@ export default function Register() {
 
           <p className="text-sm text-center text-purple-600 mt-6">
             ¿Ya tienes cuenta?{" "}
-            <Link
-              href="/login"
-              className="text-purple-800 font-medium hover:underline"
-            >
+            <Link href="/login" className="text-purple-800 font-medium">
               Iniciar sesión aquí
             </Link>
           </p>
