@@ -9,6 +9,8 @@ import CrisisPhrase from "../models/CrisisPhrase.js";
 import { anonymizeText } from "../utils/anonymize.js";
 import { createAlert } from "./alertController.js";
 
+
+
 // 🧠 Memoria contextual por sesión (no se guarda en BD)
 const sessionContext = new Map();
 
@@ -305,35 +307,7 @@ async function detectCrisisAdvanced(text) {
   return null;
 }
 
-// crear mensaje de contención según el tipo detectado (RF10)
-function buildCrisisReply(match) {
-  const { target } = match.phrase;
 
-  if (target === "self") {
-    return (
-      "💛 Lo que estás sintiendo es muy importante y no estás sol@ en esto. " +
-      "En este momento es muy importante que no te quedes con esto en silencio. " +
-      "Si estás en Colombia, puedes comunicarte con la Línea 106 o con emergencias al 123. " +
-      "También puedes hablar con un profesional de tu institución o alguien de confianza. " +
-      "Si sientes que corres peligro inmediato, por favor busca ayuda de urgencias de inmediato."
-    );
-  }
-
-  if (target === "others") {
-    return (
-      "⚠️ Lo que mencionas refleja mucha intensidad emocional. " +
-      "Hacer daño a otras personas no es una solución y puede traer consecuencias muy graves para ti y para los demás. " +
-      "Te sugiero hablar con un profesional de salud mental o con alguien de confianza para procesar lo que sientes. " +
-      "Si sientes que podrías perder el control, busca apoyo profesional o de emergencia en tu zona."
-    );
-  }
-
-  return (
-    "💛 Percibo que estás pasando por un momento muy difícil. " +
-    "No tienes que atravesarlo en soledad. Hablar con alguien de confianza o con un profesional puede marcar la diferencia. " +
-    "Si estás en una situación de riesgo, por favor comunícate con una línea de ayuda o con servicios de urgencias en tu localidad."
-  );
-}
 
 // ===========================================================
 // 🧩 Helper guardar turno en BD (RF11 + RNF4–5) — FIX DUPLICATE KEY
@@ -417,48 +391,79 @@ async function processMessage(
 
   const ctx = getContext(sessionId);
   setContext(sessionId, { tone });
+  // ⛔ BLOQUEAR RE-DETECCIÓN DE CRISIS
+if (ctx.lastEmotion === "crisis") {
+  const reply =
+    "💛 Gracias por seguir aquí. Me alegra que sigas escribiendo.\n\n" +
+    "Ahora lo más importante es que no estés sol@.\n" +
+    "¿Hay alguien de confianza o un profesional con quien puedas hablar en este momento?";
+
+  await saveTurn({
+    sessionId,
+    type,
+    userId,
+    userText: text,
+    replyText: reply,
+    emotion: "crisis",
+  });
+
+  return {
+    reply: toneTransform[tone](reply),
+    emotion: "crisis",
+  };
+}
+
 
   // 1️⃣ RF9 — Crisis (máxima prioridad)
   const crisisMatch = await detectCrisisAdvanced(lower);
   if (crisisMatch) {
+  const reply =
+    "💛 Lo que estás sintiendo es muy importante y no estás sol@.\n\n" +
+    "En este momento es muy importante que no te quedes con esto en silencio.\n\n" +
+    "📍 **Si estás en Colombia:**\n" +
+    "• Línea 106\n" +
+    "• Emergencias 123\n\n" +
+    "👩‍⚕️ **Psicóloga SENA**\n" +
+    "📧 yesicamarcelaibanezalvarez@gmail.com\n" +
+    "📱 317 562 7844\n\n" +
+    "También puedes hablar con alguien de confianza.\n\n" +
+    "⚠️ Si sientes que corres peligro inmediato, por favor busca ayuda de urgencias ahora mismo.";
 
-    // 1. Crear respuesta del bot para crisis
-    const baseReply = buildCrisisReply(crisisMatch);
+  await saveTurn({
+    sessionId,
+    type,
+    userId,
+    userText: text,
+    replyText: reply,
+    emotion: "crisis",
+    confidence: 100,
+  });
 
-    // 2. Guardar turno y obtener la conversación real (RF11)
-    const convo = await saveTurn({
-      sessionId,
-      type,
-      userId,
-      userText: text,
-      replyText: baseReply,
-      emotion: "crisis",
-      confidence: 100,
-    });
+  await createAlert({
+    phrase: crisisMatch.phrase.text,
+    category: crisisMatch.phrase.category,
+    severity: crisisMatch.phrase.severity,
+    target: crisisMatch.phrase.target,
+    sessionId,
+    userType: type,
+    userId: type === "registrado" ? userId : null,
+    message: text,
+  });
 
-    // 3. Crear alerta y vincular conversación (RF16)
-    await createAlert({
-      phrase: crisisMatch.phrase.text,
-      category: crisisMatch.phrase.category,
-      severity: crisisMatch.phrase.severity,
-      target: crisisMatch.phrase.target,
-      sessionId,
-      userType: type,
-      userId: type === "registrado" ? userId : null,
-      message: text,
+  // 🔒 BLOQUEO DE FLUJO
+  setContext(sessionId, {
+    lastEmotion: "crisis",
+    pendingIntent: null,
+  });
 
-      // RF16 — Vincular conversación completa
-      conversationId: convo?._id || null,
+  return {
+    reply: toneTransform[tone](reply),
+    emotion: "crisis",
+  };
+}
 
-      // RF21 — Guardar coincidencia textual
-      matchedPhrases: [crisisMatch.phrase.text],
-    });
 
-    // 4. Respuesta final transformada
-    const finalReply = toneTransform[tone](baseReply);
-
-    return { reply: finalReply, emotion: "crisis" };
-  }
+    
 
   // 2️⃣ Técnica pendiente (RF7 + técnicas)
   if (ctx.pendingIntent === "offer_technique") {
