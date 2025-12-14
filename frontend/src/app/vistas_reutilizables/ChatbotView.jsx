@@ -274,7 +274,7 @@ export default function ChatbotView({ mode = "anonimo" }) {
           return (
             <div key={i} className={`flex ${isUser ? "justify-end" : ""}`}>
               <div
-                className={`px-4 py-3 max-w-[80%] md:max-w-[65%] lg:max-w-[60%] rounded-2xl shadow-sm text-sm leading-relaxed ${
+                className={`px-4 py-3 max-w-[80%] md:max-w-[65%] lg:max-w-[60%] rounded-2xl shadow-sm text-sm leading-relaxed whitespace-pre-line ${
                   isUser
                     ? "bg-purple-500 text-white rounded-br-none"
                     : "bg-gray-100 text-gray-800 rounded-bl-none"

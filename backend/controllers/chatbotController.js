@@ -8,23 +8,9 @@ import { toneTransform } from "../utils/tones.js";
 import CrisisPhrase from "../models/CrisisPhrase.js";
 import { anonymizeText } from "../utils/anonymize.js";
 import { createAlert } from "./alertController.js";
-console.log("🔥 CHATBOT CONTROLLER ACTIVO — CAMBIOS CARGADOS");
-
-
-function isShortEmotionInput(text = "") {
-  const words = text.trim().split(/\s+/);
-  return words.length <= 2;
-}
 
 // 🧠 Memoria contextual por sesión (no se guarda en BD)
 const sessionContext = new Map();
-// 📞 Contacto profesional (psicóloga institucional)
-const PSY_CONTACT = {
-  name: "Psicóloga SENA",
-  email: "yesicamarcelaibanezalvarez@gmail.com",
-  phone: "317 562 7844",
-};
-
 
 // 🟣 Palabras clave estáticas de crisis (fallback)
 const crisisKeywordsStatic = [
@@ -67,8 +53,7 @@ const crisisQuickTerms = [
   "me quiero matar",          // 🆕 agregado
   "quiero morir",
   "quitarme la vida",
-  "suicidio",
-  "suicidarme",
+  "suicid",
   "no aguanto más",
   "no aguanto mas",
   "acabar con todo",
@@ -324,42 +309,31 @@ async function detectCrisisAdvanced(text) {
 function buildCrisisReply(match) {
   const { target } = match.phrase;
 
-  const professionalContact =
-    `\n\n📞 **Contacto profesional disponible:**\n` +
-    `👩‍⚕️ ${PSY_CONTACT.name}\n` +
-    `📧 ${PSY_CONTACT.email}\n` +
-    `📱 ${PSY_CONTACT.phone}`;
-
   if (target === "self") {
     return (
       "💛 Lo que estás sintiendo es muy importante y no estás sol@ en esto. " +
-      "Gracias por decirlo aquí. En este momento es muy importante que no te quedes con esto en silencio.\n\n" +
-      "Si estás en Colombia, puedes comunicarte con la **Línea 106** o con **emergencias al 123**.\n\n" +
-      "También puedes hablar directamente con un profesional de tu institución para recibir apoyo." +
-      professionalContact +
-      "\n\n⚠️ Si sientes que corres peligro inmediato, por favor busca ayuda de urgencias ahora mismo."
+      "En este momento es muy importante que no te quedes con esto en silencio. " +
+      "Si estás en Colombia, puedes comunicarte con la Línea 106 o con emergencias al 123. " +
+      "También puedes hablar con un profesional de tu institución o alguien de confianza. " +
+      "Si sientes que corres peligro inmediato, por favor busca ayuda de urgencias de inmediato."
     );
   }
 
   if (target === "others") {
     return (
-      "⚠️ Percibo mucha intensidad emocional en lo que dices. " +
-      "Hacer daño a otras personas no es una solución y puede traer consecuencias muy graves.\n\n" +
-      "Es muy importante que hables con un profesional de salud mental para procesar lo que estás sintiendo." +
-      professionalContact +
-      "\n\n🚨 Si sientes que podrías perder el control, busca apoyo profesional o servicios de emergencia de inmediato."
+      "⚠️ Lo que mencionas refleja mucha intensidad emocional. " +
+      "Hacer daño a otras personas no es una solución y puede traer consecuencias muy graves para ti y para los demás. " +
+      "Te sugiero hablar con un profesional de salud mental o con alguien de confianza para procesar lo que sientes. " +
+      "Si sientes que podrías perder el control, busca apoyo profesional o de emergencia en tu zona."
     );
   }
 
   return (
     "💛 Percibo que estás pasando por un momento muy difícil. " +
-    "No tienes que atravesarlo en soledad.\n\n" +
-    "Hablar con un profesional puede marcar la diferencia." +
-    professionalContact +
-    "\n\n🚨 Si estás en una situación de riesgo, comunícate con servicios de emergencia en tu localidad."
+    "No tienes que atravesarlo en soledad. Hablar con alguien de confianza o con un profesional puede marcar la diferencia. " +
+    "Si estás en una situación de riesgo, por favor comunícate con una línea de ayuda o con servicios de urgencias en tu localidad."
   );
 }
-
 
 // ===========================================================
 // 🧩 Helper guardar turno en BD (RF11 + RNF4–5) — FIX DUPLICATE KEY
@@ -446,25 +420,6 @@ async function processMessage(
 
   // 1️⃣ RF9 — Crisis (máxima prioridad)
   const crisisMatch = await detectCrisisAdvanced(lower);
-  // 🟣 AJUSTE CLÍNICO — emoción corta sin contexto (observación profesora)
-if (isShortEmotionInput(lower)) {
-  const baseReply =
-    "💜 Gracias por decirme cómo te sientes. " +
-    "¿Te gustaría contarme qué está pasando o qué te hizo sentir así?";
-
-  await saveTurn({
-    sessionId,
-    type,
-    userId,
-    userText: text,
-    replyText: baseReply,
-    emotion: "neutral",
-    confidence: null,
-  });
-
-  return { reply: baseReply, emotion: "neutral" };
-}
-
   if (crisisMatch) {
 
     // 1. Crear respuesta del bot para crisis
@@ -498,6 +453,9 @@ if (isShortEmotionInput(lower)) {
       // RF21 — Guardar coincidencia textual
       matchedPhrases: [crisisMatch.phrase.text],
     });
+
+    // 4. Respuesta final transformada
+    const finalReply = toneTransform[tone](baseReply);
 
     return { reply: finalReply, emotion: "crisis" };
   }
@@ -738,26 +696,9 @@ if (isShortEmotionInput(lower)) {
   setContext(sessionId, { lastEmotion: effectiveEmotion, pendingIntent: null });
 
   // 8️⃣ RF7 — Respuesta empática base
-  // 8️⃣ RF7 — Respuesta empática base (ajustada a contexto)
-let baseReply;
+  let baseReply = getResponse(effectiveEmotion);
 
-// 🟣 Si el usuario solo dice una emoción corta (ej: "triste")
-if (isShortEmotionInput(lower)) {
-  baseReply =
-    "💜 Gracias por decirme cómo te sientes. " +
-    "¿Te gustaría contarme qué está pasando o qué te hizo sentir así?";
-
-  // NO ofrecer técnica todavía
-  setContext(sessionId, {
-    lastEmotion: effectiveEmotion,
-    pendingIntent: null,
-  });
-
-} else {
-  // 🟢 Respuesta empática normal
-  baseReply = getResponse(effectiveEmotion);
-
-  // 9️⃣ Ofrecer técnica SOLO si ya hay contexto
+  // 9️⃣ Ofrecer técnica
   if (["ansiedad", "estrés", "tristeza"].includes(effectiveEmotion)) {
     if (Math.random() < 0.5) {
       baseReply +=
@@ -768,8 +709,6 @@ if (isShortEmotionInput(lower)) {
       });
     }
   }
-}
-
 
   const finalReply = toneTransform[tone](baseReply);
 
@@ -844,4 +783,5 @@ export async function handleAuthChat(req, res) {
       .status(500)
       .json({ reply: "No se pudo procesar tu mensaje. 😔" });
   }
-}
+  }
+  
