@@ -139,15 +139,15 @@ export default function DiarioEmocional() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 sm:space-y-10">
 
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
         <div>
-          <h1 className="text-3xl font-semibold text-gray-800 flex items-center gap-2">
+          <h1 className="text-2xl sm:text-3xl font-semibold text-gray-800 flex items-center gap-2">
             <BookOpen className="text-purple-600" size={28} />
             Diario Emocional
           </h1>
-          <p className="text-gray-500 text-sm">
+          <p className="text-gray-500 text-sm sm:text-base">
             Reflexiona sobre tus pensamientos y emociones cada día
           </p>
         </div>
@@ -157,14 +157,14 @@ export default function DiarioEmocional() {
             setEditingEntry(null);
             setMostrarModal(true);
           }}
-          className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-all shadow"
+          className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-all shadow mt-4 sm:mt-0"
         >
           <Plus size={18} />
           Nueva entrada
         </button>
       </div>
 
-      <div className="flex gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mb-6">
         <BuscadorEntradas value={search} onChange={setSearch} />
         <FiltroEstado value={filterEstado} onChange={setFilterEstado} />
       </div>
@@ -177,19 +177,19 @@ export default function DiarioEmocional() {
         </p>
       )}
 
-      <div className="space-y-4">
+      <div className="space-y-4 sm:space-y-5">
         {filteredEntries.map((entrada) => (
           <div
             key={entrada._id}
             className="bg-white p-6 rounded-xl shadow-sm border border-gray-200"
           >
-            <div className="flex justify-between items-start">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
               <div className="flex flex-col gap-1">
-                <h2 className="text-xl font-semibold text-gray-800">
+                <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">
                   {entrada.title}
                 </h2>
 
-                <div className="flex items-center gap-4 text-gray-500 text-sm mt-1">
+                <div className="flex items-center gap-4 text-gray-500 text-sm sm:text-base mt-1">
                   <span className="flex items-center gap-1">
                     <Calendar size={16} />
                     {formatFecha(entrada.date)}
@@ -201,10 +201,7 @@ export default function DiarioEmocional() {
                   </span>
 
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                      emotionColors[entrada.emotion] ||
-                      "bg-gray-100 text-gray-600"
-                    }`}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold ${emotionColors[entrada.emotion] || "bg-gray-100 text-gray-600"}`}
                   >
                     {entrada.emotion}
                   </span>
@@ -225,7 +222,7 @@ export default function DiarioEmocional() {
               </div>
             </div>
 
-            <p className="text-gray-700 mt-4">{entrada.note}</p>
+            <p className="text-gray-700 mt-4 sm:mt-5">{entrada.note}</p>
 
             <div className="flex gap-2 mt-4 flex-wrap">
               {(entrada.tags || []).map((tag, index) => (

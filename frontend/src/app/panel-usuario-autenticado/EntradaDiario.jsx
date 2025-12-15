@@ -3,16 +3,24 @@ import { Calendar, Clock, Edit2, Trash2 } from "lucide-react";
 
 export default function EntradaDiario({ entrada }) {
   return (
-    <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
-      <div className="flex justify-between items-start mb-2">
-        <h2 className="text-lg font-semibold text-gray-800">{entrada.titulo}</h2>
-        <div className="flex items-center gap-2">
-          <Edit2 size={16} className="text-gray-500 hover:text-gray-700 cursor-pointer" />
-          <Trash2 size={16} className="text-red-500 hover:text-red-600 cursor-pointer" />
+    <div className="bg-white p-4 sm:p-5 rounded-xl shadow-sm border border-gray-100">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 mb-2">
+        <h2 className="text-base sm:text-lg font-semibold text-gray-800">
+          {entrada.titulo}
+        </h2>
+        <div className="flex items-center gap-3 sm:gap-2">
+          <Edit2
+            size={16}
+            className="text-gray-500 hover:text-gray-700 cursor-pointer"
+          />
+          <Trash2
+            size={16}
+            className="text-red-500 hover:text-red-600 cursor-pointer"
+          />
         </div>
       </div>
 
-      <div className="flex items-center gap-4 text-sm text-gray-500 mb-3">
+      <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-sm text-gray-500 mb-3">
         <span className="flex items-center gap-1">
           <Calendar size={14} />
           {entrada.fecha}
@@ -28,7 +36,9 @@ export default function EntradaDiario({ entrada }) {
         </span>
       </div>
 
-      <p className="text-gray-700 mb-3">{entrada.descripcion}</p>
+      <p className="text-gray-700 mb-3 text-sm sm:text-base">
+        {entrada.descripcion}
+      </p>
 
       <div className="flex flex-wrap gap-2">
         {entrada.tags.map((tag, i) => (
@@ -43,5 +53,3 @@ export default function EntradaDiario({ entrada }) {
     </div>
   );
 }
-
-

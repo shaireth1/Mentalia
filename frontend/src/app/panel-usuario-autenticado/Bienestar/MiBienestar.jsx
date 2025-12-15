@@ -80,7 +80,6 @@ export default function MiBienestar() {
     insight2,
     insight3,
   } = useMemo(() => {
-    // 🔥 Inicializar SIEMPRE para evitar errores
     let evolucionLabels = [];
     let evolucionValues = [];
     let distribLabels = [];
@@ -114,9 +113,7 @@ export default function MiBienestar() {
       const intensity = e.intensity ?? emotionToIntensity(e.emotion);
 
       if (d >= sevenDaysAgo && d <= now) {
-        if (!byDate[key]) {
-          byDate[key] = { sum: 0, count: 0 };
-        }
+        if (!byDate[key]) byDate[key] = { sum: 0, count: 0 };
         byDate[key].sum += intensity;
         byDate[key].count += 1;
       }
@@ -195,63 +192,56 @@ export default function MiBienestar() {
   }, [entries]);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* TÍTULO */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Mi Bienestar Emocional</h1>
-        <p className="text-gray-600 -mt-1">Seguimiento y análisis de tu estado emocional</p>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
+          Mi Bienestar Emocional
+        </h1>
+        <p className="text-gray-600 text-sm sm:text-base -mt-1">
+          Seguimiento y análisis de tu estado emocional
+        </p>
       </div>
 
       {loading && <p className="text-gray-500 text-sm">Cargando datos...</p>}
       {error && <p className="text-red-500 text-sm">{error}</p>}
 
-      {/* TARJETAS SUPERIORES */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* tarjeta 1 */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+      {/* TARJETAS */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+        <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100">
           <p className="text-gray-500 text-sm">Promedio Semanal</p>
           <div className="flex items-center justify-between mt-2">
-            <p className="text-3xl font-bold text-purple-600">
+            <p className="text-2xl sm:text-3xl font-bold text-purple-600">
               {promedioSemanal.toFixed(1)}/5
             </p>
             <Smile className="h-8 w-8 text-purple-500 bg-purple-100 p-2 rounded-full" />
           </div>
-          <p className="text-green-600 text-sm mt-2">
-            {promedioSemanal >= 3.5
-              ? "+ Tendencia positiva frente a semanas anteriores."
-              : "Aún puedes mejorar tu promedio esta semana."}
-          </p>
         </div>
 
-        {/* tarjeta 2 */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100">
           <p className="text-gray-500 text-sm">Días Registrados</p>
           <div className="flex items-center justify-between mt-2">
-            <p className="text-3xl font-bold text-indigo-600">
+            <p className="text-2xl sm:text-3xl font-bold text-indigo-600">
               {diasRegistrados}/7
             </p>
             <Calendar className="h-8 w-8 text-indigo-500 bg-indigo-100 p-2 rounded-full" />
           </div>
         </div>
 
-        {/* tarjeta 3 */}
-        <div className="bg:white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100">
           <p className="text-gray-500 text-sm">Emoción Principal</p>
           <div className="flex items-center justify-between mt-2">
-            <p className="text-3xl font-bold text-green-600">
+            <p className="text-2xl sm:text-3xl font-bold text-green-600">
               {emocionPrincipal}
             </p>
             <Star className="h-8 w-8 text-green-500 bg-green-100 p-2 rounded-full" />
           </div>
-          <p className="text-sm text-gray-600 mt-1">
-            Basado en tus registros de la última semana.
-          </p>
         </div>
       </div>
 
       {/* GRÁFICAS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+        <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100">
           <p className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-purple-600" />
             Evolución emocional
@@ -269,7 +259,7 @@ export default function MiBienestar() {
           )}
         </div>
 
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100">
           <p className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
             <PieChart className="h-5 w-5 text-purple-600" />
             Distribución de emociones
@@ -294,16 +284,15 @@ export default function MiBienestar() {
       </div>
 
       {/* INSIGHTS */}
-      <div className="bg-white p-6 rounded-2xl shadow-sm mt-6">
+      <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm mt-6">
         <div className="flex items-center gap-2 mb-4">
           <Bolt className="h-5 w-5 text-yellow-500" />
-          <h2 className="text-xl font-semibold text-gray-800">
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
             Insights Personalizados
           </h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Insight 1 */}
           <div className="flex items-start gap-4 border rounded-xl p-4 bg-white">
             <div className="h-10 w-10 flex items-center justify-center rounded-xl bg-green-100">
               <TrendingUp className="h-5 w-5 text-green-600" />
@@ -314,7 +303,6 @@ export default function MiBienestar() {
             </div>
           </div>
 
-          {/* Insight 2 */}
           <div className="flex items-start gap-4 border rounded-xl p-4 bg-white">
             <div className="h-10 w-10 flex items-center justify-center rounded-xl bg-purple-100">
               <Brain className="h-5 w-5 text-purple-600" />
@@ -325,8 +313,7 @@ export default function MiBienestar() {
             </div>
           </div>
 
-          {/* Insight 3 */}
-          <div className="flex items-start gap-4 border rounded-xl p-4 bg:white">
+          <div className="flex items-start gap-4 border rounded-xl p-4 bg-white">
             <div className="h-10 w-10 flex items-center justify-center rounded-xl bg-blue-100">
               <Crosshair className="h-5 w-5 text-blue-600" />
             </div>
@@ -340,3 +327,4 @@ export default function MiBienestar() {
     </div>
   );
 }
+

@@ -16,7 +16,13 @@ export default function DistribucionEmocionesChart({ labels, values }) {
     datasets: [
       {
         data: values,
-        backgroundColor: ["#10b981", "#3b82f6", "#ef4444", "#f59e0b", "#8b5cf6"],
+        backgroundColor: [
+          "#10b981",
+          "#3b82f6",
+          "#ef4444",
+          "#f59e0b",
+          "#8b5cf6",
+        ],
         borderWidth: 1,
       },
     ],
@@ -27,10 +33,11 @@ export default function DistribucionEmocionesChart({ labels, values }) {
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: "right",
+        position: window?.innerWidth < 768 ? "bottom" : "right",
         labels: {
           usePointStyle: true,
           pointStyle: "circle",
+          boxWidth: 8,
         },
       },
       tooltip: {
@@ -42,7 +49,7 @@ export default function DistribucionEmocionesChart({ labels, values }) {
   };
 
   return (
-    <div className="h-52">
+    <div className="w-full h-56 sm:h-64 md:h-72 lg:h-80">
       <Pie data={data} options={options} />
     </div>
   );

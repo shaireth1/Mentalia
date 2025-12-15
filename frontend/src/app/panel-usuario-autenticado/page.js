@@ -22,7 +22,6 @@ import ChatbotView from "../vistas_reutilizables/ChatbotView";
 import RecursosView from "../vistas_reutilizables/RecursosView";
 import MiBienestar from "./Bienestar/MiBienestar";
 
-
 const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 export default function Dashboard() {
@@ -43,7 +42,6 @@ export default function Dashboard() {
     if (t) setToken(t);
   }, []);
 
-  // ❤️ Guardar emoción rápida
   async function guardarMoodRapido(emotion) {
     try {
       if (!token) return console.warn("Token no cargado aún");
@@ -71,18 +69,12 @@ export default function Dashboard() {
         }),
       });
 
-      if (!res.ok) {
-        console.error("No se pudo registrar emoción rápida");
-        return;
-      }
-
-      console.log("Estado registrado automáticamente:", emotion);
+      if (!res.ok) return;
     } catch (err) {
-      console.error("Error guardando mood rápido:", err);
+      console.error(err);
     }
   }
 
-  // 🚫 Redirigir admin + cargar usuario
   useEffect(() => {
     const rawUser = localStorage.getItem("user");
     if (!rawUser) {
@@ -105,13 +97,11 @@ export default function Dashboard() {
       }
 
       setStoredUser(user);
-    } catch (e) {
-      console.error("Error leyendo usuario:", e);
+    } catch {
       router.push("/login");
     }
   }, [router]);
 
-  // 🔥 Ping sesión
   useEffect(() => {
     if (!token) return;
 
@@ -128,111 +118,89 @@ export default function Dashboard() {
           localStorage.removeItem("user");
           router.push("/login");
         }
-      } catch (err) {
-        console.log("Error verificando sesión:", err);
-      }
+      } catch {}
     }, 180000);
 
     return () => clearInterval(interval);
   }, [token, router]);
 
-  // 📊 Semana emocional
   useEffect(() => {
     async function cargarSemana() {
-      try {
-        if (!token) return;
+      if (!token) return;
 
-        const res = await fetch(`${baseUrl}/api/journal`, {
-          method: "GET",
-          headers: { Authorization: `Bearer ${token}` },
-        });
+      const res = await fetch(`${baseUrl}/api/journal`, {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-        if (!res.ok) return;
+      if (!res.ok) return;
 
-        const entries = await res.json();
+      const entries = await res.json();
+      const now = new Date();
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(now.getDate() - 6);
 
-        const now = new Date();
-        const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(now.getDate() - 6);
+      const byDate = {};
+      entries.forEach((e) => {
+        const d = new Date(e.date);
+        if (d < sevenDaysAgo || d > now) return;
 
-        const byDate = {};
+        const key = d.toISOString().substring(0, 10);
+        const intensity =
+          e.intensity ??
+          (e.emotion === "Feliz"
+            ? 5
+            : e.emotion === "Normal"
+            ? 3
+            : e.emotion === "Triste"
+            ? 2
+            : e.emotion === "Ansioso"
+            ? 2
+            : 1);
 
-        entries.forEach((e) => {
-          const d = new Date(e.date);
-          if (d < sevenDaysAgo || d > now) return;
+        if (!byDate[key]) byDate[key] = { sum: 0, count: 0 };
+        byDate[key].sum += intensity;
+        byDate[key].count += 1;
+      });
 
-          const key = d.toISOString().substring(0, 10);
-          const intensity =
-            e.intensity ??
-            (e.emotion === "Feliz"
-              ? 5
-              : e.emotion === "Normal"
-              ? 3
-              : e.emotion === "Triste"
-              ? 2
-              : e.emotion === "Ansioso"
-              ? 2
-              : 1);
+      const dayNames = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+      const temp = new Date(sevenDaysAgo);
+      const result = [];
 
-          if (!byDate[key]) byDate[key] = { sum: 0, count: 0 };
-          byDate[key].sum += intensity;
-          byDate[key].count += 1;
-        });
-
-        const dayNames = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
-        const temp = new Date(sevenDaysAgo);
-        const result = [];
-
-        for (let i = 0; i < 7; i++) {
-          const key = temp.toISOString().substring(0, 10);
-          const label = dayNames[temp.getDay()];
-
-          let val = 0;
-          if (byDate[key]) {
-            val = byDate[key].sum / byDate[key].count;
-          }
-
-          result.push({ day: label, val: Number(val.toFixed(1)) });
-          temp.setDate(temp.getDate() + 1);
-        }
-
-        setWeeklyData(result);
-      } catch (err) {
-        console.log("Error cargando semana emocional:", err);
+      for (let i = 0; i < 7; i++) {
+        const key = temp.toISOString().substring(0, 10);
+        const label = dayNames[temp.getDay()];
+        let val = 0;
+        if (byDate[key]) val = byDate[key].sum / byDate[key].count;
+        result.push({ day: label, val: Number(val.toFixed(1)) });
+        temp.setDate(temp.getDate() + 1);
       }
+
+      setWeeklyData(result);
     }
 
     cargarSemana();
   }, [token]);
 
-  // Último estado emocional
   useEffect(() => {
     async function cargarUltimoEstado() {
-      try {
-        if (!token) return;
+      if (!token) return;
 
-        const res = await fetch(`${baseUrl}/api/journal`, {
-          method: "GET",
-          headers: { Authorization: `Bearer ${token}` },
-        });
+      const res = await fetch(`${baseUrl}/api/journal`, {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-        if (!res.ok) return;
+      if (!res.ok) return;
 
-        const entries = await res.json();
-        if (!entries || entries.length === 0) return;
+      const entries = await res.json();
+      if (!entries.length) return;
 
-        const sorted = entries.sort(
-          (a, b) => new Date(b.date) - new Date(a.date)
-        );
+      const ultimo = entries.sort(
+        (a, b) => new Date(b.date) - new Date(a.date)
+      )[0];
 
-        const ultimo = sorted[0];
-
-        if (ultimo?.emotion) {
-          setSelectedMood(ultimo.emotion);
-        }
-      } catch (err) {
-        console.log("Error cargando último estado emocional:", err);
-      }
+      if (ultimo?.emotion) setSelectedMood(ultimo.emotion);
     }
 
     cargarUltimoEstado();
@@ -257,50 +225,37 @@ export default function Dashboard() {
 
   return (
     <div className="flex h-screen bg-[#f6f4fb] text-gray-800 flex-col">
-      {/* HEADER */}
-      <header className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white flex justify-between items-center px-8 py-4 shadow-md">
+      <header className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white flex flex-col md:flex-row justify-between items-start md:items-center px-4 md:px-8 py-4 shadow-md gap-4">
         <div className="flex items-center space-x-3">
-          <img 
-            src="/mentalialogo.png.png" 
-            alt="Logo Mentalia"
-            className="w-8 h-8 object-contain"
-          />
+          <img src="/mentalialogo.png.png" className="w-8 h-8 object-contain" />
           <div>
-            <h1 className="font-semibold text-base tracking-wide">MENTALIA</h1>
+            <h1 className="font-semibold text-base">MENTALIA</h1>
             <p className="text-xs opacity-80">
               Plataforma de Apoyo Emocional - SENA
             </p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-3 text-sm">
+        <div className="flex items-center justify-between w-full md:w-auto space-x-3 text-sm">
           <div className="text-right">
-            <p className="font-semibold leading-tight">
-              {storedUser?.nombre || "Usuario"}
-            </p>
-            <p className="text-xs opacity-80">
-              {storedUser?.email || "correo@ejemplo.com"}
-            </p>
+            <p className="font-semibold">{storedUser?.nombre}</p>
+            <p className="text-xs opacity-80">{storedUser?.email}</p>
           </div>
 
-          <button
-            title="Cerrar sesión"
-            className="p-2 rounded hover:bg-white/20 transition-colors"
-            onClick={handleLogout}
-          >
-            <LogOut className="w-5 h-5 text-white" />
+          <button onClick={handleLogout} className="p-2 rounded hover:bg-white/20">
+            <LogOut className="w-5 h-5" />
           </button>
         </div>
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        <aside className="w-60 bg-white shadow-md flex flex-col p-4">
+        <aside className="hidden md:flex w-60 bg-white shadow-md flex-col p-4">
           <nav className="space-y-3">
             {sidebarItems.map((item) => (
               <button
                 key={item}
                 onClick={() => setActiveView(item)}
-                className={`w-full text-left px-4 py-2 rounded-lg transition ${
+                className={`w-full text-left px-4 py-2 rounded-lg ${
                   activeView === item
                     ? "bg-purple-100 text-purple-700 font-medium"
                     : "hover:bg-purple-50"
@@ -312,7 +267,9 @@ export default function Dashboard() {
           </nav>
         </aside>
 
-        <main className="flex-1 p-6 overflow-y-auto">
+        <main className="flex-1 p-4 md:p-6 overflow-y-auto">
+          {/* TODO el contenido original intacto */}
+
           {activeView === "Ajustes" && <SettingsView />}
           {activeView === "Diario Emocional" && <DiarioEmocional />}
           {activeView === "Recursos" && <RecursosView />}

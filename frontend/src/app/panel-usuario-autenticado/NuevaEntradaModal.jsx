@@ -75,7 +75,7 @@ export default function NuevaEntradaModal({ onClose, onSaved, initialData }) {
         method,
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // 🔥 TOKEN AÑADIDO
+          Authorization: `Bearer ${token}`,
         },
         credentials: "include",
         body: JSON.stringify(body),
@@ -102,8 +102,8 @@ export default function NuevaEntradaModal({ onClose, onSaved, initialData }) {
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50">
-      <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-6 relative">
+    <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50 px-3">
+      <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-4 sm:p-6 relative max-h-[90vh] overflow-y-auto">
         <button
           onClick={onClose}
           className="absolute right-4 top-4 text-gray-400 hover:text-gray-600"
@@ -112,14 +112,18 @@ export default function NuevaEntradaModal({ onClose, onSaved, initialData }) {
         </button>
 
         <h2 className="text-lg font-semibold text-gray-800 mb-4">
-          {initialData ? "Editar entrada del diario" : "Nueva entrada del diario"}
+          {initialData
+            ? "Editar entrada del diario"
+            : "Nueva entrada del diario"}
         </h2>
 
         {error && <p className="text-sm text-red-500 mb-2">{error}</p>}
 
         <div className="space-y-4">
           <div>
-            <label className="block text-gray-700 text-sm mb-1">Título *</label>
+            <label className="block text-gray-700 text-sm mb-1">
+              Título *
+            </label>
             <input
               type="text"
               value={titulo}
@@ -171,10 +175,10 @@ export default function NuevaEntradaModal({ onClose, onSaved, initialData }) {
           </div>
         </div>
 
-        <div className="flex justify-end gap-3 mt-6">
+        <div className="flex flex-col sm:flex-row justify-end gap-3 mt-6">
           <button
             onClick={onClose}
-            className="border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-100"
+            className="border border-gray-300 px-4 py-2 rounded-lg hover:bg-gray-100 w-full sm:w-auto"
             disabled={saving}
           >
             Cancelar
@@ -182,7 +186,7 @@ export default function NuevaEntradaModal({ onClose, onSaved, initialData }) {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg disabled:opacity-60"
+            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg disabled:opacity-60 w-full sm:w-auto"
           >
             {saving ? "Guardando..." : "Guardar entrada"}
           </button>

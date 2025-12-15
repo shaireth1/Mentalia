@@ -68,7 +68,7 @@ export default function EvolucionEmocionalChart({ labels, values }) {
   };
 
   return (
-    <div className="h-52">
+    <div className="h-48 sm:h-56 md:h-64 lg:h-72 w-full">
       <Line data={data} options={options} />
     </div>
   );
