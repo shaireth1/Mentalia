@@ -228,65 +228,58 @@ export default function Dashboard() {
   return (
     <div className="flex h-screen bg-[#f6f4fb] text-gray-800 flex-col">
       <header className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md">
-        <div className="flex items-center justify-between px-4 md:px-8 py-4">
+      <div className="flex items-center justify-between px-4 md:px-8 py-3 md:py-4">
 
-          {/* IZQUIERDA: menú + logo + mentalia */}
-          <div className="flex items-center gap-3">
-            {/* ☰ hamburguesa (solo móvil) */}
-            <button
-              className="md:hidden p-2 rounded-lg hover:bg-white/20"
-              onClick={() => setMobileMenuOpen(true)}
+        <div className="flex items-center gap-3 min-w-0">
+          <button
+            className="md:hidden p-2 rounded-lg hover:bg-white/20"
+            onClick={() => setMobileMenuOpen(true)}
+          >
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
             >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-            </button>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
 
-            <img
-              src="/mentalialogo.png.png"
-              className="w-8 h-8 object-contain"
-            />
+          <img
+            src="/mentalialogo.png.png"
+            className="w-7 h-7 md:w-8 md:h-8 object-contain shrink-0"
+          />
 
-            <div className="leading-tight">
-              <h1 className="font-semibold text-sm">MENTALIA</h1>
-              <p className="text-xs opacity-80">
-                Plataforma de Apoyo Emocional - SENA
-              </p>
-            </div>
+          <div className="hidden md:block leading-tight">
+            <h1 className="font-semibold text-sm">MENTALIA</h1>
+            <p className="text-xs opacity-80">
+              Plataforma de Apoyo Emocional - SENA
+            </p>
           </div>
-
-          {/* DERECHA: usuario + salir */}
-          <div className="flex items-center gap-4 text-right">
-            <div className="leading-tight">
-              <p className="font-semibold text-sm">
-                {storedUser?.nombre}
-              </p>
-              <p className="text-xs opacity-80">
-                {storedUser?.email}
-              </p>
-            </div>
-
-            <button
-              onClick={handleLogout}
-              className="p-2 rounded hover:bg-white/20"
-            >
-              <LogOut className="w-5 h-5" />
-            </button>
-          </div>
-
         </div>
-      </header>
-      
+
+        <div className="flex items-center gap-3 text-right min-w-0">
+          <div className="flex flex-col md:items-end md:leading-tight text-xs md:text-sm">
+            <span className="font-semibold truncate max-w-[120px] md:max-w-none">
+              {storedUser?.nombre}
+            </span>
+            <span className="opacity-80 truncate max-w-[140px] md:max-w-none">
+              {storedUser?.email}
+            </span>
+          </div>
+
+          <button
+            onClick={handleLogout}
+            className="p-2 rounded hover:bg-white/20 shrink-0"
+          >
+            <LogOut className="w-5 h-5" />
+          </button>
+        </div>
+
+      </div>
+    </header>
+
         {mobileMenuOpen && (
           <div className="fixed inset-0 z-50 bg-black/40 md:hidden">
             <div className="absolute left-0 top-0 h-full w-64 bg-white shadow-xl p-4 flex flex-col">
