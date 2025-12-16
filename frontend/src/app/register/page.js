@@ -146,11 +146,11 @@ export default function Register() {
         <div className="bg-white rounded-2xl shadow-md overflow-hidden w-full md:w-[60%] flex flex-col">
           <div className="h-[280px] w-full overflow-hidden">
             <Image
-              src="/icono-registrarse.jpg"
+              src="/registrarse.png.png"
               alt="Bienestar"
               width={600}
               height={400}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover object-[50%_25%]"
             />
           </div>
           <div className="p-6">

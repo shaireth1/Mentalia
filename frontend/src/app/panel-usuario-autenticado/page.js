@@ -227,45 +227,63 @@ export default function Dashboard() {
 
   return (
     <div className="flex h-screen bg-[#f6f4fb] text-gray-800 flex-col">
-      <header className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white flex flex-col md:flex-row justify-between items-start md:items-center px-4 md:px-8 py-4 shadow-md gap-4">
-        <button
-          className="md:hidden p-2 rounded-lg hover:bg-white/20"
-          onClick={() => setMobileMenuOpen(true)}
-        >
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M4 6h16M4 12h16M4 18h16"
+      <header className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md">
+        <div className="flex items-center justify-between px-4 md:px-8 py-4">
+
+          {/* IZQUIERDA: menú + logo + mentalia */}
+          <div className="flex items-center gap-3">
+            {/* ☰ hamburguesa (solo móvil) */}
+            <button
+              className="md:hidden p-2 rounded-lg hover:bg-white/20"
+              onClick={() => setMobileMenuOpen(true)}
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+            </button>
+
+            <img
+              src="/mentalialogo.png.png"
+              className="w-8 h-8 object-contain"
             />
-          </svg>
-        </button>
 
-        <div className="flex items-center space-x-3">
-          <img src="/mentalialogo.png.png" className="w-8 h-8 object-contain" />
-          <div>
-            <h1 className="font-semibold text-base">MENTALIA</h1>
-            <p className="text-xs opacity-80">
-              Plataforma de Apoyo Emocional - SENA
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between w-full md:w-auto space-x-3 text-sm">
-          <div className="text-right">
-            <p className="font-semibold">{storedUser?.nombre}</p>
-            <p className="text-xs opacity-80">{storedUser?.email}</p>
+            <div className="leading-tight">
+              <h1 className="font-semibold text-sm">MENTALIA</h1>
+              <p className="text-xs opacity-80">
+                Plataforma de Apoyo Emocional - SENA
+              </p>
+            </div>
           </div>
 
-          <button onClick={handleLogout} className="p-2 rounded hover:bg-white/20">
-            <LogOut className="w-5 h-5" />
-          </button>
+          {/* DERECHA: usuario + salir */}
+          <div className="flex items-center gap-4 text-right">
+            <div className="leading-tight">
+              <p className="font-semibold text-sm">
+                {storedUser?.nombre}
+              </p>
+              <p className="text-xs opacity-80">
+                {storedUser?.email}
+              </p>
+            </div>
+
+            <button
+              onClick={handleLogout}
+              className="p-2 rounded hover:bg-white/20"
+            >
+              <LogOut className="w-5 h-5" />
+            </button>
+          </div>
+
         </div>
       </header>
       
@@ -331,9 +349,9 @@ export default function Dashboard() {
           {activeView === "Inicio" && (
             <>
               {/* Sección Inicio */}
-              <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-2xl flex flex-col md:flex-row gap-4 items-start md:items-center mb-6">
+              <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-2xl  flex flex-col md:flex-row gap-6 items-start md:items-center md:justify-between mb-6">
 
-                <div>
+                <div className="max-w-xl">
                   <h1 className="text-2xl font-bold mb-2">
                     ¡Hola, {storedUser?.nombre?.split(" ")[0]}! 👋
                   </h1>
@@ -343,11 +361,11 @@ export default function Dashboard() {
                   </p>
                 </div>
                 <Image
-                  src="/foto-inicio.jpg"
+                  src="/sena.png"
                   alt="foto"
                   width={280}
                   height={160}
-                  className="rounded-xl object-cover w-full md:w-auto"
+                  className="rounded-xl object-cover w-full md:w-[320px] md:shrink-0"
                 />
 
               </div>

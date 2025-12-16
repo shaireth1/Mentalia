@@ -97,7 +97,7 @@ export default function LoginPage() {
           {/* IMAGEN — MOBILE ARRIBA, PC IZQUIERDA */}
           <div className="min-h-[260px] md:min-h-[540px] bg-white">
             <img
-              src="/icono-registrarse.jpg"
+              src="/registrarse.png.png"
               className="w-full h-full object-cover"
               alt="Login visual"
             />
