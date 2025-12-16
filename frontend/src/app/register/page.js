@@ -12,6 +12,9 @@ const label =
 const input =
   "w-full border border-purple-200 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-purple-400 focus:outline-none text-sm";
 
+/* ✅ VALIDACIÓN CORRECTA DE CORREO (GENÉRICA Y REAL) */
+const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
 export default function Register() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
@@ -37,7 +40,7 @@ export default function Register() {
     });
   };
 
-  // ✅ Manejo NUMÉRICO real (sin letras ni exceso)
+  // ✅ Manejo NUMÉRICO real
   const handleNumericChange = (e, maxLength) => {
     const { name, value } = e.target;
     let cleanValue = value.replace(/\D/g, "");
@@ -49,7 +52,6 @@ export default function Register() {
     });
   };
 
-  // ✅ Bloquea letras al escribir
   const onlyNumbersKeyDown = (e) => {
     if (
       !/[0-9]/.test(e.key) &&
@@ -87,6 +89,19 @@ export default function Register() {
       return;
     }
 
+    // ✅ CORREO (ARREGLADO)
+    const emailNormalized = formData.email.trim();
+    if (!emailRegex.test(emailNormalized)) {
+      alert("⚠️ Ingrese un correo electrónico válido.");
+      return;
+    }
+
+    // ✅ CONTRASEÑA (MÍNIMO 8)
+    if (formData.password.length < 8) {
+      alert("⚠️ La contraseña debe tener mínimo 8 caracteres.");
+      return;
+    }
+
     const body = {
       nombre: formData.fullName,
       identificacion: formData.idNumber,
@@ -95,7 +110,7 @@ export default function Register() {
       programa: formData.program,
       ficha: formData.ficha,
       telefono: formData.phone,
-      email: formData.email,
+      email: emailNormalized,
       password: formData.password,
       consentimientoDatos: true,
     };
@@ -297,6 +312,8 @@ export default function Register() {
                   value={formData.email}
                   onChange={handleChange}
                   required
+                  pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                  title="Ingrese un correo electrónico válido"
                 />
               </div>
 
