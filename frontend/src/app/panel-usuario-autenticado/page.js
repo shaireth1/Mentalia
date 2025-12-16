@@ -31,6 +31,8 @@ export default function Dashboard() {
   const [activeView, setActiveView] = useState("Inicio");
   const [storedUser, setStoredUser] = useState(null);
   const [weeklyData, setWeeklyData] = useState([]);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
 
   // ---------------------------
   // TOKEN SEGURO
@@ -226,6 +228,25 @@ export default function Dashboard() {
   return (
     <div className="flex h-screen bg-[#f6f4fb] text-gray-800 flex-col">
       <header className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white flex flex-col md:flex-row justify-between items-start md:items-center px-4 md:px-8 py-4 shadow-md gap-4">
+        <button
+          className="md:hidden p-2 rounded-lg hover:bg-white/20"
+          onClick={() => setMobileMenuOpen(true)}
+        >
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M4 6h16M4 12h16M4 18h16"
+            />
+          </svg>
+        </button>
+
         <div className="flex items-center space-x-3">
           <img src="/mentalialogo.png.png" className="w-8 h-8 object-contain" />
           <div>
@@ -247,6 +268,37 @@ export default function Dashboard() {
           </button>
         </div>
       </header>
+      
+        {mobileMenuOpen && (
+          <div className="fixed inset-0 z-50 bg-black/40 md:hidden">
+            <div className="absolute left-0 top-0 h-full w-64 bg-white shadow-xl p-4 flex flex-col">
+
+              <div className="flex justify-between items-center mb-4">
+                <span className="font-semibold text-purple-700">Menú</span>
+                <button onClick={() => setMobileMenuOpen(false)}>✕</button>
+              </div>
+
+              <nav className="space-y-2">
+                {sidebarItems.map((item) => (
+                  <button
+                    key={item}
+                    onClick={() => {
+                      setActiveView(item);
+                      setMobileMenuOpen(false);
+                    }}
+                    className={`w-full text-left px-4 py-2 rounded-lg ${
+                      activeView === item
+                        ? "bg-purple-100 text-purple-700 font-medium"
+                        : "hover:bg-purple-50"
+                    }`}
+                  >
+                    {item}
+                  </button>
+                ))}
+              </nav>
+            </div>
+          </div>
+        )}
 
       <div className="flex flex-1 overflow-hidden">
         <aside className="hidden md:flex w-60 bg-white shadow-md flex-col p-4">
@@ -279,7 +331,8 @@ export default function Dashboard() {
           {activeView === "Inicio" && (
             <>
               {/* Sección Inicio */}
-              <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-2xl flex justify-between items-center mb-6">
+              <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-2xl flex flex-col md:flex-row gap-4 items-start md:items-center mb-6">
+
                 <div>
                   <h1 className="text-2xl font-bold mb-2">
                     ¡Hola, {storedUser?.nombre?.split(" ")[0]}! 👋
@@ -294,8 +347,9 @@ export default function Dashboard() {
                   alt="foto"
                   width={280}
                   height={160}
-                  className="rounded-xl object-cover"
+                  className="rounded-xl object-cover w-full md:w-auto"
                 />
+
               </div>
 
               <div className="bg-white rounded-2xl p-6 mb-6 shadow-sm">
@@ -304,7 +358,7 @@ export default function Dashboard() {
                   ¿Cómo te sientes hoy?
                 </h3>
 
-                <div className="grid grid-cols-4 gap-4 mb-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                   {["Feliz", "Normal", "Triste", "Ansioso"].map((m) => (
                     <button
                       key={m}
