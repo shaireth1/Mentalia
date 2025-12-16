@@ -8,13 +8,12 @@ import sendEmail from "../utils/sendEmail.js";
 const FRONTEND_URL =
   process.env.FRONTEND_URL || "http://localhost:3000";
 
-// ✅ Validación estricta de dominios de correo permitidos
-const emailRegex =
-  /^[a-zA-Z0-9._%+-]+@(gmail\.com|hotmail\.com|outlook\.com|yahoo\.com|sena\.edu\.co)$/;
-
-// ✅ Validación fuerte de contraseña (académica)
-const passwordRegex =
-  /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).{8,}$/;
+/**
+ * ✅ VALIDACIÓN DE CORREO (GENÉRICA Y REAL)
+ * - Acepta correos válidos sin amarrarse a dominios específicos
+ * - Evita cosas raras como espacios, falta de @ o falta de TLD
+ */
+const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 // =======================================================
 // 🟢 REGISTRO DE USUARIO (RF1, RF4, RF5, RNF1, RNF10)
@@ -58,24 +57,24 @@ export async function registerUser(req, res) {
       });
     }
 
-    // 🔒 Validación de correo (dominio válido)
-    if (!emailRegex.test(email)) {
+    // 🔒 Normalizar correo
+    const normalizedEmail = String(email).toLowerCase().trim();
+
+    // ✅ 1) VALIDAR FORMATO DE CORREO PRIMERO (ANTES DE CONSULTAR BD)
+    if (!emailRegex.test(normalizedEmail)) {
       return res.status(400).json({
-        msg: "El correo no tiene un dominio válido.",
+        msg: "Ingrese un correo electrónico válido.",
       });
     }
 
-    // 🔒 Validación fuerte de contraseña
-    if (!passwordRegex.test(password)) {
+    // ✅ 2) RNF1 — contraseña mínimo 8 caracteres (SOLO ESTO)
+    if (String(password).length < 8) {
       return res.status(400).json({
-        msg:
-          "La contraseña debe tener mínimo 8 caracteres, una mayúscula, una minúscula y un número.",
+        msg: "La contraseña debe tener mínimo 8 caracteres.",
       });
     }
 
-    // 🔒 Verificar duplicado REAL (case-insensitive)
-    const normalizedEmail = email.toLowerCase();
-
+    // ✅ 3) RECIÉN AQUÍ verificar duplicado (cuando todo lo anterior pasó)
     const userExists = await User.findOne({ email: normalizedEmail });
     if (userExists) {
       return res.status(400).json({
@@ -149,6 +148,7 @@ export async function registerUser(req, res) {
     console.error("❌ Error en registerUser:", error);
     return res.status(500).json({
       msg: "Error en el registro.",
+      error: error.message,
     });
   }
 }
@@ -166,7 +166,7 @@ export async function loginUser(req, res) {
       });
     }
 
-    const normalizedEmail = email.toLowerCase();
+    const normalizedEmail = String(email).toLowerCase().trim();
 
     const user = await User.findOne({ email: normalizedEmail });
     if (!user) {
@@ -226,6 +226,7 @@ export async function loginUser(req, res) {
     console.error("❌ Error en loginUser:", error);
     return res.status(500).json({
       msg: "Error al iniciar sesión.",
+      error: error.message,
     });
   }
 }

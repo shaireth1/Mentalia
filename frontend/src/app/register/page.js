@@ -18,6 +18,7 @@ const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 export default function Register() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false); // 🔴 FIX
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -40,7 +41,6 @@ export default function Register() {
     });
   };
 
-  // ✅ Manejo NUMÉRICO real
   const handleNumericChange = (e, maxLength) => {
     const { name, value } = e.target;
     let cleanValue = value.replace(/\D/g, "");
@@ -65,57 +65,40 @@ export default function Register() {
     }
   };
 
-  /* >>>>>> REGISTRO <<<<<< */
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!formData.consentimiento) {
-      alert("⚠️ Debes aceptar el consentimiento informado para continuar.");
-      return;
-    }
-
-    if (formData.idNumber.length < 6 || formData.idNumber.length > 10) {
-      alert("⚠️ La identificación debe tener entre 6 y 10 números.");
-      return;
-    }
-
-    if (formData.ficha.length !== 7) {
-      alert("⚠️ El número de ficha debe tener exactamente 7 dígitos.");
-      return;
-    }
-
-    if (formData.phone.length < 7 || formData.phone.length > 10) {
-      alert("⚠️ El teléfono debe tener entre 7 y 10 dígitos.");
-      return;
-    }
-
-    // ✅ CORREO (ARREGLADO)
-    const emailNormalized = formData.email.trim();
-    if (!emailRegex.test(emailNormalized)) {
-      alert("⚠️ Ingrese un correo electrónico válido.");
-      return;
-    }
-
-    // ✅ CONTRASEÑA (MÍNIMO 8)
-    if (formData.password.length < 8) {
-      alert("⚠️ La contraseña debe tener mínimo 8 caracteres.");
-      return;
-    }
-
-    const body = {
-      nombre: formData.fullName,
-      identificacion: formData.idNumber,
-      edad: formData.age,
-      genero: formData.gender,
-      programa: formData.program,
-      ficha: formData.ficha,
-      telefono: formData.phone,
-      email: emailNormalized,
-      password: formData.password,
-      consentimientoDatos: true,
-    };
+    if (loading) return; // 🔴 FIX
+    setLoading(true);
 
     try {
+      if (!formData.consentimiento) {
+        alert("⚠️ Debes aceptar el consentimiento informado para continuar.");
+        return;
+      }
+
+      if (!emailRegex.test(formData.email.trim())) {
+        alert("⚠️ Ingrese un correo electrónico válido.");
+        return;
+      }
+
+      if (formData.password.length < 8) {
+        alert("⚠️ La contraseña debe tener mínimo 8 caracteres.");
+        return;
+      }
+
+      const body = {
+        nombre: formData.fullName,
+        identificacion: formData.idNumber,
+        edad: formData.age,
+        genero: formData.gender,
+        programa: formData.program,
+        ficha: formData.ficha,
+        telefono: formData.phone,
+        email: formData.email.trim(),
+        password: formData.password,
+        consentimientoDatos: true,
+      };
+
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`,
         {
@@ -133,14 +116,14 @@ export default function Register() {
       } else {
         alert("❌ " + (data.msg || data.error));
       }
-    } catch (err) {
-      console.error("Error en el registro:", err);
-      alert("❌ Error inesperado.");
+    } finally {
+      setLoading(false); // 🔴 FIX
     }
   };
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-[#f3e8ff] font-sans p-6 relative">
+
       {/* Volver */}
       <div className="absolute top-6 left-6 flex items-center gap-2 text-purple-700 hover:underline cursor-pointer">
         <ArrowLeft className="w-4 h-4" />
